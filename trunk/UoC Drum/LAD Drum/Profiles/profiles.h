@@ -11,6 +11,9 @@
 #define DEFAULT_PROFILE (4)
 #define NUMBER_OF_INPUTS   16
 
+#define DEFAULT_BAUD_RATE	BAUD_31250
+
+
 typedef struct {
 
    /* In 100us resolution */
@@ -29,7 +32,7 @@ typedef struct {
 } Profile_t;
 
 
-
+extern const Profile_t Default_Profile;
 
 void ProfileInit(void);
 
@@ -45,5 +48,6 @@ void Flash_Erase(void* dst);
 void Flash_write(void *dst, const void *src, unsigned int size);
 void write_Seg(void *dst, char value);
 
+Profile_t* Profile_Read(uint8_t profileIndex);
 
 #endif

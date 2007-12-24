@@ -6,6 +6,7 @@
 #include "MSB2LSB/MSB2LSB.h"
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"
+#include "SoftTimer/Softtimer.h"
 
 #define CHSELOUT  P4OUT
 #define CHSELDIR  P4DIR
@@ -21,8 +22,6 @@
 
 
 Profile_t CurrentProfile;
-uint8_t 	 SelectedProfile = DEFAULT_PROFILE;
-
 uint16_t SignalPeak[NUMBER_OF_INPUTS];
 uint8_t  Retrigger[NUMBER_OF_INPUTS/2];
 /* For Retrigger Timers */

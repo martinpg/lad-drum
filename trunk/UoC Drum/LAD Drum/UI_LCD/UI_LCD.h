@@ -88,17 +88,17 @@
 
 void UI_LCD_HWInit(void);
 void UI_LCD_Init(void);
-void UI_LCD_Write(uint8_t code);
+void UI_LCD_Write(char code);
 void UI_LCD_SetInstruction(void);
 void UI_LCD_SetData(void);
 
-void UI_LCD_Char(uint8_t data);
+void UI_LCD_Char(char data);
 
 
-void UI_LCD_String(uint8_t* string);
+void UI_LCD_String(char* string);
 void UI_LCD_String_P(const char* string_P);
 
-void UI_LCD_Char(uint8_t data);
+void UI_LCD_Char(char data);
 
 void UI_LCD_Clear(void);
 void UI_LCD_Home(void);

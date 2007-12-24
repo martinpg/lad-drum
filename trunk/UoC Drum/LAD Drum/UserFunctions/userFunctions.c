@@ -17,6 +17,9 @@
 #include "Delay/delay.h"
 #include "Profiles/profiles.h"
 
+
+static uint8_t SelectedProfile = DEFAULT_PROFILE;
+
 void SetMIDIRate(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
@@ -214,7 +217,7 @@ void ChannelSettings(void* data)
 			case KB_ENTER:
 			case KP_ENTER:
 				MenuReset();
-				SoftTimerStart(SC_AutoMenuUpdate);
+				SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
 		   	executeState(currentState);
 				firstEnter = 1;
 				return;	
@@ -285,11 +288,11 @@ void SetThreshold(void* data)
 	
    input = data;
 
-   SoftTimerStop(SC_MIDIOutput);
+   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
    ADC12_SetupAddress(0, INCH_A3);
    uint16_t PotValue = (ADC12_Sample() >> THRESHOLD_LEVELS);
    ADC12_SetupAddress(0, INCH_A0); 
-   SoftTimerStart(SC_MIDIOutput);
+   SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
 
 
 	switch( *input )
@@ -304,11 +307,11 @@ void SetThreshold(void* data)
          break;
 	
 	      case KP_C:
-				SC_AutoMenuUpdate.timerEnable ^= 1;  
+				SoftTimer2[SC_AutoMenuUpdate].timerEnable ^= 1;  
 	      break;  	  
 			       
          case KP_BACK:
-				SoftTimerStop(SC_AutoMenuUpdate);
+				SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
          	MenuSetInput(KP_BACK);
             stateMachine(currentState);
             MenuSetInput(0);
@@ -594,15 +597,6 @@ void LoadProfile(void* data)
    MenuSetInput(0);
 }
 
-Profile_t* Profile_Read(uint8_t profileIndex)
-{
-	
-	if( profileIndex >= DEFAULT_PROFILE )
-	{
-		return (Profile_t*)&Default_Profile; 	
-	} 
-   return (Profile_t*)PROFILE(profileIndex);   
-}
 
 
 

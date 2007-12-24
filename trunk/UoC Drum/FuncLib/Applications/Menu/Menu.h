@@ -162,7 +162,7 @@ extern uint8_t firstEnter;
 extern uint8_t selectedItem;
 /** General Menu Functions */
 void MenuSetDisplay(uint8_t display);
-void (*MenuPrint)(uint8_t* string);
+void (*MenuPrint)(char* string);
 /* For a string residing in FLASH */
 void (*MenuPrint_P)(const char* string);
 void (*MenuNewLine)(void);
@@ -176,7 +176,7 @@ void LCD_Reset(void);
 
 /* Menu Uart Functions */
 void MenuUart_NewLine(void);
-void MenuUartTxString(uint8_t* string);
+void MenuUartTxString(char* string);
 void MenuUartTxString_P(const char* string);
 void MenuUart_Reset(void);
 

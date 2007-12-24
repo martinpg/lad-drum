@@ -3,6 +3,8 @@
 #include <mspgcc/flash.h>
 #include "profiles.h"
 
+
+
 /* Sets up the clock with MCLK*/
 void ProfileInit(void)
 {
@@ -49,3 +51,11 @@ void Profile_Write(Profile_t* profile, uint8_t profileIndex)
 }
 
 
+Profile_t* Profile_Read(uint8_t profileIndex)
+{
+	if( profileIndex >= DEFAULT_PROFILE )
+	{
+		return (Profile_t*)&Default_Profile; 	
+	} 
+   return (Profile_t*)PROFILE(profileIndex);   
+}

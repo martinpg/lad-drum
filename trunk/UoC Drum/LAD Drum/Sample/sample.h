@@ -21,15 +21,6 @@
 #define CH14       (14)
 #define CH15       (15)
 
-/* 10us Resolution */
-#define SAMPLE_10US    (F_CPU / 100000)
-
-/* 100us Resolution */
-#define SAMPLE_100US (800)
-
-/* 1ms Resoultion */
-#define SAMPLE_1MS   (8000)
-
 
 /* The number of bits in the ADC Reading */
 #define MAX_GAIN           (12)
@@ -47,7 +38,6 @@
 
 extern uint16_t SignalPeak[];
 extern Profile_t CurrentProfile;
-extern uint8_t 	 SelectedProfile;
 extern SoftTimer_8   RetriggerPeriod[];
 
 
