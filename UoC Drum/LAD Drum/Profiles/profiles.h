@@ -24,7 +24,7 @@ typedef struct {
    uint16_t  ChannelThreshold[NUMBER_OF_INPUTS];
    
    /* in 100us resolution */
-   uint8_t	 RetriggerPeriods[NUMBER_OF_INPUTS];
+   uint8_t	 ChannelRetrigger[NUMBER_OF_INPUTS];
    
 } Profile_t;
 

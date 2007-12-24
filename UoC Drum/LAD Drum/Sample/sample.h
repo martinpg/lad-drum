@@ -2,6 +2,7 @@
 #define  SAMPLE_H
 
 #include "Profiles/profiles.h"
+#include "SoftTimer/Softtimer.h"
 
 #define CH0        (0)
 #define CH1        (1)
@@ -36,6 +37,10 @@
 #define MIN_THRESHOLD      (0)
 #define THRESHOLD_LEVELS	(6)
 
+/* Retrigger Defines */
+#define MAX_RETRIGGER      (100)
+#define MIN_RETRIGGER         (0)
+
 #define CHANNEL_ON   (1)
 #define CHANNEL_OFF  (0)
 
@@ -43,6 +48,8 @@
 extern uint16_t SignalPeak[];
 extern Profile_t CurrentProfile;
 extern uint8_t 	 SelectedProfile;
+extern SoftTimer_8   RetriggerPeriod[];
+
 
 void SampleInit(void);
 void ResetValues(void);
@@ -67,6 +74,11 @@ void SetChannelGain(uint8_t channel, uint8_t Gain);
 /* Channel Thresholds */
 uint16_t GetChannelThresh(uint8_t channel);
 void SetChannelThresh(uint8_t channel, uint16_t thresh);
+
+/* Channel Retrigger */
+uint8_t GetChannelReTrig(uint8_t channel);
+void SetChannelReTrig(uint8_t channel, uint8_t retrig);
+void UpdateChannelRetriggers(void);
 
 
 #endif

@@ -278,7 +278,7 @@ void SetThreshold(void* data)
 {
 	uint8_t* input;
    uint8_t outputString[21];
-   int8_t SelectedChannel = GetState() - ST_CHANNEL_1;
+   int8_t SelectedChannel = GetState() - ST_THRESHOLD_1;
    
    static uint16_t lastPotValue = 0;
 	static uint8_t firstEnter = 1;
@@ -338,37 +338,36 @@ void SetRetrigger(void* data)
 {
 	uint8_t* input;
    uint8_t outputString[21];
-   int8_t SelectedChannel = GetState() - ST_CHANNEL_1;
+   int8_t SelectedChannel = GetState() - ST_RETRIGGER_1;
    
    static uint16_t lastPotValue = 0;
 	static uint8_t firstEnter = 1;
 	
    input = data;
 
-   SoftTimerStop(SC_MIDIOutput);
+   /*SoftTimerStop(SC_MIDIOutput);
    ADC12_SetupAddress(0, INCH_A3);
    uint16_t PotValue = (ADC12_Sample() >> THRESHOLD_LEVELS);
    ADC12_SetupAddress(0, INCH_A0); 
-   SoftTimerStart(SC_MIDIOutput);
+   SoftTimerStart(SC_MIDIOutput);*/
 
 
 	switch( *input )
 	{
-         /* Up and down a Threshold Level */
+         /* Up and down a Trigger Level */
          case KP_A:
-				SetChannelThresh(SelectedChannel, (((GetChannelThresh(SelectedChannel) >> THRESHOLD_LEVELS)+1) << THRESHOLD_LEVELS));
+				SetChannelReTrig(SelectedChannel, GetChannelReTrig(SelectedChannel) + 1);
          break;
          
          case KP_B:
-				SetChannelThresh(SelectedChannel, (((GetChannelThresh(SelectedChannel) >> THRESHOLD_LEVELS)-1) << THRESHOLD_LEVELS));  
-         break;
+				SetChannelReTrig(SelectedChannel,  GetChannelReTrig(SelectedChannel) -1 );         break;
 	
 	      case KP_C:
-				SC_AutoMenuUpdate.timerEnable ^= 1;  
+				//SC_AutoMenuUpdate.timerEnable ^= 1;  
 	      break;  	  
 			       
          case KP_BACK:
-				SoftTimerStop(SC_AutoMenuUpdate);
+				//SoftTimerStop(SC_AutoMenuUpdate);
          	MenuSetInput(KP_BACK);
             stateMachine(currentState);
             MenuSetInput(0);
@@ -380,17 +379,18 @@ void SetRetrigger(void* data)
 		
 	firstEnter = 0;
 
-	SetChannelThresh(SelectedChannel, GetChannelThresh(SelectedChannel) - lastPotValue + PotValue - MIN_THRESHOLD );
-	lastPotValue = PotValue;
-
-	uint8toa((GetChannelThresh(SelectedChannel) >> THRESHOLD_LEVELS), outputString);
-	MenuPrint_P(PSTR("Threshold Level: "));
+	/*SetChannelThresh(SelectedChannel, GetChannelThresh(SelectedChannel) - lastPotValue + PotValue - MIN_THRESHOLD );
+	lastPotValue = PotValue;*/   
+	uint8toa(GetChannelReTrig(SelectedChannel), outputString);
+	MenuPrint_P(PSTR("Retrigger Level: "));
 	MenuPrint(outputString);    
-	
 	MenuNewLine(); 
-	MenuPrint_P(PSTR("Fine Tune:"));   
-	UI_LCD_Pos(1, 10);         
-   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);
+	
+   UpdateChannelRetriggers();
+   	
+/*	MenuPrint_P(PSTR("Fine Tune:"));   */
+/*	UI_LCD_Pos(1, 10);         
+   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);*/
 }
 
 
@@ -560,9 +560,13 @@ void LoadProfile(void* data)
 
 	memcpy((Profile_t*)&CurrentProfile, Profile_Read(ProfileSlot), sizeof(Profile_t));
 
+   /* Implement the changes */
 	MIDI_SetRate(MIDI_GetRate());
 	MIDI_SetBaud(MIDI_GetBaud());
 	MIDI_SetChannelCode( MIDI_GetChannelCode() );
+
+   /* Update the Retrigger periods */
+   UpdateChannelRetriggers();
 
 	if( ProfileSlot == DEFAULT_PROFILE)
 	{

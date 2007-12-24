@@ -60,7 +60,12 @@ const Profile_t Default_Profile =
 	{MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, 
 	 MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD,
 	 MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD,
-	 MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD}
+	 MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD},
+	 
+	{MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER,
+	 MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER,
+	 MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER,
+	 MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER}
 };
 
 
@@ -155,7 +160,7 @@ int main(void)
          uint8_t i;
          for( i = 0; i < NUMBER_OF_INPUTS; i++ )
          {
-            if(GetChannelStatus(i))
+            if(GetChannelStatus(i) && (RetriggerPeriod[i].timerEnable != 0) )
             {
                /* Change the channel */              
                SampleChannel(i);
@@ -249,6 +254,8 @@ SoftTimer_16  SC_MIDIOutput = {50,0,1};
 SoftTimer_16  SC_DrumTest = {2000,0,0};
 SoftTimer_16  Cymbal_DrumTest = {5000,0,0};
 
+
+
 /* For the 1ms timer */
 SoftTimer_16  SC_AutoMenuUpdate = {150, 0, 0};
 
@@ -267,6 +274,21 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 	      SoftTimerInc(SC_DrumTest);
 	      SoftTimerInc(Cymbal_DrumTest);
 	      
+	      uint8_t i;
+	      for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
+	      {
+            if(RetriggerPeriod[i].timerEnable)
+            {
+               SoftTimerInc(RetriggerPeriod[i]);
+            }
+            
+            if( SoftTimerInterrupt(RetriggerPeriod[i]) )
+            {
+               SoftTimerStop(RetriggerPeriod[i]);
+               SoftTimerReset(RetriggerPeriod[i]);      
+            }
+         }
+	      	      
 	      /* Resets every 100us */
 	      if(SoftTimerInterrupt(SC_MIDIOutput))
 	      {

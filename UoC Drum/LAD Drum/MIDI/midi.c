@@ -15,7 +15,9 @@ void MIDI_Output(void)
    uint8_t i;
    for( i = 0; i < NUMBER_OF_INPUTS; i++)
    {      
-      if( GetChannelStatus(i) && (SignalPeak[i] > GetChannelThresh(i)) )
+      if( GetChannelStatus(i) && 
+          (RetriggerPeriod[i].timerEnable != 0) && 
+          (SignalPeak[i] > GetChannelThresh(i)) )
       {
 			uint16_t conditionedSignal = ((SignalPeak[i] - GetChannelThresh(i)) >> GetChannelGain(i));
 			if( conditionedSignal )
@@ -31,6 +33,9 @@ void MIDI_Output(void)
 	         {
 	            MIDI_Tx( conditionedSignal );
 	         }
+	         
+	         SoftTimerStart(RetriggerPeriod[i]);
+              
 			}
       }  
    }

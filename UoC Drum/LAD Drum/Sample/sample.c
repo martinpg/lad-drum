@@ -24,7 +24,9 @@ Profile_t CurrentProfile;
 uint8_t 	 SelectedProfile = DEFAULT_PROFILE;
 
 uint16_t SignalPeak[NUMBER_OF_INPUTS];
-uint8_t  Retrigger[NUMBER_OF_INPUTS / 8];
+uint8_t  Retrigger[NUMBER_OF_INPUTS/2];
+/* For Retrigger Timers */
+SoftTimer_8   RetriggerPeriod[NUMBER_OF_INPUTS];
 
 /* The functions below all work on the 'current profile */
 
@@ -135,6 +137,36 @@ void SetChannelThresh(uint8_t channel, uint16_t thresh)
    else
    {
       CurrentProfile.ChannelThreshold[channel] = thresh + MIN_THRESHOLD;
+   }
+}
+
+
+uint8_t GetChannelReTrig(uint8_t channel)
+{
+   return CurrentProfile.ChannelRetrigger[channel];
+}
+
+void SetChannelReTrig(uint8_t channel, uint8_t retrig)
+{
+   if( retrig > MAX_RETRIGGER)
+   {
+      retrig = MAX_RETRIGGER;  
+   }
+   else
+   {
+      CurrentProfile.ChannelRetrigger[channel] = retrig + MIN_RETRIGGER;
+   }
+}
+
+
+/* Initiate changes */
+void UpdateChannelRetriggers(void)
+{
+   uint8_t i;
+   /* Update the Retrigger periods */
+   for( i = 0; i < NUMBER_OF_INPUTS; i++ )
+   {
+      RetriggerPeriod[i].timeCompare = GetChannelReTrig(i);
    }
 }
 
