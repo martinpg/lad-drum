@@ -18,6 +18,7 @@ void PrintMIDIRate(void);
 void ChannelSettings(void* data);
 
 void SetThreshold(void* data);
+void SetRetrigger(void* data);
 
 void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length);
 
