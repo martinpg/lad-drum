@@ -268,7 +268,7 @@ void MenuUart_NewLine(void)
 }
 
 
-void MenuUartTxString(uint8_t* string)
+void MenuUartTxString(char* string)
 {
    UART_TxString(string);
    UI_LCD_String(string);
@@ -384,7 +384,7 @@ void MenuUpdate(void)
                PRINT_FUNC("%s\n", (uint8_t*)outputString );
             }
 #else
-            MenuPrint((uint8_t*)outputString);
+            MenuPrint((char*)outputString);
             MenuNewLine();            
 #endif            
          }

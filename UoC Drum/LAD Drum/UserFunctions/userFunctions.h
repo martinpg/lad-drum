@@ -8,7 +8,7 @@ void SaveProfile(void* data);
 void LoadProfile(void* data);
 void ShowProfile(void* data);
 
-Profile_t* Profile_Read(uint8_t profileIndex);
+
 
 void SetMIDIRate(void* data);
 void EditMIDIRate(void* data);

@@ -19,9 +19,9 @@ void UART_SetBaudRate(uint8_t BR_Hi, uint8_t BR_Lo);
 
 void wait_for_tx_ready(void);
 
-void UART_Tx(uint8_t byte);
-void UART_TxString(uint8_t *string);
-void UART_TxString_P(const uint8_t *string);
+void UART_Tx(char byte);
+void UART_TxString(char *string);
+void UART_TxString_P(const char *string);
 
 void UART_TxDump(uint8_t* buffer, uint16_t nbytes );
 

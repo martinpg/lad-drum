@@ -17,7 +17,7 @@
 #define MAX_MIDI_CHANNEL (0x10)
 
 
-extern const uint8_t MIDI_NOTES[];
+extern const char MIDI_NOTES[];
 
 enum {
    MN_C = 0,
@@ -49,7 +49,7 @@ void MIDI_SetBaud(uint16_t newBaud);
 uint8_t MIDI_GetChannelCode(void);
 void MIDI_SetChannelCode(uint8_t newCode);
 
-void MIDI_NoteString(uint8_t note, uint8_t* buffer);
+void MIDI_NoteString(uint8_t note, char* buffer);
 
 uint8_t MIDI_Octave(uint8_t note);
 

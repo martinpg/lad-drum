@@ -8,6 +8,7 @@
 #include <mspgcc/flash.h>
 #include <mspgcc/util.h>
 
+
 #include "main.h"
 #include "Delay/delay.h"
 #include "UART/uart.h"
@@ -25,12 +26,9 @@
 
 
 
-#define sei()  _BIS_SR(GIE)
-#define cli()  _BIC_SR(GIE)
 
 
-#define UI_INT_PORT  P1IN
-#define UI_INT_PIN   (1<<3)
+
 
 
 const Profile_t Default_Profile = 
@@ -137,7 +135,7 @@ int main(void)
    /* Reprint Menu */   
    MenuUpdate();   
    
-   cli();
+   dint();
  
    uint16_t sample;
    uint8_t buffer[20];
@@ -148,7 +146,7 @@ int main(void)
 
 
 
-   sei();  
+   eint();  
    
    SampleChannel(0);
    
@@ -156,7 +154,7 @@ int main(void)
    {     
       while( ReadADC.timerEnable )
       {
-         sei();
+         eint();
          uint8_t i;
          for( i = 0; i < NUMBER_OF_INPUTS; i++ )
          {
@@ -222,7 +220,7 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
 /* Handle a key press */
 interrupt (PORT1_VECTOR)   port1_int(void)
 {
-   cli();
+   dint();
    
    if( P1IN & UI_INT_PIN )
    {
@@ -248,114 +246,4 @@ interrupt (PORT1_VECTOR)   port1_int(void)
    }
 }
 
-/* For the 100us timer */
-SoftTimer_16  SC_SecondDelay = {10000, 0, 1};
-SoftTimer_16  SC_MIDIOutput = {50,0,1};
-SoftTimer_16  SC_DrumTest = {2000,0,0};
-SoftTimer_16  Cymbal_DrumTest = {5000,0,0};
-
-
-
-/* For the 1ms timer */
-SoftTimer_16  SC_AutoMenuUpdate = {150, 0, 0};
-
-interrupt (TIMERB1_VECTOR) timerb1_int(void)
-{
-   cli();   
-   
-   uint8_t intVec = TBIV;
-   
-   switch(intVec)
-   {
-		case TBIV_CCR1: 	
-			TBCCR1 += SAMPLE_100US;
-	      SoftTimerInc(SC_SecondDelay);
-	      SoftTimerInc(SC_MIDIOutput);
-	      SoftTimerInc(SC_DrumTest);
-	      SoftTimerInc(Cymbal_DrumTest);
-	      
-	      uint8_t i;
-	      for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
-	      {
-            if(RetriggerPeriod[i].timerEnable)
-            {
-               SoftTimerInc(RetriggerPeriod[i]);
-            }
-            
-            if( SoftTimerInterrupt(RetriggerPeriod[i]) )
-            {
-               SoftTimerStop(RetriggerPeriod[i]);
-               SoftTimerReset(RetriggerPeriod[i]);      
-            }
-         }
-	      	      
-	      /* Resets every 100us */
-	      if(SoftTimerInterrupt(SC_MIDIOutput))
-	      {
-	         //UART_Tx(0);
-	         MIDI_Output();
-	         ResetValues();
-	         SoftTimerReset(SC_MIDIOutput);
-	      }
-	      
-	      
-	      /* Resets every 200ms */
-	      if(SoftTimerInterrupt(SC_DrumTest))
-	      {
-	         uint8_t DrumHit[] = {0x99, 0x32, 0x64, 0};
-	         UART_TxString(DrumHit);
-	         SoftTimerReset(SC_DrumTest);
-	      } 
-	   
-	      /* Resets every 200ms */
-	      if(SoftTimerInterrupt(Cymbal_DrumTest))
-	      {
-	         uint8_t CymbalHit[] = {0x99, 0x39, 0x64, 0};
-	         UART_TxString(CymbalHit);
-	         SoftTimerReset(Cymbal_DrumTest);
-	      }    
-	        
-	      
-	      
-	      if(SoftTimerInterrupt(SC_SecondDelay))
-	      {
-	         if( UI_INT_PORT & UI_INT_PIN )
-	         {
-	            UI_Activate();
-	            UI_SetRegister(UI_INTERRUPT, 0);  
-	         }
-	         //UART_TxString("1 Sec");
-	         SoftTimerReset(SC_SecondDelay);
-	      }   
-			
-		break;
-					
-		case TBIV_CCR2:
-			TBCCR2 += SAMPLE_1MS;
-	      SoftTimerInc(SC_AutoMenuUpdate);
-	      if( SoftTimerInterrupt(SC_AutoMenuUpdate) )
-	      {  
-	         /* Update the Menu */
-	         MenuSetInput(0x01);   
-	         MenuUpdate();  
-	         
-	         SoftTimerReset(SC_AutoMenuUpdate);
-	      }
-	   break;
-	}
-   
-   //if( intVec & TBIV_CCR1 )
-   {
-      
-   }
-   
-   /* 1ms Timer */
-   //if( intVec & TBIV_CCR2 )
-   {
-
-   }   
-   
- 
-   sei();    
-}
 

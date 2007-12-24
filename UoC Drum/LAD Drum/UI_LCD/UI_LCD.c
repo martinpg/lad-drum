@@ -101,7 +101,7 @@ void UI_LCD_HWInit(void)
 
 
 /* Assumes 4-bit Mode */
-void UI_LCD_Write(uint8_t code)
+void UI_LCD_Write(char code)
 {
 	UI_LCD_SetRegister(UI_LCD_PORT, (code >> 4) & (0x0F) );
    UI_LCD_Strobe();
@@ -109,7 +109,7 @@ void UI_LCD_Write(uint8_t code)
    UI_LCD_Strobe();
 }
 
-void  UI_LCD_Char(uint8_t data)
+void  UI_LCD_Char(char data)
 {
    UI_LCD_SetData();
    UI_LCD_Write(data);
@@ -177,7 +177,7 @@ void UI_LCD_Clear(void)
 
 /* Prints a string to the LCD at the current position 
  * If the line overflows, the data continues to the next address */
-void UI_LCD_String(uint8_t* string)
+void UI_LCD_String(char* string)
 {
    UI_LCD_SetData();
    

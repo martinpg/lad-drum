@@ -102,7 +102,7 @@ void UART_ValidateModule(void)
 }
 
 /* UART_Tx: Transfers a byte out UARTx */
-void UART_Tx(uint8_t byte)
+void UART_Tx(char byte)
 {
    UART_ValidateModule();
    *UxTXBUF = byte;
@@ -129,7 +129,7 @@ void UART_TxDump(uint8_t* buffer, uint16_t nbytes )
 }
 
 /* Sends a string until a null char is reached */
-void UART_TxString(uint8_t *string)
+void UART_TxString(char *string)
 {
    while( *string )
    {
@@ -142,7 +142,7 @@ void UART_TxString(uint8_t *string)
 }
 
 /* Sends a string until a null char is reached */
-void UART_TxString_P(const uint8_t *string)
+void UART_TxString_P(const char *string)
 {
    while( *string )
    {

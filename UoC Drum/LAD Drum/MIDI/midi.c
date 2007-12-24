@@ -8,7 +8,7 @@
 
 #define MIDI_Tx(x)   UART_Tx(x)
 
-const uint8_t MIDI_NOTES[] = "C C#D D#E F F#G G#A A#B ";
+const char MIDI_NOTES[] = "C C#D D#E F F#G G#A A#B ";
 
 void MIDI_Output(void)
 {
@@ -50,7 +50,7 @@ uint16_t MIDI_GetRate(void)
 void MIDI_SetRate(uint16_t newRate)
 {
 	CurrentProfile.MIDI_OutputRate = newRate;
-   SC_MIDIOutput.timeCompare = newRate;
+   SoftTimer1[SC_MIDIOutput].timeCompare = newRate;
 }
 
 uint16_t MIDI_GetBaud(void)
@@ -83,7 +83,7 @@ void MIDI_SetBaud(uint16_t newBaud)
 
 
 /* Pass any number from 0->127 and obtain the corresponding note in a string format */
-void MIDI_NoteString(uint8_t note, uint8_t* buffer)
+void MIDI_NoteString(uint8_t note, char* buffer)
 {
    note = note - (NOTE_COUNT * MIDI_Octave(note));
    strncpy(buffer, &MIDI_NOTES[note*2] , 2);
