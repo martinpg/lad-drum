@@ -91,6 +91,7 @@ SOURCE_FILES = $(PERIPHERALS_DIR)/UART/uart.c \
                $(UTIL_DIR)/Delay/delay.c \
                $(MISC_DIR)/mmculib/uint16toa.c \
 					$(MISC_DIR)/mmculib/uint8toa.c \
+					$(MISC_DIR)/SoftTimer/Softtimer.c \
 					$(APPLICATIONS_DIR)/Menu/Menu.c \
 					Profiles/profiles.c \
 					UserFunctions/userFunctions.c \
@@ -105,7 +106,7 @@ SOURCE_FILES = $(PERIPHERALS_DIR)/UART/uart.c \
 #Header and Object File paths
 HEADER_FILES = $(SOURCE_FILES:.c=.h)
 OBJECTS = $(SOURCE_FILES:.c=.o)
-LIB_FILES = J:\Summer\MSPGCC\msp430\lib\libmspgcc.a 
+LIB_FILES = D:\MSPGCC\msp430\lib\libmspgcc.a 
 #Header and Object File paths
 
 #Project name:
