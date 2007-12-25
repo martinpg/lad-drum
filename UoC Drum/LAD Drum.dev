@@ -1,7 +1,7 @@
 [Project]
 FileName=LAD Drum.dev
 Name=LAD Drum
-UnitCount=42
+UnitCount=37
 Type=1
 Ver=1
 ObjFiles=
@@ -20,7 +20,7 @@ ObjectOutput=
 OverrideOutput=0
 OverrideOutputName=
 HostApplication=
-Folders=External,External/MAX7300,Menu,MIDI,MSPGCC,Peripherals,Peripherals/ADC,Peripherals/I2C,Peripherals/PWM,"Peripherals/Soft I2C",Peripherals/UART,Profiles,"Sample Control","Soft Timer",UI,UI/UI_KP,UI/UI_LCD,"User Functions",Util
+Folders=External,External/MAX7300,Menu,MIDI,MSPGCC,Peripherals,Peripherals/ADC,Peripherals/I2C,Peripherals/PWM,"Peripherals/Soft I2C",Peripherals/UART,Profiles,"Sample Control",SoftTimer,UI,UI/UI_KP,UI/UI_LCD,"User Functions",Util
 CommandLine=
 UseCustomMakefile=0
 CustomMakefile=
@@ -67,16 +67,6 @@ OverrideBuildCmd=0
 BuildCmd=
 
 [Unit3]
-FileName=..\MSPGCC\msp430\include\msp430x16x.h
-CompileCpp=0
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit5]
 FileName=FuncLib\Peripherals\UART\uart.c
 CompileCpp=0
 Folder=Peripherals/UART
@@ -86,37 +76,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit6]
-FileName=FuncLib\Peripherals\UART\uart.h
-CompileCpp=0
-Folder=Peripherals/UART
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit4]
-FileName=..\MSPGCC\msp430\include\mspgcc\util.h
-CompileCpp=0
-Folder=MSPGCC
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit7]
-FileName=..\MSPGCC\msp430\include\stdint.h
-CompileCpp=0
-Folder=
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit8]
+[Unit5]
 FileName=FuncLib\Peripherals\ADC\adc12.c
 CompileCpp=0
 Folder=Peripherals/ADC
@@ -126,7 +86,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit9]
+[Unit6]
 FileName=FuncLib\Peripherals\ADC\adc12.h
 CompileCpp=0
 Folder=Peripherals/ADC
@@ -136,17 +96,17 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit11]
-FileName=FuncLib\Peripherals\I2C\i2c.h
+[Unit4]
+FileName=FuncLib\Peripherals\UART\uart.h
 CompileCpp=0
-Folder=Peripherals/I2C
+Folder=Peripherals/UART
 Compile=1
 Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit10]
+[Unit7]
 FileName=FuncLib\Peripherals\I2C\i2c.c
 CompileCpp=0
 Folder=Peripherals/I2C
@@ -156,7 +116,17 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit12]
+[Unit8]
+FileName=FuncLib\Peripherals\I2C\i2c.h
+CompileCpp=0
+Folder=Peripherals/I2C
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit9]
 FileName=FuncLib\Peripherals\SoftI2C\softi2c.c
 CompileCpp=0
 Folder=Peripherals/Soft I2C
@@ -166,57 +136,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit13]
-FileName=FuncLib\Peripherals\SoftI2C\softi2c.h
-CompileCpp=0
-Folder=Peripherals/Soft I2C
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit24]
-FileName=FuncLib\Util\Delay\delay.h
-CompileCpp=0
-Folder=Util
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit25]
-FileName=FuncLib\Util\Delay\delay.c
-CompileCpp=0
-Folder=Util
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit27]
-FileName=FuncLib\Peripherals\PWM\pwm.c
-CompileCpp=0
-Folder=Peripherals/PWM
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit26]
-FileName=FuncLib\Peripherals\PWM\pwm.h
-CompileCpp=0
-Folder=Peripherals/PWM
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit14]
+[Unit11]
 FileName=FuncLib\External\MAX7300\max7300.c
 CompileCpp=0
 Folder=External/MAX7300
@@ -226,7 +146,17 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit15]
+[Unit10]
+FileName=FuncLib\Peripherals\SoftI2C\softi2c.h
+CompileCpp=0
+Folder=Peripherals/Soft I2C
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit12]
 FileName=FuncLib\External\MAX7300\max7300.h
 CompileCpp=0
 Folder=External/MAX7300
@@ -236,7 +166,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit16]
+[Unit13]
 FileName=LAD Drum\UI\UI.c
 CompileCpp=0
 Folder=UI
@@ -246,77 +176,17 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit17]
-FileName=LAD Drum\UI\UI.h
+[Unit24]
+FileName=FuncLib\Peripherals\PWM\pwm.c
 CompileCpp=0
-Folder=UI
+Folder=Peripherals/PWM
 Compile=1
 Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit18]
-FileName=LAD Drum\UI_LCD\UI_LCD.c
-CompileCpp=0
-Folder=UI/UI_LCD
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit19]
-FileName=LAD Drum\UI_LCD\UI_LCD.h
-CompileCpp=0
-Folder=UI/UI_LCD
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit20]
-FileName=LAD Drum\UI_KP\UI_KP.c
-CompileCpp=0
-Folder=UI/UI_KP
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit21]
-FileName=LAD Drum\UI_KP\UI_KP.h
-CompileCpp=0
-Folder=UI/UI_KP
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit22]
-FileName=FuncLib\Util\MSB2LSB\MSB2LSB.c
-CompileCpp=0
-Folder=Util
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit23]
-FileName=FuncLib\Util\MSB2LSB\MSB2LSB.h
-CompileCpp=0
-Folder=Util
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit28]
+[Unit25]
 FileName=LAD Drum\Sample\sample.c
 CompileCpp=0
 Folder=Sample Control
@@ -326,7 +196,17 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit29]
+[Unit27]
+FileName=FuncLib\Other\SoftTimer\Softtimer.h
+CompileCpp=0
+Folder=SoftTimer
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit26]
 FileName=LAD Drum\Sample\sample.h
 CompileCpp=0
 Folder=Sample Control
@@ -336,37 +216,117 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit30]
-FileName=..\MSPGCC\msp430\include\msp430\adc12.h
+[Unit14]
+FileName=LAD Drum\UI\UI.h
 CompileCpp=0
-Folder=
+Folder=UI
 Compile=1
 Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit32]
+[Unit15]
+FileName=LAD Drum\UI_LCD\UI_LCD.c
+CompileCpp=0
+Folder=UI/UI_LCD
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit16]
+FileName=LAD Drum\UI_LCD\UI_LCD.h
+CompileCpp=0
+Folder=UI/UI_LCD
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit17]
+FileName=LAD Drum\UI_KP\UI_KP.c
+CompileCpp=0
+Folder=UI/UI_KP
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit18]
+FileName=LAD Drum\UI_KP\UI_KP.h
+CompileCpp=0
+Folder=UI/UI_KP
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit19]
+FileName=FuncLib\Util\MSB2LSB\MSB2LSB.c
+CompileCpp=0
+Folder=Util
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit20]
+FileName=FuncLib\Util\MSB2LSB\MSB2LSB.h
+CompileCpp=0
+Folder=Util
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit21]
+FileName=FuncLib\Util\Delay\delay.h
+CompileCpp=0
+Folder=Util
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit22]
+FileName=FuncLib\Util\Delay\delay.c
+CompileCpp=0
+Folder=Util
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit23]
+FileName=FuncLib\Peripherals\PWM\pwm.h
+CompileCpp=0
+Folder=Peripherals/PWM
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit28]
 FileName=FuncLib\Other\SoftTimer\Softtimer.c
 CompileCpp=0
-Folder=Soft Timer
+Folder=SoftTimer
 Compile=1
 Link=1
 Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit31]
-FileName=FuncLib\Other\SoftTimer\Softtimer.h
-CompileCpp=0
-Folder=Soft Timer
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit33]
+[Unit29]
 FileName=FuncLib\Applications\Menu\Menu.c
 CompileCpp=0
 Folder=Menu
@@ -376,7 +336,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit34]
+[Unit30]
 FileName=FuncLib\Applications\Menu\Menu.h
 CompileCpp=0
 Folder=Menu
@@ -386,17 +346,7 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit35]
-FileName=LAD Drum\UserFunctions\userFunctions.c
-CompileCpp=0
-Folder=User Functions
-Compile=1
-Link=1
-Priority=1000
-OverrideBuildCmd=0
-BuildCmd=
-
-[Unit36]
+[Unit32]
 FileName=LAD Drum\UserFunctions\userFunctions.h
 CompileCpp=0
 Folder=User Functions
@@ -406,10 +356,60 @@ Priority=1000
 OverrideBuildCmd=0
 BuildCmd=
 
-[Unit37]
+[Unit31]
+FileName=LAD Drum\UserFunctions\userFunctions.c
+CompileCpp=0
+Folder=User Functions
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit33]
 FileName=LAD Drum\MIDI\midi.c
 CompileCpp=0
 Folder=MIDI
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit34]
+FileName=LAD Drum\MIDI\midi.h
+CompileCpp=0
+Folder=MIDI
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit35]
+FileName=LAD Drum\main.h
+CompileCpp=0
+Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit36]
+FileName=LAD Drum\Profiles\profiles.c
+CompileCpp=0
+Folder=Profiles
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit37]
+FileName=LAD Drum\Profiles\profiles.h
+CompileCpp=0
+Folder=Profiles
 Compile=1
 Link=1
 Priority=1000

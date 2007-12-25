@@ -185,8 +185,7 @@ void ResetValues(void)
  
 void ObtainPeak(uint8_t channel, uint16_t sample)
 {
-   if( channel > CH15 || 
-		 sample < CurrentProfile.ChannelThreshold[channel] || 
+   if( sample < CurrentProfile.ChannelThreshold[channel] || 
 		 sample < SignalPeak[channel] )
    {
       return;  

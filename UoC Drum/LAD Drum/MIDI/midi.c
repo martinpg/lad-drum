@@ -32,14 +32,37 @@ void MIDI_Output(void)
 	         else
 	         {
 	            MIDI_Tx( conditionedSignal );
-	         }
-	         
+	         } 
 	         SoftTimerStart(RetriggerPeriod[i]);
-              
 			}
       }  
    }
 }
+
+
+void MIDI_FastOutput(void)
+{
+   uint8_t i;
+   for( i = 0; i < NUMBER_OF_INPUTS; i++)
+   {      
+      if( GetChannelStatus(i) )
+      {
+   		uint16_t conditionedSignal = (SignalPeak[i] >> GetChannelGain(i));
+         /* Send a NOTE ON | Channel */
+         MIDI_Tx(CurrentProfile.MIDI_ChannelCode);
+         MIDI_Tx(GetChannelKey(i));
+         if( conditionedSignal > 127 )
+         {
+            MIDI_Tx( 127 );   
+         }
+         else
+         {
+            MIDI_Tx( conditionedSignal );
+         } 
+      }
+   }
+}
+
 
 
 uint16_t MIDI_GetRate(void)

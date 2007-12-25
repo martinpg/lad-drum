@@ -161,6 +161,13 @@ int putchar(int c)
    return c;
 }
 
+
+interrupt (USART0TX_VECTOR) usart0_tx()
+{
+   static uint8_t i;   
+   
+}
+
 /*
 
 interrupt (UART0RX_VECTOR) usart0_rx()
