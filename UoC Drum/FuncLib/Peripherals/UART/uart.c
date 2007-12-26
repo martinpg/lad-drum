@@ -5,8 +5,9 @@
  
  
 #include <io.h>
-#include "uart.h"
 #include <signal.h>
+#include "uart.h"
+#include "RingBuffer/ringbuffer.h"
 
 static int8_t selectedModule = -1;
 
@@ -19,6 +20,10 @@ static uint8_t* UxBR1 = (uint8_t*)U0BR1_;
 static uint8_t* UxRXBUF = (uint8_t*)U0RXBUF_;
 static uint8_t* UxTXBUF = (uint8_t*)U0TXBUF_; 
 
+
+
+static char txbuffer[TXBUFFER_SIZE];
+static RINGBUFFER_T TransmitBuffer = {txbuffer, sizeof(txbuffer)};
 
 void UART_Select(uint8_t module)
 {
@@ -81,6 +86,7 @@ void UART_Init(void)
       IE2 |= URXIE1;
    }   
    
+   ringbuffer_clear((RINGBUFFER_T*)&TransmitBuffer);
    
 }
 
@@ -104,9 +110,22 @@ void UART_ValidateModule(void)
 /* UART_Tx: Transfers a byte out UARTx */
 void UART_Tx(char byte)
 {
-   UART_ValidateModule();
-   *UxTXBUF = byte;
-   
+   /* Do not validate for speed increase */
+   //UART_ValidateModule();
+#ifdef USEBUFF  
+   ringbuffer_put((RINGBUFFER_T*)&TransmitBuffer, byte);
+   /* Begin the transmission, if ready */
+   /* USART0/1 TX buffer ready? Both have to be ready... since really,
+      only one UART will be used in most cases */
+   if( (IFG1 & UTXIFG0) && (IFG2 & UTXIFG1))
+   {
+      /* This should only cause the first byte of the buffer to be sent */
+      /* Subsequent bytes should generate interrupts */
+      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
+   }                  
+
+#else   
+   *UxTXBUF = byte;  
    if( selectedModule == USART0 )
    {
       while (!(IFG1 & UTXIFG0));                // USART0 TX buffer ready?    
@@ -114,6 +133,27 @@ void UART_Tx(char byte)
    else
    {
       while (!(IFG2 & UTXIFG1));                // USART1 TX buffer ready? 
+   }    
+#endif   
+}
+
+/* Once a tx has completed, this is called */
+interrupt (USART0TX_VECTOR) usart0_tx()
+{
+   /* Tx the next byte if there are still bytes in the buffer */
+   if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
+   {
+      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
+   }
+}
+
+/* Once a tx has completed, this is called */
+interrupt (USART1TX_VECTOR) usart1_tx()
+{
+   /* Tx the next byte if there are still bytes in the buffer */
+   if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
+   {
+      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
    }
 }
 
@@ -162,11 +202,7 @@ int putchar(int c)
 }
 
 
-interrupt (USART0TX_VECTOR) usart0_tx()
-{
-   static uint8_t i;   
-   
-}
+
 
 /*
 

@@ -138,14 +138,13 @@ int main(void)
    dint();
  
    uint16_t sample;
-   uint8_t buffer[20];
    
    SoftTimer_16 ReadADC = {0, 0, 1};
    //ChannelThreshold[0] = 0;
    
 
 
-
+   /* Enable interrupts */
    eint();  
    
    SampleChannel(0);
@@ -154,7 +153,6 @@ int main(void)
    {     
       while( ReadADC.timerEnable )
       {
-         eint();
          uint8_t i;
          for( i = 0; i < NUMBER_OF_INPUTS; i++ )
          {
@@ -195,15 +193,11 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
   
    if( buffer == 'D' )
    {
-      uint8_t somespace[512];
-      //hexdump(somespace, 512, PROFILE_FLASH_ADDRESS);
       UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS, 512 );
    }
 
 	if( buffer == 'E' )
    {
-      uint8_t somespace[512];
-      //hexdump(somespace, 512, PROFILE_FLASH_ADDRESS);
       UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS, 512 );
    }
 
@@ -211,17 +205,14 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
    {
       UART_TxString("You typed a b!");
       //MAX7300_SetRegister(UI_MAX7300_ADDRESS, MAX7300_P27, 0x01);
-   }   
-
-   
+   }
 }
 
 
 /* Handle a key press */
 interrupt (PORT1_VECTOR)   port1_int(void)
-{
-   dint();
-   
+{  
+   dint(); 
    if( P1IN & UI_INT_PIN )
    {
       P1IFG &= ~(UI_INT_PIN);
@@ -244,6 +235,8 @@ interrupt (PORT1_VECTOR)   port1_int(void)
       UI_SetRegister(UI_INTERRUPT, 0);      
       UI_Activate();
    }
+   
+   eint();
 }
 
 

@@ -92,6 +92,7 @@ SOURCE_FILES = $(PERIPHERALS_DIR)/UART/uart.c \
                $(MISC_DIR)/mmculib/uint16toa.c \
 					$(MISC_DIR)/mmculib/uint8toa.c \
 					$(MISC_DIR)/SoftTimer/Softtimer.c \
+					$(MISC_DIR)/RingBuffer/ringbuffer.c \
 					$(APPLICATIONS_DIR)/Menu/Menu.c \
 					Profiles/profiles.c \
 					UserFunctions/userFunctions.c \
