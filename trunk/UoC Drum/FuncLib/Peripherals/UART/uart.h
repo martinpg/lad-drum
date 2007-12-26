@@ -11,6 +11,8 @@
 #define USART0    (0)
 #define USART1    (1)
 
+#define TXBUFFER_SIZE   (30)
+#define USEBUFF
 
 void UART_Select(uint8_t module);
 void UART_Init(void);
