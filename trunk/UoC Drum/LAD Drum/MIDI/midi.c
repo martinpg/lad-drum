@@ -9,6 +9,10 @@
 #define MIDI_Tx(x)   UART_Tx(x)
 
 const char MIDI_NOTES[] = "C C#D D#E F F#G G#A A#B ";
+const char MIDI_BAUD[][8] = {"31.25k",
+									  "38.4k",
+									  "115.2k"};
+
 
 void MIDI_Output(void)
 {
@@ -16,7 +20,7 @@ void MIDI_Output(void)
    for( i = 0; i < NUMBER_OF_INPUTS; i++)
    {      
       if( GetChannelStatus(i) && 
-          (RetriggerPeriod[i].timerEnable != 0) && 
+          (RetriggerPeriod[i].timerEnable == 0) && 
           (SignalPeak[i] > GetChannelThresh(i)) )
       {
 			uint16_t conditionedSignal = ((SignalPeak[i] - GetChannelThresh(i)) >> GetChannelGain(i));
@@ -76,6 +80,14 @@ void MIDI_SetRate(uint16_t newRate)
    SoftTimer1[SC_MIDIOutput].timeCompare = newRate;
 }
 
+void MIDI_SetBaud(uint16_t newBaud)
+{
+
+   CurrentProfile.MIDI_BaudRate = newBaud; 
+   UART_SetBaudRate( newBaud >> 8, newBaud & 0xFF );
+}
+
+
 uint16_t MIDI_GetBaud(void)
 {
    return CurrentProfile.MIDI_BaudRate;
@@ -95,14 +107,6 @@ void MIDI_SetChannelCode(uint8_t newCode)
 }
 
 
-void MIDI_SetBaud(uint16_t newBaud)
-{
-   if( newBaud == BAUD_38400 || newBaud == BAUD_31250 )
-   {
-      CurrentProfile.MIDI_BaudRate = newBaud; 
-      UART_SetBaudRate( newBaud >> 8, newBaud & 0xFF );
-   }
-}
 
 
 /* Pass any number from 0->127 and obtain the corresponding note in a string format */

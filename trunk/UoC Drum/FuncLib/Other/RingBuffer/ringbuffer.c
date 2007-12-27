@@ -36,7 +36,7 @@ critical int ringbuffer_put(RINGBUFFER_T *buffer, char character) {
         buffer->fill++;
         return buffer->fill;
     } else {
-        return -1;
+        return BUFFER_OVERFLOW;
     }
 }
 

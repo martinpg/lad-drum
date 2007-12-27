@@ -25,11 +25,13 @@
 /* The number of bits in the ADC Reading */
 #define MAX_GAIN           (12)
 #define MAX_THRESHOLD      (4095)
+#define DEFAULT_THRESHOLD	(15)
 #define MIN_THRESHOLD      (0)
 #define THRESHOLD_LEVELS	(6)
 
 /* Retrigger Defines */
-#define MAX_RETRIGGER      (100)
+#define MAX_RETRIGGER      (200)
+#define DEFAULT_RETRIGGER	(15)
 #define MIN_RETRIGGER         (0)
 
 #define CHANNEL_ON   (1)

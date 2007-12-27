@@ -1,6 +1,9 @@
 #ifndef MSPGCC_RINGBUFFER_H
 #define MSPGCC_RINGBUFFER_H
 
+
+#define BUFFER_OVERFLOW	(-1)
+
 /**
  * Descriptor for a ringbuffer.
  * 

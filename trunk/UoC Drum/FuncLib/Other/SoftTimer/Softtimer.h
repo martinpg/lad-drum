@@ -27,7 +27,7 @@ typedef struct _softTimer32
 /* 1 for increment and 0 for decrement (decrement is faster?) */
 #define timerUpdate  0
 
-#if timerUpdate
+#if timerUpdate == 1
    #define SoftTimerInc(x)          x.timerCounter++
    #define SoftTimerReset(x)         x.timerCounter = 0
    #define SoftTimerInterrupt(x)    (x.timerCounter >= x.timeCompare && x.timerEnable)
@@ -40,7 +40,7 @@ typedef struct _softTimer32
 
 
 
-#define SoftTimerStart(x)        x.timerEnable = 1
+#define SoftTimerStart(x)        x.timerEnable = 1; SoftTimerReset(x)
 #define SoftTimerStop(x)         x.timerEnable = 0
 
 
@@ -56,7 +56,7 @@ typedef struct _softTimer32
 /* CCR1B associated timers */
 enum {  
 
-   SC_SecondDelay,
+   SC_SecondDelay = 0,
    SC_MIDIOutput,
    SC_MIDIFastOutput,
    TIMER1B_COUNT 
@@ -66,7 +66,7 @@ enum {
 /* CCR2B associated timers */
 enum {  
 
-   SC_AutoMenuUpdate,
+   SC_AutoMenuUpdate = 0,
    TIMER2B_COUNT 
    
 } timer2BIds;

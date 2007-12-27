@@ -5,7 +5,12 @@
 */
 
 #include <stdint.h>
+#include <stdlib.h>
 #include "uint8toa.h"
+
+/*
+
+#define uint8toa(num,str)	utoa(num, str, 10)
 
 
 void uint8toa (uint8_t num, uint8_t *str)
@@ -27,6 +32,8 @@ void uint8toa (uint8_t num, uint8_t *str)
 
    *str = '\0';
 }
+
+*/
 
 
 

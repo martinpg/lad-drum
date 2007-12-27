@@ -65,6 +65,8 @@ void UART_Init(void)
    /* Activate the USART Module */
    *UxCTL &= ~(SWRST);
    
+   ringbuffer_clear((RINGBUFFER_T*)&TransmitBuffer);
+	   
    if( selectedModule == 0)
    {
       P3DIR &= ~(1 << 5);
@@ -74,7 +76,11 @@ void UART_Init(void)
       ME1 |= (UTXE0 | URXE0);
       
       /* Enable Receive Interrupts */
-      IE1 |= URXIE0;
+#if USEBUFF == 1
+      IE1 |= URXIE0 | UTXIE0;
+#else
+		IE1 |= URXIE0;
+#endif		
    }
    else
    {
@@ -83,10 +89,14 @@ void UART_Init(void)
       
       P3SEL |= 0xC0;  // P3.6 & 7 = USART1 TXD / RXD
       ME2 |= (UTXE1 | URXE1);
-      IE2 |= URXIE1;
+#if USEBUFF == 1     
+      IE2 |= URXIE1 | UTXIE1;
+#else
+		IE2 |= URXIE1;
+#endif
    }   
    
-   ringbuffer_clear((RINGBUFFER_T*)&TransmitBuffer);
+
    
 }
 
@@ -112,16 +122,30 @@ void UART_Tx(char byte)
 {
    /* Do not validate for speed increase */
    //UART_ValidateModule();
-#ifdef USEBUFF  
-   ringbuffer_put((RINGBUFFER_T*)&TransmitBuffer, byte);
+#if USEBUFF == 1 
+   while( ringbuffer_put((RINGBUFFER_T*)&TransmitBuffer, byte) == BUFFER_OVERFLOW )
+   {
+		if( (*UxTCTL & TXEPT) )
+   	{
+	      /* This should only cause the first byte of the buffer to be sent */
+	      /* Subsequent bytes should generate interrupts */
+	      if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
+	   	{
+	      	*UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
+	   	}	
+   	}     
+	}
    /* Begin the transmission, if ready */
    /* USART0/1 TX buffer ready? Both have to be ready... since really,
       only one UART will be used in most cases */
-   if( (IFG1 & UTXIFG0) && (IFG2 & UTXIFG1))
+   if( (*UxTCTL & TXEPT) )
    {
       /* This should only cause the first byte of the buffer to be sent */
       /* Subsequent bytes should generate interrupts */
-      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
+      if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
+   	{
+      	*UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
+   	}	
    }                  
 
 #else   
