@@ -9,7 +9,9 @@
 
 #include <stdint.h>
 
-void uint8toa (uint8_t num, uint8_t *str);
+#define uint8toa(num,str)	utoa(num, str, 10)
+
+//void uint8toa (uint8_t num, uint8_t *str);
 
 
 #endif

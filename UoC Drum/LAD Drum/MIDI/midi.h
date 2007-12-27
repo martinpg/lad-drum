@@ -13,11 +13,21 @@
 #define MIDI_MAX_KEY    (127)
 #define BAUD_31250      (0x0100)
 #define BAUD_38400      (0x00D0)
+#define BAUD_115200		(0x0045)
+
+
 
 #define MAX_MIDI_CHANNEL (0x10)
 
 
 extern const char MIDI_NOTES[];
+extern const char MIDI_BAUD[][8];
+
+enum {
+	B31250 = 0,
+	B38400,
+	B115200
+} MIDIbauds;
 
 enum {
    MN_C = 0,

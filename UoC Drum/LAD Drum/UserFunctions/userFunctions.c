@@ -57,26 +57,46 @@ void SetMIDIRate(void* data)
 
 void PrintMIDIRate(void)
 {
-	uint8_t outputString[6];
+	uint8_t outputString[8];
+	uint8_t selectedBaud = 0;
 	
 	MenuPrint_P( PSTR("MIDI Output Rate: ") );
    MenuNewLine(); 	
-	uint16toa( (MIDI_GetRate() / 10), outputString, 0);
+	uint16toa( (MIDI_GetRate()), outputString, 0);
 	MenuPrint(outputString);
    MenuPrint_P( PSTR(" ms @ "));
-  	MenuPrint_P( (MIDI_GetBaud() == BAUD_31250) ? "31250" : "38400" );
-   MenuPrint_P( PSTR(" BPS"));  	
+   
+   switch(MIDI_GetBaud())
+   {
+		case BAUD_31250:
+			selectedBaud = B31250;
+		break;
+		
+		case BAUD_38400:
+			selectedBaud = B38400;
+		break;
+		
+		case BAUD_115200:
+			selectedBaud = B115200;
+		break;		
+	
+		default:
+		break;
+	}
+      
+  	MenuPrint_P( MIDI_BAUD[selectedBaud] );	
 }
 
 void EditMIDIRate(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
 	static uint16_t	Delay;
+	uint8_t selectedBaud = 0;
 	uint8_t outputString[4];
 	
 	if( firstEnter == 1)
 	{
-		Delay = MIDI_GetRate()/ 10;
+		Delay = MIDI_GetRate();
 	}
 	
    if( firstEnter == 0 )
@@ -102,16 +122,23 @@ void EditMIDIRate(void* data)
          break;
          
          case KP_C:
-            if( MIDI_GetBaud() == BAUD_31250 )
-            {
-               MIDI_SetBaud(BAUD_38400);   
-            }
-            else
-            {
-               MIDI_SetBaud(BAUD_31250);
-            }
-            
-            
+				   switch(MIDI_GetBaud())
+				   {
+						case BAUD_31250:
+							MIDI_SetBaud(BAUD_38400); 
+						break;
+						
+						case BAUD_38400:
+							MIDI_SetBaud(BAUD_115200); 
+						break;
+						
+						case BAUD_115200:
+							MIDI_SetBaud(BAUD_31250); 
+						break;		
+					
+						default:
+						break;
+					}            
          break;
   
          /* Time Component increment function */
@@ -140,12 +167,29 @@ void EditMIDIRate(void* data)
 	uint16toa( Delay, outputString, 0);
 	MenuPrint(outputString);
 	MenuPrint_P( PSTR(" milliseconds") );      
-	MIDI_SetRate( Delay * 10 );
+	MIDI_SetRate( Delay );
 
 	MenuNewLine();
    MenuPrint_P( PSTR("Baud Rate: "));
-  	MenuPrint_P( (MIDI_GetBaud() == BAUD_31250) ? "31250" : "38400" );
-   MenuPrint_P( PSTR(" BPS"));
+   switch(MIDI_GetBaud())
+   {
+		case BAUD_31250:
+			selectedBaud = B31250;
+		break;
+		
+		case BAUD_38400:
+			selectedBaud = B38400;
+		break;
+		
+		case BAUD_115200:
+			selectedBaud = B115200;
+		break;		
+	
+		default:
+		break;
+	}
+      
+  	MenuPrint_P( MIDI_BAUD[selectedBaud] );
 }
 
 
@@ -217,7 +261,6 @@ void ChannelSettings(void* data)
 			case KB_ENTER:
 			case KP_ENTER:
 				MenuReset();
-				SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
 		   	executeState(currentState);
 				firstEnter = 1;
 				return;	
@@ -294,7 +337,8 @@ void SetThreshold(void* data)
    ADC12_SetupAddress(0, INCH_A0); 
    SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
 
-
+	SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
+	
 	switch( *input )
 	{
          /* Up and down a Threshold Level */
@@ -331,16 +375,30 @@ void SetThreshold(void* data)
 	MenuPrint(outputString);    
 	
 	MenuNewLine(); 
-	MenuPrint_P(PSTR("Fine Tune:"));   
+	MenuPrint_P(PSTR("Fine Tune:")); 
+	
 	UI_LCD_Pos(1, 10);         
-   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);
+   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);	  
+}
+
+
+void ThresholdBar(void)
+{
+   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
+   ADC12_SetupAddress(0, INCH_A3);
+   uint16_t PotValue = (ADC12_Sample() >> THRESHOLD_LEVELS);
+   ADC12_SetupAddress(0, INCH_A0); 
+   SoftTimerStart(SoftTimer1[SC_MIDIOutput]);	
+	
+	UI_LCD_Pos(1, 10);         
+   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);	
 }
 
 
 void SetRetrigger(void* data)
 {
 	uint8_t* input;
-   uint8_t outputString[21];
+   uint8_t outputString[5];
    int8_t SelectedChannel = GetState() - ST_RETRIGGER_1;
    
    static uint16_t lastPotValue = 0;
@@ -386,7 +444,9 @@ void SetRetrigger(void* data)
 	lastPotValue = PotValue;*/   
 	uint8toa(GetChannelReTrig(SelectedChannel), outputString);
 	MenuPrint_P(PSTR("Retrigger Level: "));
-	MenuPrint(outputString);    
+	MenuNewLine();
+	MenuPrint(outputString);
+	MenuPrint_P(PSTR(" ms"));	    
 	MenuNewLine(); 
 	
    UpdateChannelRetriggers();

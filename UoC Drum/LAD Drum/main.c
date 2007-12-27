@@ -4,6 +4,7 @@
 */
 #include <io.h>
 #include <stdint.h>
+#include <string.h>
 #include <signal.h>
 #include <mspgcc/flash.h>
 #include <mspgcc/util.h>
@@ -33,8 +34,8 @@
 
 const Profile_t Default_Profile = 
 {
-	/* 5ms output rate */
-	30,
+	/* 15ms output rate */
+	15,
 	DEFAULT_BAUD_RATE,
 	/* MIDI Channel Instrument # */
 	0x99,
@@ -55,15 +56,15 @@ const Profile_t Default_Profile =
     3,3,3,3},
             
 	/* Default Thresholds */
-	{MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, 
-	 MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD,
-	 MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD,
-	 MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD, MIN_THRESHOLD},
+	{DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, 
+	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD,
+	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD,
+	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD},
 	 
-	{MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER,
-	 MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER,
-	 MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER,
-	 MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER, MIN_RETRIGGER}
+	{DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER}
 };
 
 
@@ -92,7 +93,17 @@ int main(void)
 
    ProfileInit();    
    SampleInit();
-   CurrentProfile = Default_Profile;
+
+	memcpy((Profile_t*)&CurrentProfile, Profile_Read(DEFAULT_PROFILE), sizeof(Profile_t));
+
+   /* Implement the changes */
+	MIDI_SetRate(MIDI_GetRate());
+	MIDI_SetBaud(MIDI_GetBaud());
+	MIDI_SetChannelCode( MIDI_GetChannelCode() );
+
+   /* Update the Retrigger periods */
+   UpdateChannelRetriggers();
+
    
    P6SEL |= (0xFF);
    P6DIR &= ~(0xFF);
@@ -154,13 +165,14 @@ int main(void)
       while( ReadADC.timerEnable )
       {
          uint8_t i;
-         for( i = 0; i < NUMBER_OF_INPUTS; i++ )
+			eint();  
+			for( i = 0; i < NUMBER_OF_INPUTS; i++ )
          {
-            if(GetChannelStatus(i) && (RetriggerPeriod[i].timerEnable != 0) )
+            if(GetChannelStatus(i) && (RetriggerPeriod[i].timerEnable == 0) )
             {
                /* Change the channel */              
                SampleChannel(i);
-               _delay_us(200);
+               _delay_us(100);
                /* Take a sample */
                sample = ADC12_Sample();                              
                /* Obtain Peak */

@@ -166,6 +166,7 @@ void UpdateChannelRetriggers(void)
    for( i = 0; i < NUMBER_OF_INPUTS; i++ )
    {
       RetriggerPeriod[i].timeCompare = GetChannelReTrig(i);
+      SoftTimerReset(RetriggerPeriod[i]);
    }
 }
 
@@ -208,6 +209,10 @@ void TimerInit(void)
    /* 1ms Timer */
    TBCCTL2 |= (CCIE);
    TBCCR2 = SAMPLE_1MS;
+   
+   
+   /* Need to setup the timer specs */
+
    
 }
 

@@ -8,11 +8,17 @@
 #define PROFILE_FLASH_ADDRESS (0xFA00)
 #define PROFILE_IMAGE_ADDRESS (0xFC00)
 #define FLASH_BLOCK_SIZE      (512)
-#define DEFAULT_PROFILE (4)
 #define NUMBER_OF_INPUTS   16
-
 #define DEFAULT_BAUD_RATE	BAUD_31250
 
+
+enum {
+	PROFILE_1 = 0,
+	PROFILE_2,
+	PROFILE_3,
+	PROFILE_4,
+	DEFAULT_PROFILE
+} profileIds;
 
 typedef struct {
 

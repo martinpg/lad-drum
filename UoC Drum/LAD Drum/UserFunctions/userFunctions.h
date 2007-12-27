@@ -20,6 +20,7 @@ void ChannelSettings(void* data);
 void SetThreshold(void* data);
 void SetRetrigger(void* data);
 
+void ThresholdBar(void);
 void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length);
 
 void ChangeChannelCode(void* data);
