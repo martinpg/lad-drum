@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <signal.h>
+#include <stdlib.h>
 #include <mspgcc/flash.h>
 #include <mspgcc/util.h>
 
@@ -14,6 +15,7 @@
 #include "Delay/delay.h"
 #include "UART/uart.h"
 #include "Sample/sample.h"
+#include "Sensor/sensor.h"
 #include "ADC/adc12.h"
 #include "mmculib/uint16toa.h"
 #include "SoftI2C/softi2c.h"
@@ -24,48 +26,6 @@
 #include "Menu/Menu.h"
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"
-
-
-
-
-
-
-
-
-const Profile_t Default_Profile = 
-{
-	/* 15ms output rate */
-	15,
-	DEFAULT_BAUD_RATE,
-	/* MIDI Channel Instrument # */
-	0x99,
-	
-	/* Channel Status */
-	{0x0F, 0x00},
-	
-	/* Default Keys */
-	{0x42, 0x28, 0x53, 0x34,
-    0x30, 0x30, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x30},
-   
-	/* Default Gains */                                     
-	{3,3,3,3,
-    3,3,3,3,
-    3,3,3,3,
-    3,3,3,3},
-            
-	/* Default Thresholds */
-	{DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, 
-	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD,
-	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD,
-	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD},
-	 
-	{DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
-	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
-	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
-	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER}
-};
 
 
 /**
@@ -92,9 +52,9 @@ int main(void)
    BCSCTL2 |= (SELM1 | SELS);   
 
    ProfileInit();    
-   SampleInit();
+   SensorInit();
 
-	memcpy((Profile_t*)&CurrentProfile, Profile_Read(DEFAULT_PROFILE), sizeof(Profile_t));
+	Profile_Read(DEFAULT_PROFILE);
 
    /* Implement the changes */
 	MIDI_SetRate(MIDI_GetRate());
@@ -111,7 +71,7 @@ int main(void)
    /* Setup the communications module */   
    UART_Select(0);
    UART_Init();
-   UART_SetBaudRate(0x01,0x00);
+   UART_SetBaudRate(0x00,0xD0);
    
    /* ADC Module Init */
    ADC12_Init();
@@ -158,7 +118,7 @@ int main(void)
    /* Enable interrupts */
    eint();  
    
-   SampleChannel(0);
+   SensorChannel(0);
    
    while(1)
    {     
@@ -171,7 +131,7 @@ int main(void)
             if(GetChannelStatus(i) && (RetriggerPeriod[i].timerEnable == 0) )
             {
                /* Change the channel */              
-               SampleChannel(i);
+               SensorChannel(i);
                _delay_us(100);
                /* Take a sample */
                sample = ADC12_Sample();                              
@@ -191,11 +151,12 @@ int main(void)
 interrupt (USART0RX_VECTOR) usart0_rx(void)
 {
    uint8_t buffer = U0RXBUF;
+   uint8_t outputString[20];
    static uint8_t channel = 0;
    
    if( buffer == '+' )
    {
-      SampleChannel(channel++);
+      SensorChannel(channel++);
       if(channel == 16)
       {
          channel = 0;  
@@ -205,17 +166,21 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
   
    if( buffer == 'D' )
    {
-      UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS, 512 );
+      UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS(0), 512 );
+      UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS(1), 512 );
+      UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS(2), 512 );		      
    }
 
 	if( buffer == 'E' )
    {
-      UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS, 512 );
+      UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(0), 512 );
+      UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(1), 512 ); 
+      UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(2), 512 );		     
    }
 
    if( buffer == 'b' )
    {
-      UART_TxString("You typed a b!");
+
       //MAX7300_SetRegister(UI_MAX7300_ADDRESS, MAX7300_P27, 0x01);
    }
 }

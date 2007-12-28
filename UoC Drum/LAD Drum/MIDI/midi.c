@@ -1,7 +1,6 @@
 
 #include <stdint.h>
 #include <string.h>
-#include "main.h"
 #include "Sample/sample.h"
 #include "UART/uart.h"
 #include "midi.h"
@@ -14,20 +13,40 @@ const char MIDI_BAUD[][8] = {"31.25k",
 									  "115.2k"};
 
 
+MidiSettings_t MIDISettings = {	
+	/* 15ms output rate */
+	15,
+	DEFAULT_BAUD_RATE,
+	/* MIDI Channel Instrument # */
+	(0x09 | MIDI_NOTE_ON)
+};
+
+
 void MIDI_Output(void)
 {
    uint8_t i;
+   /* Do digital inputs then do analogue inputs  */
    for( i = 0; i < NUMBER_OF_INPUTS; i++)
    {      
       if( GetChannelStatus(i) && 
           (RetriggerPeriod[i].timerEnable == 0) && 
           (SignalPeak[i] > GetChannelThresh(i)) )
       {
-			uint16_t conditionedSignal = ((SignalPeak[i] - GetChannelThresh(i)) >> GetChannelGain(i));
+			uint16_t conditionedSignal = (SignalPeak[i] - GetChannelThresh(i));
+			
+			if ( GetChannelGain(i) > 0 )
+			{
+				conditionedSignal = conditionedSignal << GetChannelGain(i);
+			}
+			else
+			{
+				conditionedSignal = conditionedSignal >> GetChannelGain(i);
+			}
+			
 			if( conditionedSignal )
 			{
 	         /* Send a NOTE ON | Channel */
-	         MIDI_Tx(CurrentProfile.MIDI_ChannelCode);
+	         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
 	         MIDI_Tx(GetChannelKey(i));
 	         if( conditionedSignal > 127 )
 	         {
@@ -53,7 +72,7 @@ void MIDI_FastOutput(void)
       {
    		uint16_t conditionedSignal = (SignalPeak[i] >> GetChannelGain(i));
          /* Send a NOTE ON | Channel */
-         MIDI_Tx(CurrentProfile.MIDI_ChannelCode);
+         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
          MIDI_Tx(GetChannelKey(i));
          if( conditionedSignal > 127 )
          {
@@ -71,38 +90,38 @@ void MIDI_FastOutput(void)
 
 uint16_t MIDI_GetRate(void)
 {
-   return CurrentProfile.MIDI_OutputRate;
+   return MIDISettings.MIDI_OutputRate;
 }
 
 void MIDI_SetRate(uint16_t newRate)
 {
-	CurrentProfile.MIDI_OutputRate = newRate;
+	MIDISettings.MIDI_OutputRate = newRate;
    SoftTimer1[SC_MIDIOutput].timeCompare = newRate;
 }
 
 void MIDI_SetBaud(uint16_t newBaud)
 {
 
-   CurrentProfile.MIDI_BaudRate = newBaud; 
+   MIDISettings.MIDI_BaudRate = newBaud; 
    UART_SetBaudRate( newBaud >> 8, newBaud & 0xFF );
 }
 
 
 uint16_t MIDI_GetBaud(void)
 {
-   return CurrentProfile.MIDI_BaudRate;
+   return MIDISettings.MIDI_BaudRate;
 }
 
 uint8_t MIDI_GetChannelCode(void)
 {
-	return (CurrentProfile.MIDI_ChannelCode & 0x0F);
+	return (MIDISettings.MIDI_ChannelCode & 0x0F);
 }
 
 void MIDI_SetChannelCode(uint8_t newCode)
 {
    if( newCode < 0x0F )
    {
-		CurrentProfile.MIDI_ChannelCode = MIDI_NOTE_ON | newCode;
+		MIDISettings.MIDI_ChannelCode = MIDI_NOTE_ON | newCode;
    }
 }
 

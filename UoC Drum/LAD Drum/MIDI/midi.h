@@ -16,7 +16,7 @@
 #define BAUD_115200		(0x0045)
 
 
-
+#define DEFAULT_BAUD_RATE	BAUD_38400
 #define MAX_MIDI_CHANNEL (0x10)
 
 
@@ -46,6 +46,18 @@ enum {
 } MIDI_KEYS;
 
 
+
+typedef struct {
+
+	/* In 100us resolution */
+   uint16_t  MIDI_OutputRate;
+   uint16_t  MIDI_BaudRate;
+   uint16_t	 MIDI_ChannelCode;
+	
+} MidiSettings_t;
+
+
+extern MidiSettings_t MIDISettings;
 
 void MIDI_Output(void);
 

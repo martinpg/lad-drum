@@ -13,6 +13,7 @@
 #include "mmculib/uint8toa.h"
 #include "MIDI/midi.h"
 #include "Sample/sample.h"
+#include "Sensor/sensor.h"
 #include "ADC/adc12.h"
 #include "Delay/delay.h"
 #include "Profiles/profiles.h"
@@ -205,12 +206,12 @@ void EditMIDIRate(void* data)
 
 
 
-/** Function to setup each individual channel */
-void ChannelSettings(void* data)
+/** Function to setup each individual analogue channel */
+void ChannelSetup(void* data)
 {
    uint8_t* input = 0;
    uint8_t outputString[21];
-   int8_t SelectedChannel = GetState() - ST_CHANNEL_1;
+   uint8_t SelectedChannel = GetState() - ST_CHANNEL_1;
 
 	input = data;
 
@@ -220,30 +221,31 @@ void ChannelSettings(void* data)
 	   switch( *input )
 	   {
 	      /* Up and down a Key */
-	      case KP_3:
+	      case KP_1:
 				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+1);
 	      break;
 	      
-	      case KP_9:
+	      case KP_7:
 				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)-1);  
 	      break;
 	      
-	      /* Up and down an octave */
-	      case KP_1:
+	      /* Up an octave */
+	      case KP_STAR:
 				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+NOTE_COUNT);
 	      break;
 	      
+	      /*
 	      case KP_7:
 				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)-NOTE_COUNT);  
-	      break;
+	      break;*/
 	      
 	      /* Up and down a Gain */
 	      case KP_B:
-				SetChannelGain(SelectedChannel, GetChannelGain(SelectedChannel)-1);
+				SetChannelGain(SelectedChannel, (int8_t)(GetChannelGain(SelectedChannel)+1));
 	      break;
 	      
 	      case KP_C:
-				SetChannelGain(SelectedChannel, GetChannelGain(SelectedChannel)+1);  
+				SetChannelGain(SelectedChannel, (int8_t)(GetChannelGain(SelectedChannel)-1));  
 	      break;
 	      
 	      /* Setting Modifiers */
@@ -291,9 +293,10 @@ void ChannelSettings(void* data)
 	}   
    MenuNewLine();
    
-   
-   /* Indicate the Channel Type */
-	MenuPrint_P(PSTR("Octave: "));
+
+	MenuPrint_P(PSTR("Note: "));
+	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
+   MenuPrint(outputString);
 	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
 	{
       MenuPrint_P( PSTR("0"));  
@@ -302,21 +305,16 @@ void ChannelSettings(void* data)
    {  
    	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
  		MenuPrint(outputString); 	
-   }
-
-	MenuPrint_P(PSTR("  Note: "));
-	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
-   MenuPrint(outputString);
+   }   
+   
 	MenuNewLine();	   
 	
 	/* Display the channel 'gain' */
-	uint8toa(MAX_GAIN - GetChannelGain(SelectedChannel), outputString);
+	itoa(GetChannelGain(SelectedChannel), outputString, 10);
 	MenuPrint_P(PSTR("Gain: "));
 	MenuPrint(outputString);
 	
    MenuNewLine();   
-
-
 }
 
 
@@ -324,19 +322,17 @@ void SetThreshold(void* data)
 {
 	uint8_t* input;
    uint8_t outputString[21];
-   int8_t SelectedChannel = GetState() - ST_THRESHOLD_1;
+   uint8_t SelectedChannel = GetState() - ST_THRESHOLD_1;
    
    static uint16_t lastPotValue = 0;
 	static uint8_t firstEnter = 1;
 	
    input = data;
-
+   
    SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
-   ADC12_SetupAddress(0, INCH_A3);
-   uint16_t PotValue = (ADC12_Sample() >> THRESHOLD_LEVELS);
-   ADC12_SetupAddress(0, INCH_A0); 
+	uint16_t PotValue = SensorPotValue() >> THRESHOLD_LEVELS;
    SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
-
+   
 	SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
 	
 	switch( *input )
@@ -399,29 +395,24 @@ void SetRetrigger(void* data)
 {
 	uint8_t* input;
    uint8_t outputString[5];
-   int8_t SelectedChannel = GetState() - ST_RETRIGGER_1;
+   uint8_t SelectedChannel = GetState() - ST_RETRIGGER_1;
    
    static uint16_t lastPotValue = 0;
 	static uint8_t firstEnter = 1;
 	
    input = data;
 
-   /*SoftTimerStop(SC_MIDIOutput);
-   ADC12_SetupAddress(0, INCH_A3);
-   uint16_t PotValue = (ADC12_Sample() >> THRESHOLD_LEVELS);
-   ADC12_SetupAddress(0, INCH_A0); 
-   SoftTimerStart(SC_MIDIOutput);*/
-
 
 	switch( *input )
 	{
          /* Up and down a Trigger Level */
          case KP_A:
-				SetChannelReTrig(SelectedChannel, GetChannelReTrig(SelectedChannel) + 1);
+				SetChannelReTrig(SelectedChannel, (int16_t)(GetChannelReTrig(SelectedChannel) + 1));
          break;
          
          case KP_B:
-				SetChannelReTrig(SelectedChannel,  GetChannelReTrig(SelectedChannel) -1 );         break;
+				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) -1 ));        
+			break;
 	
 	      case KP_C:
 				//SC_AutoMenuUpdate.timerEnable ^= 1;  
@@ -434,7 +425,6 @@ void SetRetrigger(void* data)
             MenuSetInput(0);
             firstEnter = 1;
             executeState(currentState);
-
          return;
 	}
 		
@@ -508,6 +498,395 @@ void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length)
 }
 
 
+
+
+void SetGainCurves(void* data)
+{
+	
+	
+		
+	
+	
+	
+	
+	
+	
+}
+
+
+
+void SetDualInput(void* data)
+{
+   uint8_t* input = 0;
+   uint8_t outputString[10];
+   uint8_t SelectedChannel = GetState() - ST_DUALINPUT_1;
+   static uint8_t firstEnter = 1;
+	input = data;
+
+
+   switch( *input )
+   {
+      /* Up and down a Key for Open Key*/
+      case KP_1:
+			SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+1);
+      break;
+      
+      case KP_7:
+			SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)-1);  
+      break;
+      
+      /* Up an octave */
+      case KP_STAR:
+			SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+NOTE_COUNT);
+      break;
+      
+      /* Up and down a Key for Closed */
+      case KP_3:
+			SetChannelKeyClosed(SelectedChannel, GetChannelKeyClosed(SelectedChannel)+1);
+      break;
+      
+      case KP_9:
+			SetChannelKeyClosed(SelectedChannel, GetChannelKeyClosed(SelectedChannel)-1);  
+      break;
+      
+      /* Up an octave */
+      case KP_HASH:
+			SetChannelKeyClosed(SelectedChannel, GetChannelKeyClosed(SelectedChannel)+NOTE_COUNT);
+      break;
+      
+      /* Setting Modifiers */
+      case KP_A:
+			DualModeToggle(SelectedChannel);
+      break;	      
+      
+      /* Digital Trigger Select */
+      case KP_B:
+			SetDigitalTrigger(SelectedChannel, (int16_t)GetDigitalTrigger(SelectedChannel)+1);
+      break;
+      
+      case KP_C:
+			SetDigitalTrigger(SelectedChannel, (int16_t)GetDigitalTrigger(SelectedChannel)-1);  
+      break;
+      
+      case KB_BACK:
+      case KP_BACK:      
+      	MenuSetInput(KP_BACK);
+         stateMachine(currentState);
+         MenuSetInput(0);
+         firstEnter = 1;
+         executeState(currentState);         
+         return;
+         
+      default:
+         break;
+   }
+	
+   
+   firstEnter = 0;
+	MenuReset();
+		
+	/* Indicate the channel selected */
+	MenuPrint_P(PSTR("CH"));
+	uint8toa(SelectedChannel + 1, outputString);	
+	MenuPrint(outputString);          
+   
+ 	MenuPrint_P(PSTR(" Dual Input: "));
+	if( GetDualMode(SelectedChannel) == HAS_DUAL_INPUT )
+	{
+		MenuPrint_P( PSTR("On") );
+	}
+	else
+	{
+		MenuPrint_P( PSTR("Off") );		
+	}   
+   MenuNewLine();
+   
+
+	MenuPrint_P(PSTR("Open Note:"));
+	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
+   MenuPrint(outputString);
+	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
+	{
+      MenuPrint_P( PSTR("0"));  
+   }
+   else
+   {  
+   	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+ 		MenuPrint(outputString); 	
+   }   
+
+	MenuNewLine();
+	MenuPrint_P(PSTR("Closed Note:"));
+	MIDI_NoteString(GetChannelKeyClosed(SelectedChannel), outputString);	
+   MenuPrint(outputString);
+	if( MIDI_Octave(GetChannelKeyClosed(SelectedChannel)) == 0 )
+	{
+      MenuPrint_P( PSTR("0"));  
+   }
+   else
+   {  
+   	uint8toa( MIDI_Octave(GetChannelKeyClosed(SelectedChannel)), outputString);
+ 		MenuPrint(outputString); 	
+   }   
+
+   
+	MenuNewLine();	   
+	
+	/* Display the channel velocity */
+	uint8toa(GetDigitalTrigger(SelectedChannel), outputString);
+	MenuPrint_P(PSTR("Activated by: D"));
+	MenuPrint(outputString);
+   MenuNewLine();   
+}
+
+
+
+
+/** Function to setup each individual digial channel */
+void DigitalChannelSettings(void* data)
+{
+   uint8_t* input = 0;
+   uint8_t outputString[21];
+   uint8_t SelectedChannel = GetState() - ST_DIGITAL_1;
+
+	input = data;
+
+ 	if( firstEnter != 1 )
+ 	{
+		stateMachine( currentState ); 
+	   switch( *input )
+	   {
+	      /* Up and down a Key */
+	      case KP_1:
+				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+1);
+	      break;
+	      
+	      case KP_7:
+				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)-1);  
+	      break;
+	      
+	      /* Up  an octave */
+	      case KP_STAR:
+				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+NOTE_COUNT);
+	      break;
+	      
+	      /*
+	      case KP_7:
+				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)-NOTE_COUNT);  
+	      break;*/
+	      
+	      /* Up and down output levels */
+	      case KP_B:
+				SetDigitalVelocity(SelectedChannel, (int16_t)GetDigitalVelocity(SelectedChannel)+10);
+	      break;
+	      
+	      case KP_C:
+				SetDigitalVelocity(SelectedChannel, (int16_t)GetDigitalVelocity(SelectedChannel)-10);  
+	      break;
+	      
+	      /* Setting Modifiers */
+	      case KP_A:
+				ChannelToggle(SelectedChannel);
+	      	break;
+	               
+	      
+			case KB_BACK:
+			case KP_BACK:
+				firstEnter = 1;
+				return;
+			break;
+				
+			case KB_ENTER:
+			case KP_ENTER:
+				MenuReset();
+		   	executeState(currentState);
+				firstEnter = 1;
+				return;	
+			break;
+	         
+	         
+	      default:
+	         break;
+	   }
+	}
+   
+   firstEnter = 0;
+	MenuReset();
+		
+	/* Indicate the channel selected */
+	MenuPrint_P(PSTR("Digital Ch "));
+	uint8toa(SelectedChannel + 1, outputString);	
+	MenuPrint(outputString);          
+   
+ 	MenuPrint_P(PSTR(": "));
+	if( GetChannelStatus(SelectedChannel) == CHANNEL_ON )
+	{
+		MenuPrint_P( PSTR("On") );
+	}
+	else
+	{
+		MenuPrint_P( PSTR("Off") );		
+	}   
+   MenuNewLine();
+   
+
+	MenuPrint_P(PSTR("Note: "));
+	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
+   MenuPrint(outputString);
+	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
+	{
+      MenuPrint_P( PSTR("0"));  
+   }
+   else
+   {  
+   	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+ 		MenuPrint(outputString); 	
+   }   
+   
+	MenuNewLine();	   
+	
+	/* Display the channel velocity */
+	uint8toa(GetDigitalVelocity(SelectedChannel), outputString);
+	MenuPrint_P(PSTR("Velocity: "));
+	MenuPrint(outputString);
+   MenuNewLine();   
+}
+
+
+
+void SetSwitchType(void* data)
+{
+	uint8_t* input;
+   uint8_t outputString[5];
+   uint8_t SelectedChannel = GetState() - ST_TRIGGER_TYPE_D1;
+   
+	static uint8_t firstEnter = 1;
+	
+   input = data;
+
+	switch( *input )
+	{
+			/* Active High/Low toggle */
+         case KP_A:
+				ActiveStateToggle(SelectedChannel);
+         break;
+         
+         case KP_B:
+				TriggerModeToggle(SelectedChannel);         
+			break;
+	
+         case KP_BACK:
+         	MenuSetInput(KP_BACK);
+            stateMachine(currentState);
+            MenuSetInput(0);
+            firstEnter = 1;
+            executeState(currentState);
+         return;
+	}
+		
+	firstEnter = 0;
+
+	/* Switch Type */
+	MenuPrint_P(PSTR("Type: Active "));
+
+	if( GetActiveState(SelectedChannel) == ACTIVE_HIGH )
+	{
+		MenuPrint_P(PSTR("High"));
+	}
+	else
+	{
+		MenuPrint_P(PSTR("Low"));
+	}
+   MenuNewLine();
+
+
+	/* Trigger Mode */
+	MenuPrint_P(PSTR("Mode: "));
+
+	if( GetTriggerMode(SelectedChannel) == SINGLE_SHOT )
+	{
+		MenuPrint_P(PSTR("Single Shot"));
+	}
+	else
+	{
+		MenuPrint_P(PSTR("Continuous"));
+	}
+}
+
+
+
+
+
+
+
+
+/* Amplifer Input Select */
+void AmpInputSelect(void* data)
+{
+	uint8_t* input = (uint8_t*)data;
+	
+	if( firstEnter != 1 )
+   {     
+		stateMachine( currentState );
+      switch( *input )
+      {
+			case KB_BACK:
+			case KP_BACK:
+				firstEnter = 1;
+				return;
+			break;
+				
+			case KB_ENTER:
+			case KP_ENTER:
+			   executeState(currentState);
+			break;
+
+			default:
+			break;
+		}	
+	}
+	
+	MenuReset();
+	firstEnter = 0;
+	MenuPrint_P( PSTR("Trigger Using:") );
+	
+	MenuNewLine();
+	
+	if( GetSensorInput() == SENSOR_OUTPUT )
+	{
+		MenuPrint_P( PSTR("Fixed Gain (1x)") );		
+	}
+	else
+	{
+		MenuPrint_P( PSTR("Variable Gain (POTx)") );	
+	}
+	
+   MenuNewLine(); 		
+}
+
+
+
+
+void SensorInputChange(void* data)
+{
+	/* Corresponding to either SENSOR_OUT or SENSOR_OUT2 */
+	uint8_t SelectedState = ST_VARIABLE_GAIN - GetState();
+	
+   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
+	SensorInputSelect( (SelectedState == SENSOR_OUTPUT2) ? SENSOR_OUTPUT2 : SENSOR_OUTPUT );
+	SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
+
+   MenuSetInput(KP_BACK);
+   stateMachine(currentState);
+   MenuSetInput(0);	
+	
+}
+
+
+
+
+/* Profiles */
+
 void ShowProfile(void* data)
 {
 	uint8_t outputString[3];
@@ -562,7 +941,7 @@ void SaveProfile(void* data)
 {
    uint8_t* input = 0;
    uint8_t  outputString[3];
-   int8_t   ProfileSlot = GetState() - ST_SAVE_PROFILE_1;
+   uint8_t   ProfileSlot = GetState() - ST_SAVE_PROFILE_1;
  	uint8_t i;
 	  
    input = data;
@@ -577,7 +956,7 @@ void SaveProfile(void* data)
 		_delay_ms(200);
 	}
 	
-   MenuNewLine();		
+   MenuNewLine();
 	Profile_Write(&CurrentProfile, ProfileSlot);
 	MenuPrint_P( PSTR("Profile successfully") );
    MenuNewLine();		
@@ -601,7 +980,7 @@ void LoadProfile(void* data)
 {
    uint8_t* input = 0;
    uint8_t  outputString[3];
-   int8_t   ProfileSlot = GetState() - ST_LOAD_PROFILE_1;
+   uint8_t   ProfileSlot = GetState() - ST_LOAD_PROFILE_1;
 	uint8_t i;
 	
 	   
@@ -621,12 +1000,16 @@ void LoadProfile(void* data)
 	
    MenuNewLine();		
 
-	memcpy((Profile_t*)&CurrentProfile, Profile_Read(ProfileSlot), sizeof(Profile_t));
+	Profile_Read(ProfileSlot);
+
 
    /* Implement the changes */
 	MIDI_SetRate(MIDI_GetRate());
 	MIDI_SetBaud(MIDI_GetBaud());
 	MIDI_SetChannelCode( MIDI_GetChannelCode() );
+
+	/* Update the sensor select */
+	SensorInputSelect(GetSensorInput());
 
    /* Update the Retrigger periods */
    UpdateChannelRetriggers();
