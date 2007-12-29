@@ -26,7 +26,7 @@
 #include "Menu/Menu.h"
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"
-
+#include "VUMeter/vumeter.h"
 
 /**
 Main function with some blinking leds

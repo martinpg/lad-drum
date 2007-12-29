@@ -171,8 +171,16 @@ void UI_LCD_Home(void)
 
 void UI_LCD_Clear(void)
 {
-   UI_LCD_SetInstruction();   
-   UI_LCD_Write( (1 << LCD_CLR ) );
+   uint8_t i;
+   //UI_LCD_SetInstruction();   
+   //UI_LCD_Write( (1 << LCD_CLR ) );
+   
+   for( i = 0; i < LCD_RAM_END; i++)
+   {
+      UI_LCD_Char(' ');
+   }
+   UI_LCD_Pos(0,0);
+   
 }
 
 /* Prints a string to the LCD at the current position 
