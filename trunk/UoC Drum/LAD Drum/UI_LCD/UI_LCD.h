@@ -81,6 +81,8 @@
 #define LCD_BL_PIN   2
 #define LCD_BL_DDR   P1DIR
 
+#define LCD_RAM_END  (0x67)
+
 //#define 
 
 #define LCD_ON 1

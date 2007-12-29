@@ -67,6 +67,7 @@ enum {
 enum {  
 
    SC_AutoMenuUpdate = 0,
+   SC_VUMeterUpdate,
    TIMER2B_COUNT 
    
 } timer2BIds;
