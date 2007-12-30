@@ -132,7 +132,7 @@ int main(void)
             {
                /* Change the channel */              
                SensorChannel(i);
-               _delay_us(100);
+               _delay_us(150);
                /* Take a sample */
                sample = ADC12_Sample();                              
                /* Obtain Peak */
@@ -180,9 +180,25 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
 
    if( buffer == 'b' )
    {
-
+		SoftTimerStart(SoftTimer2[SC_VUMeterUpdate]);
       //MAX7300_SetRegister(UI_MAX7300_ADDRESS, MAX7300_P27, 0x01);
    }
+   
+   if( buffer == 'c' )
+   {
+		UI_LCD_Pos(3, 10);
+		
+		UI_LCD_Char(8);
+		UI_LCD_Char(1);
+		UI_LCD_Char(2);
+		UI_LCD_Char(3);		
+		UI_LCD_Char(4);
+		UI_LCD_Char(5);
+		UI_LCD_Char(6);
+		UI_LCD_Char(7);		
+			
+	}
+   
 }
 
 

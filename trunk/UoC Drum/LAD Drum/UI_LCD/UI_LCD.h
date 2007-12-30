@@ -88,6 +88,8 @@
 #define LCD_ON 1
 #define LCD_OFF 0
 
+extern const uint8_t LcdCustomChar[][8]; 
+
 void UI_LCD_HWInit(void);
 void UI_LCD_Init(void);
 void UI_LCD_Write(char code);
