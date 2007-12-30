@@ -178,18 +178,8 @@ void UI_LCD_Home(void)
 
 void UI_LCD_Clear(void)
 {
-   uint8_t i;
    UI_LCD_SetInstruction();   
    UI_LCD_Write( (1 << LCD_CLR ) );
-
-/*  	UI_LCD_SetData();   
-   for( i = 0; i < LCD_RAM_END; i++)
-   {
-
-   	UI_LCD_Write(' ');
-   }*/
-   //UI_LCD_Pos(0,0);
-   
 }
 
 /* Prints a string to the LCD at the current position 
@@ -329,17 +319,23 @@ void UI_LCD_LoadCustomChar(uint8_t* lcdCustomCharArray, uint8_t lcdCharNum)
 	lcdCharNum = (lcdCharNum<<3);	// each character occupies 8 bytes
 
 	// copy the 8 bytes into CG (character generator) RAM
+   UI_LCD_SetInstruction();
+	// set CG RAM address
+	UI_LCD_Write((1<<LCD_CGRAM) | (lcdCharNum+i));	
+	
+	/* Assumes auto increment of cursor position */
 	for(i=0; i<8; i++)
 	{	      
-      UI_LCD_SetInstruction();
-		// set CG RAM address
-		UI_LCD_Write((1<<LCD_CGRAM) | (lcdCharNum+i));
+
 		_delay_us(200);
 		UI_LCD_SetData();
 		// write character data
 		UI_LCD_Write( *(lcdCustomCharArray++) );
-		_delay_us(200);
 	}
+
+   /* Reset the DDRAM LCD Position */
+   /* Basically a faster return home */
+   UI_LCD_Pos(0,0);
 
 }
 
