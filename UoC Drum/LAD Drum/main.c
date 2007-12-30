@@ -132,7 +132,7 @@ int main(void)
             {
                /* Change the channel */              
                SensorChannel(i);
-               _delay_us(150);
+               _delay_us(1);
                /* Take a sample */
                sample = ADC12_Sample();                              
                /* Obtain Peak */
