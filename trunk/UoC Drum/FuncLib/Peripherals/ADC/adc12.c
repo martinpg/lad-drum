@@ -12,7 +12,10 @@
 void ADC12_Init(void)
 {
    /* For a 256 CLK Sample Hold Time */
-   ADC12_SH_Time(0x88);   
+//   ADC12_SH_Time(0x88);   
+
+   /* Try a sample time of 512 clks */
+   ADC12_SH_Time(0xAA);
    
    /* Activate on ADC12SC bit, 1x Clock Divider, ADC12MEM0 result start,
     * Based on non-inverting pulses, Single Channel, single conversion
@@ -72,10 +75,12 @@ void ADC12_SetupAddress(uint8_t channel, uint8_t settings)
 }
 
 
-void ADC12_SH_Time(uint8_t SampleHold)
+void ADC12_SH_Time(uint16_t SampleHold)
 {
    ADC12CTL0 &= ~(0xFF00); 
    ADC12CTL0 |= (SampleHold << 8); 
+   
+   
 }
 
 
