@@ -241,11 +241,11 @@ void ChannelSetup(void* data)
 	      
 	      /* Up and down a Gain */
 	      case KP_B:
-				SetChannelGain(SelectedChannel, (int8_t)(GetChannelGain(SelectedChannel)+1));
+				SetChannelGain(SelectedChannel, (GetChannelGain(SelectedChannel)+1));
 	      break;
 	      
 	      case KP_C:
-				SetChannelGain(SelectedChannel, (int8_t)(GetChannelGain(SelectedChannel)-1));  
+				SetChannelGain(SelectedChannel, (GetChannelGain(SelectedChannel)-1));  
 	      break;
 	      
 	      /* Setting Modifiers */
@@ -262,9 +262,11 @@ void ChannelSetup(void* data)
 				
 			case KB_ENTER:
 			case KP_ENTER:
-				MenuReset();
+				MenuReset();						
 		   	executeState(currentState);
 				firstEnter = 1;
+
+				
 				return;	
 			break;
 	         
@@ -335,6 +337,20 @@ void SetThreshold(void* data)
    
 	SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
 	
+
+	if( firstEnter == 1)
+	{
+				// load the first 8 custom characters
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[0], 0);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[1], 1);
+	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[2], 2);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[3], 3);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[4], 4);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[5], 5);
+	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 6);	
+	}
+	
+	
 	switch( *input )
 	{
          /* Up and down a Threshold Level */
@@ -356,6 +372,18 @@ void SetThreshold(void* data)
             stateMachine(currentState);
             MenuSetInput(0);
             firstEnter = 1;
+            
+				/* Load VU Meter */
+				// load the first 8 custom characters
+				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 0);				
+				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[7], 1);
+				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[8], 2);
+			   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[9], 3);
+				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[10], 4);
+				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[11], 5);
+				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[12], 6);
+			   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[13], 7);
+            
             executeState(currentState);
 
          return;

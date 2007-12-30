@@ -4,6 +4,7 @@
 #include "Sample/sample.h"
 #include "UART/uart.h"
 #include "midi.h"
+#include "VUMeter/vumeter.h"
 
 #define MIDI_Tx(x)   UART_Tx(x)
 
@@ -40,7 +41,7 @@ void MIDI_Output(void)
 			}
 			else
 			{
-				conditionedSignal = conditionedSignal >> GetChannelGain(i);
+				conditionedSignal = conditionedSignal >> (-GetChannelGain(i));
 			}
 			
 			if( conditionedSignal )
@@ -57,6 +58,12 @@ void MIDI_Output(void)
 	            MIDI_Tx( conditionedSignal );
 	         } 
 	         SoftTimerStart(RetriggerPeriod[i]);
+	         
+         	if( SoftTimer2[SC_VUMeterUpdate].timerEnable == 1)
+				{
+					UpdateVUValues(SignalPeak);
+				}	         
+	         
 			}
       }  
    }

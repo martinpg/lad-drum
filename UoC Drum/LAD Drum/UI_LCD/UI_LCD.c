@@ -27,7 +27,14 @@ const uint8_t LcdCustomChar[][8] =
 	{0x00, 0x1F, 0x1C, 0x1C, 0x1C, 0x1C, 0x1F, 0x00}, // 3. 3/5 full progress block
 	{0x00, 0x1F, 0x1E, 0x1E, 0x1E, 0x1E, 0x1F, 0x00}, // 4. 4/5 full progress block
 	{0x00, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x00}, // 5. 5/5 full progress block
-	{0x0A, 0x15, 0x11, 0x0A, 0x04, 0x00, 0x00, 0x00}
+	{0x0A, 0x15, 0x11, 0x0A, 0x04, 0x00, 0x00, 0x00},
+	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F}, // Vertical 1/8 progress  
+	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x1F}, // 2/8
+	{0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x1F, 0x1F}, // 3/8
+	{0x00, 0x00, 0x00, 0x00, 0x1F, 0x1F, 0x1F, 0x1F}, // Vertical 4/8 progress  
+	{0x00, 0x00, 0x00, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F}, // 5/8
+	{0x00, 0x00, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F}, // 6/8 Vertical progress
+	{0x00, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F}, // 7/8 Vertical progress	
 };
 
 
@@ -148,14 +155,14 @@ void UI_LCD_Init(void)
    
    
    
-	// load the first 8 custom characters
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[0], 0);
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[1], 1);
-   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[2], 2);
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[3], 3);
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[4], 4);
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[5], 5);
-   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 6);
+	/* Load VU Meter */
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[7], 1);
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[8], 2);
+   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[9], 3);
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[10], 4);
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[11], 5);
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[12], 6);
+   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[13], 7);
 }
 
 
@@ -172,14 +179,16 @@ void UI_LCD_Home(void)
 void UI_LCD_Clear(void)
 {
    uint8_t i;
-   //UI_LCD_SetInstruction();   
-   //UI_LCD_Write( (1 << LCD_CLR ) );
-   
+   UI_LCD_SetInstruction();   
+   UI_LCD_Write( (1 << LCD_CLR ) );
+
+/*  	UI_LCD_SetData();   
    for( i = 0; i < LCD_RAM_END; i++)
    {
-      UI_LCD_Char(' ');
-   }
-   UI_LCD_Pos(0,0);
+
+   	UI_LCD_Write(' ');
+   }*/
+   //UI_LCD_Pos(0,0);
    
 }
 
@@ -225,7 +234,7 @@ void UI_LCD_Pos(uint8_t row, uint8_t col)
 	  case 1: DDRAMAddr = LCD_LINE1_DDRAMADDR + col; break;
 	  case 2: DDRAMAddr = LCD_LINE2_DDRAMADDR + col; break;
 	  case 3: DDRAMAddr = LCD_LINE3_DDRAMADDR + col; break;
-	  default: DDRAMAddr = LCD_LINE0_DDRAMADDR + col;
+	  default: DDRAMAddr = LCD_LINE0_DDRAMADDR + col; break;
 	}
 
 	// set data address
@@ -325,10 +334,11 @@ void UI_LCD_LoadCustomChar(uint8_t* lcdCustomCharArray, uint8_t lcdCharNum)
       UI_LCD_SetInstruction();
 		// set CG RAM address
 		UI_LCD_Write((1<<LCD_CGRAM) | (lcdCharNum+i));
+		_delay_us(200);
 		UI_LCD_SetData();
 		// write character data
 		UI_LCD_Write( *(lcdCustomCharArray++) );
-	
+		_delay_us(200);
 	}
 
 }

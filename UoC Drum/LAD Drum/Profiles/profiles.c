@@ -123,7 +123,6 @@ void Profile_Read(uint8_t profileIndex)
 	memcpy((uint16_t*)&GainSettings,
 			 (uint16_t*)GAIN_SETTINGS(profileIndex), sizeof(GainSettings_t));
 	       
-	       
 	memcpy((uint16_t*)&DigitalSettings,
 	  		 (uint16_t*)DIGITAL_SETTINGS(profileIndex), sizeof(DigitalSettings_t));	
 	  		 

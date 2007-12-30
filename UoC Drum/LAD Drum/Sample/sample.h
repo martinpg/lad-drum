@@ -75,9 +75,9 @@ typedef struct {
 typedef struct {
 
 	/* Slope 1 Gradient */
-   uint8_t   ChannelGain[ANALOGUE_INPUTS];	
+   int8_t   ChannelGain[ANALOGUE_INPUTS];	
    /* Slope 2 Gradient */
-   uint8_t	 ChannelGain2[ANALOGUE_INPUTS];
+   int8_t	ChannelGain2[ANALOGUE_INPUTS];
    
    /* Crossover Level */
    uint16_t  Crossover[ANALOGUE_INPUTS];
@@ -164,11 +164,11 @@ void SetTriggerMode(uint8_t DigitalChannel, uint8_t triggerMode);
 
 
 /* Channel Gain */
-uint8_t GetChannelGain(uint8_t channel);
+int8_t GetChannelGain(uint8_t channel);
 void SetChannelGain(uint8_t channel, int8_t Gain);
 
 /* Channel Gain 2nd Slope*/
-uint8_t GetSlope2Gain(uint8_t channel);
+int8_t GetSlope2Gain(uint8_t channel);
 void SetSlope2Gain(uint8_t channel, int8_t Gain);
 
 /* Gain Type setup */

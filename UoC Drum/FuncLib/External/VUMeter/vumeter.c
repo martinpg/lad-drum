@@ -2,6 +2,7 @@
 
 
 #include <stdint.h>
+#include <string.h>
 #include "vumeter.h"
 
 
@@ -15,12 +16,35 @@ static uint8_t VUColStart = 0;
 static uint8_t VURow = 0;
 static uint8_t VUCol = 0;
 
+uint16_t	VUValues[MAX_METERS];
+
+void UpdateVUValues(void* src)
+{
+	memcpy(VUValues, src, sizeof(VUValues));
+}
+
+void ResetVUValues(void)
+{
+	uint8_t i = MAX_METERS;
+	while( i-- )
+	{
+		VUValues[i] = 0;	
+	}	
+}
+
 /* Accepts the normalised value as well as how
  * many chars it occupies */
 void VUSetLevel(uint8_t meterIndex, uint8_t normalValue, uint8_t rows)
 {
-   
-   VULevel[meterIndex] = normalValue | (rows << 6);
+	/* Ensure the VU Level is within limits */
+   if( normalValue < (rows << 3) )
+   {
+   	VULevel[meterIndex] = normalValue;
+	}
+	else
+	{
+		VULevel[meterIndex] = (rows << 3);	
+	}
    
 }
 
@@ -31,6 +55,7 @@ void VUSetLevel(uint8_t meterIndex, uint8_t normalValue, uint8_t rows)
 /* Max value and maxVal values are 2047 */ 
 uint16_t VUNormalise(uint16_t value, uint16_t maxVal, uint8_t rows)
 {
+	
    value = value * (rows << 3);
    value = value / maxVal;
    
@@ -63,34 +88,67 @@ void VUMeterPrint(uint8_t meterIndex, uint8_t rows )
       stop = rows - FULL_RANGE;
       rows = FULL_RANGE;  
    }
+   
+   
+   if( meterIndex == ALL_METERS )
+   {
+      /* For each VUMeter, print out the pixels */
+      for( row = rows - 1; row >= stop; row-- )
+      {
+         int8_t temp;
+         
+         
+		   /* Print out all the required VUMeters */
+		   for( col = 0; col < MAX_METERS; col++ )
+		   {
+	         temp = (VULevel[col] & 0x1F) - (row << 3);
+	         /* Limit the pixels to each row to 0 -> 8 */
+	         if( temp <= 0 )
+	         {
+	            temp = ' ';  
+	         }
+	         else if( temp >= PIXELS_PER_ROW )
+	         {
+	            temp = FULL_BLOCK;  
+	         }
+	         VUPrint(temp);
+			}
+         VUNewLine();
+      }		
+		return;
+	}
+   
+   
    /* Print out all the required VUMeters */
    for( col = 0; col < MAX_METERS; col++ )
    {
+		VURow = VURowStart;
+		VUCol = col;
+		/* Move across one VUMeter and reset position */;
+      VUPosition(VURowStart, col);
+		
+		
       if( (meterIndex == ALL_METERS) || (col == meterIndex) )
       {
          /* For each VUMeter, print out the pixels */
-         for( row = rows - 1; row >= stop; row++ )
+         for( row = rows - 1; row >= stop; row-- )
          {
             int8_t temp;
-            temp = (VULevel[col] & 0x1F) - (col << 3);
+            temp = (VULevel[col] & 0x1F) - (row << 3);
             
             /* Limit the pixels to each row to 0 -> 8 */
-            if( temp < 0 )
+            if( temp <= 0 )
             {
-               temp = 0;  
+               temp = ' ';  
             }
-            else if( temp > PIXELS_PER_ROW )
+            else if( temp >= PIXELS_PER_ROW )
             {
-               temp = PIXELS_PER_ROW;  
+               temp = FULL_BLOCK;  
             }
-            
             VUPrint(temp);
             VUNewLine();
          }
       }
-   
-      /* Move across one VUMeter and reset position */
-      VUPosition(VURowStart, ++VUCol);
    }
   
 }
@@ -140,4 +198,17 @@ void VULevelDecay(uint8_t meterIndex)
          VULevel[meterIndex]--;
       }
    }
+}
+
+
+
+void VUTest(void)
+{
+	VUPrint('A');
+	VUNewLine();
+	VUPrint('A');
+	VUNewLine();
+	VUPrint('A');
+	//VUNewLine();	
+	
 }

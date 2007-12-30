@@ -3,6 +3,7 @@
 #include <io.h>
 #include <stdint.h>
 #include <signal.h>
+#include <stdlib.h>
 
 #include "main.h"
 #include "Softtimer.h"
@@ -12,6 +13,7 @@
 #include "Menu/Menu.h"
 #include "UserFunctions/userFunctions.h"
 #include "VUMeter/vumeter.h"
+#include "UART/uart.h"
 
 #define NUMBER_OF_TIMERS   (4)
 
@@ -26,7 +28,7 @@ SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{10000, 0, 0},
 
 
 SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{10, 0, 0},
-                                           {10, 0, 0}};
+                                           {100, 0, 0}};
 
 
 interrupt (TIMERB1_VECTOR) timerb1_int(void)
@@ -39,9 +41,6 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
    if( intVec & TBIV_CCR1 )
    {
 		TBCCR1 += SAMPLE_100US;
-		
-		/* Decay the VU Meters here */
-      VULevelDecay(ALL_METERS);
       	
 		if(SoftTimerInterrupt(SoftTimer1[SC_SecondDelay]))
 		{
@@ -58,6 +57,9 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
    if( intVec & TBIV_CCR2 )
    {
 		TBCCR2 += SAMPLE_1MS;
+		
+	
+		
 		if(SoftTimerInterrupt(SoftTimer2[SC_AutoMenuUpdate]))
 		{
          /* Update the Threshold bar */
@@ -69,31 +71,35 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 		if(SoftTimerInterrupt(SoftTimer1[SC_MIDIOutput]))
 		{
          MIDI_Output();
-         ResetValues();
+			ResetValues();	
          SoftTimerReset(SoftTimer1[SC_MIDIOutput]);     
       }	    	   
          
 		if(SoftTimerInterrupt(SoftTimer2[SC_VUMeterUpdate]))
 		{
+			/* Print 3 A's */
+			//VUSetPosition(1,0);
+			//VUTest();
+			SoftTimerReset(SoftTimer2[SC_VUMeterUpdate]); 
+		
          /* Do the VU Meter*/
-         
          uint16_t i;
             
          /* Set to Row1, Col 0 */
          VUSetPosition(1,0);  
-         
-                
+			/* Decay the VU Meters here */
+   	   VULevelDecay(ALL_METERS);                
          for( i = 0 ; i < ANALOGUE_INPUTS; i++ )
          {
 
             int8_t Gain =  GetChannelGain(i);
-            uint16_t maxVal;
+            int16_t maxVal;
             
             /* if the gain is an attenuation by shifting down
              * 5 bits (ie Most Sig. 7 bits of the 12bit ADC value 
              * then the maximum value that can be used to normalise
              * will be 4095 */
-            if( Gain <= (MAX_GAIN + MIN_GAIN) )
+            if( Gain <= (int8_t)(MAX_GAIN + MIN_GAIN) )
             {
                maxVal = 2047;
             }
@@ -107,12 +113,45 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
             }
             /* maxVal should have a maximum of 2047 */
 
-            /* Normalise with 3 rows */
-            VUSetLevel(i, VUNormalise((SignalPeak[i] >> 2), maxVal, 3), 3);
+				if( VUValues[i] > GetChannelThresh(i) )
+				{
+					uint16_t conditionedSignal = (VUValues[i] - GetChannelThresh(i));
+					
+					if ( GetChannelGain(i) > 0 )
+					{
+						conditionedSignal = conditionedSignal << GetChannelGain(i);
+					}
+					else
+					{
+						conditionedSignal = conditionedSignal >> (-GetChannelGain(i));
+					}
+					
+	            /* Normalise with 3 rows */
+	            VUSetLevel(i, VUNormalise((conditionedSignal), 127, 1), 1);
+	            
+	            uint8_t outputString[10];
+	            /*
+	            utoa(maxVal, outputString, 10);
+	            UART_TxString("Max Val = ");
+	            UART_TxString(outputString);
+	            UART_TxString("\r\n");
+	            
+	            utoa((conditionedSignal >> 1), outputString, 10);
+	            UART_TxString("vs Cond.:");
+	            UART_TxString(outputString);
+	            UART_TxString("\r\n");	             
+	            
+	            utoa(VUNormalise((conditionedSignal >> 1), maxVal, 3), outputString, 10);
+	            UART_TxString("Norm Val = ");
+	            UART_TxString(outputString);
+	            UART_TxString("\r\n");*/
+	            
+				}
+            
          }
+         VUMeterPrint(ALL_METERS, 1);
          
-         VUMeterPrint(ALL_METERS, 3);
-         SoftTimerReset(SoftTimer2[SC_VUMeterUpdate]);     
+         ResetVUValues();
       }         
          
          

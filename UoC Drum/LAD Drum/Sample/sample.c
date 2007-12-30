@@ -328,7 +328,7 @@ void UpdateChannelRetriggers(void)
 
 /****** GAIN SETTINGS ******/
 /* Channel Gain 1st Slope*/
-uint8_t GetChannelGain(uint8_t channel)
+int8_t GetChannelGain(uint8_t channel)
 {
    return GainSettings.ChannelGain[channel];
 }
@@ -349,7 +349,7 @@ void SetChannelGain(uint8_t channel, int8_t Gain)
 
 
 /* Channel Gain 2nd Slope*/
-uint8_t GetSlope2Gain(uint8_t channel)
+int8_t GetSlope2Gain(uint8_t channel)
 {
    return GainSettings.ChannelGain2[channel];
 }

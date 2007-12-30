@@ -16,14 +16,21 @@
 #define MAX_METERS  (20)
 
 
+#define FULL_BLOCK	(0xFF)
+extern uint16_t	VUValues[];
+
+
 void VUSetLevel(uint8_t meterIndex, uint8_t normalValue, uint8_t rows);
+
+void UpdateVUValues(void* src);
+void ResetVUValues(void);
 
 uint16_t VUNormalise(uint16_t value, uint16_t maxVal, uint8_t rows);
 void VUMeterPrint(uint8_t column, uint8_t rows );
 void VUSetPosition(uint8_t row, uint8_t column);
 void VUNewLine(void);
 
-
+void VUTest(void);
 void VULevelDecay(uint8_t meterIndex);
 
 #endif
