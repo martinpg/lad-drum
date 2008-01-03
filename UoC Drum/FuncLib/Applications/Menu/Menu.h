@@ -225,10 +225,9 @@ enum {
    ST_VARIABLE_GAIN,
    
    ST_VUMETER,
-   ST_VUMETER1ROW,
-   ST_VUMETER2ROW,   
-   ST_VUMETER3ROW,
-   ST_VUMETER4ROW,  	      
+   ST_SYSTEM_SETUP,
+	ST_SYSTEM_RESET,     
+   
    
 } menuIds;
 

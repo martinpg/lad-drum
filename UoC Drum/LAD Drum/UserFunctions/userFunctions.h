@@ -3,6 +3,8 @@
 
 #include "Profiles/profiles.h"
 
+void reset(void* data);
+
 /* Saves the passed profile into the profileIndex */
 void SaveProfile(void* data);
 void LoadProfile(void* data);

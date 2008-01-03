@@ -22,6 +22,12 @@
 
 static uint8_t SelectedProfile = DEFAULT_PROFILE;
 
+
+void reset(void* data)
+{
+	_reset_vector__();
+}
+
 void SetMIDIRate(void* data)
 {
 	uint8_t* input = (uint8_t*)data;

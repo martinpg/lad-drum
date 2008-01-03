@@ -33,7 +33,9 @@ const MENU_TEXT  MT_PROFILE_DEF[] = "Default Profile";
 
 
 const MENU_TEXT  MT_VUMETER[] = "VU Meter";
+const MENU_TEXT  MT_SYSTEM_SETUP[] = "System Setup";
 
+const MENU_TEXT  MT_SYSTEM_RESET[] = "Reset eDrum";
 
 const MENU_TEXT  MT_OPTIONS[] = "Options";
 const MENU_TEXT  MT_MIDI_OUTPUT_RATE[] = "MIDI Output Rate";
@@ -87,8 +89,10 @@ const MENU_TEXT  MT_VARIABLE_GAIN[] = "Variable Gain";
 const menu_list MenuState[] = {
 
    {ST_MAIN,   ST_OPTIONS,   0},
-   {ST_MAIN, 	ST_PROFILES,  1},
-   {ST_MAIN,	ST_VUMETER,	  2},
+   {ST_MAIN,	ST_VUMETER,	  1},
+   {ST_MAIN, 	ST_PROFILES,  2},
+   {ST_MAIN,   ST_SYSTEM_SETUP, 3},
+
    {ST_OPTIONS, ST_MIDI_OUTPUT_RATE,  0},
    {ST_OPTIONS, ST_CHANNEL_SETUP, 1},
    {ST_OPTIONS, ST_CHANGE_CHANNEL_CODE, 2},
@@ -236,6 +240,7 @@ const menu_list MenuState[] = {
 	{ST_SAVE_PROFILE, ST_SAVE_PROFILE_3, 2},
 	{ST_SAVE_PROFILE, ST_SAVE_PROFILE_4, 3},
 		
+	{ST_SYSTEM_SETUP, ST_SYSTEM_RESET, 0},
 			   
    {0, 0, 0}
 };
@@ -248,7 +253,10 @@ const menu_data MenuData[] = {
    {ST_MAIN, 0, 0},
    {ST_PROFILES, MT_PROFILES, ShowProfile},   
    {ST_OPTIONS, MT_OPTIONS, 0},
-	{ST_VUMETER, MT_VUMETER, VUMeterSetup},   
+	{ST_VUMETER, MT_VUMETER, VUMeterSetup},
+	{ST_SYSTEM_SETUP, MT_SYSTEM_SETUP, 0},
+	{ST_SYSTEM_RESET, MT_SYSTEM_RESET, reset},
+	
    {ST_MIDI_OUTPUT_RATE, MT_MIDI_OUTPUT_RATE, SetMIDIRate},
    {ST_SET_RATE, MT_SET_RATE, EditMIDIRate},
    {ST_INPUT_SELECT, MT_INPUT_SELECT, AmpInputSelect},

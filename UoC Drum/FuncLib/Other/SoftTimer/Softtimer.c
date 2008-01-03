@@ -21,7 +21,7 @@
 
 
    
-SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{2000, 0, 1},
+SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},
 														 {15, 0, 1},
 														 {10000, 0, 0}	 };
 
@@ -131,14 +131,17 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 		
 		if(SoftTimerInterrupt(SoftTimer1[SC_SecondDelay]))
 		{
+			UART_TxString("2 Sec");
          if( (UI_INT_PORT & UI_INT_PIN) )
          {
+				UART_TxString("Deact");
 				UI_SetRegister(UI_INTERRUPT, 0);  
             UI_Activate();
-         }
-         //UART_TxString("1 Sec");            
+            SoftTimerStop(SoftTimer1[SC_SecondDelay]);
+         }            
          SoftTimerReset(SoftTimer1[SC_SecondDelay]);      
       }
-		 
 	}
+	
+	eint();
 }
