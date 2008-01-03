@@ -27,7 +27,7 @@ const uint8_t LcdCustomChar[][8] =
 	{0x00, 0x1F, 0x1C, 0x1C, 0x1C, 0x1C, 0x1F, 0x00}, // 3. 3/5 full progress block
 	{0x00, 0x1F, 0x1E, 0x1E, 0x1E, 0x1E, 0x1F, 0x00}, // 4. 4/5 full progress block
 	{0x00, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x1F, 0x00}, // 5. 5/5 full progress block
-	{0x0A, 0x15, 0x11, 0x0A, 0x04, 0x00, 0x00, 0x00},
+	{0x0A, 0x15, 0x11, 0x0A, 0x04, 0x00, 0x00, 0x00}, // Heart
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F}, // Vertical 1/8 progress  
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x1F}, // 2/8
 	{0x00, 0x00, 0x00, 0x00, 0x00, 0x1F, 0x1F, 0x1F}, // 3/8
@@ -146,16 +146,14 @@ void UI_LCD_Init(void)
    UI_LCD_Write( LCD_DISPLAY_DEFAULT );
    _delay_ms(2);   
    UI_LCD_Write( LCD_MODE_DEFAULT );   
- 
-  
+   
    UI_LCD_Clear();
    _delay_ms(2);    
    UI_LCD_Home();
    _delay_ms(20);    
    
-   
-   
 	/* Load VU Meter */
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 0);	
 	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[7], 1);
 	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[8], 2);
    UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[9], 3);
@@ -163,6 +161,8 @@ void UI_LCD_Init(void)
 	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[11], 5);
 	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[12], 6);
    UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[13], 7);
+
+   
 }
 
 
@@ -310,7 +310,7 @@ void UI_LCD_BL_Off(void)
 
 
 
-/* Accepts a 7 Byte custom char array */
+/* Accepts a 8 Byte custom char array */
 void UI_LCD_LoadCustomChar(uint8_t* lcdCustomCharArray, uint8_t lcdCharNum)
 {
 	uint8_t i;
@@ -321,7 +321,7 @@ void UI_LCD_LoadCustomChar(uint8_t* lcdCustomCharArray, uint8_t lcdCharNum)
 	// copy the 8 bytes into CG (character generator) RAM
    UI_LCD_SetInstruction();
 	// set CG RAM address
-	UI_LCD_Write((1<<LCD_CGRAM) | (lcdCharNum+i));	
+	UI_LCD_Write((1<<LCD_CGRAM) | (lcdCharNum));	
 	
 	/* Assumes auto increment of cursor position */
 	for(i=0; i<8; i++)

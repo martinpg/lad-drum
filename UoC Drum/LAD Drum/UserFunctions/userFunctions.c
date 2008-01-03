@@ -17,6 +17,7 @@
 #include "ADC/adc12.h"
 #include "Delay/delay.h"
 #include "Profiles/profiles.h"
+#include "VUMeter/vumeter.h"
 
 
 static uint8_t SelectedProfile = DEFAULT_PROFILE;
@@ -347,7 +348,8 @@ void SetThreshold(void* data)
 		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[3], 3);
 		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[4], 4);
 		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[5], 5);
-	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 6);	
+	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 6);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[7], 7);
 	}
 	
 	
@@ -464,7 +466,7 @@ void SetRetrigger(void* data)
 	MenuPrint_P(PSTR("Retrigger Level: "));
 	MenuNewLine();
 	MenuPrint(outputString);
-	MenuPrint_P(PSTR(" ms"));	    
+	MenuPrint_P(PSTR("0 ms"));	    
 	MenuNewLine(); 
 	
    UpdateChannelRetriggers();
@@ -661,7 +663,7 @@ void SetDualInput(void* data)
 	MenuNewLine();	   
 	
 	/* Display the channel velocity */
-	uint8toa(GetDigitalTrigger(SelectedChannel), outputString);
+	uint8toa(GetDigitalTrigger(SelectedChannel)+1, outputString);
 	MenuPrint_P(PSTR("Activated by: D"));
 	MenuPrint(outputString);
    MenuNewLine();   
@@ -675,7 +677,8 @@ void DigitalChannelSettings(void* data)
 {
    uint8_t* input = 0;
    uint8_t outputString[21];
-   uint8_t SelectedChannel = GetState() - ST_DIGITAL_1;
+   uint8_t SelectedChannel = GetState() - ST_CHANNEL_1;
+	uint8_t SelectedDigitalChannel = GetState() - ST_DIGITAL_1;
 
 	input = data;
 
@@ -705,17 +708,19 @@ void DigitalChannelSettings(void* data)
 	      
 	      /* Up and down output levels */
 	      case KP_B:
-				SetDigitalVelocity(SelectedChannel, (int16_t)GetDigitalVelocity(SelectedChannel)+10);
+				SetDigitalVelocity(SelectedDigitalChannel, 
+										(int16_t)GetDigitalVelocity(SelectedDigitalChannel)+10);
 	      break;
 	      
 	      case KP_C:
-				SetDigitalVelocity(SelectedChannel, (int16_t)GetDigitalVelocity(SelectedChannel)-10);  
+				SetDigitalVelocity(SelectedDigitalChannel, 
+										(int16_t)GetDigitalVelocity(SelectedDigitalChannel)-10);  
 	      break;
 	      
 	      /* Setting Modifiers */
 	      case KP_A:
 				ChannelToggle(SelectedChannel);
-	      	break;
+	      break;
 	               
 	      
 			case KB_BACK:
@@ -743,7 +748,7 @@ void DigitalChannelSettings(void* data)
 		
 	/* Indicate the channel selected */
 	MenuPrint_P(PSTR("Digital Ch "));
-	uint8toa(SelectedChannel + 1, outputString);	
+	uint8toa(SelectedDigitalChannel + 1, outputString);	
 	MenuPrint(outputString);          
    
  	MenuPrint_P(PSTR(": "));
@@ -774,7 +779,7 @@ void DigitalChannelSettings(void* data)
 	MenuNewLine();	   
 	
 	/* Display the channel velocity */
-	uint8toa(GetDigitalVelocity(SelectedChannel), outputString);
+	uint8toa(GetDigitalVelocity(SelectedDigitalChannel), outputString);
 	MenuPrint_P(PSTR("Velocity: "));
 	MenuPrint(outputString);
    MenuNewLine();   
@@ -843,7 +848,50 @@ void SetSwitchType(void* data)
 
 
 
+void VUMeterSetup(void* data)
+{
 
+	uint8_t* input = data;
+	static uint8_t firstEnter = 1;
+
+	switch( *input )
+	{         
+			case KP_A:
+				VUSetRows(GetVURows() + 1);	
+			   SoftTimer2[SC_VUDecay].timeCompare = (MAX_ROWS + 1 - GetVURows()) << 2;
+						
+			break;
+		
+		
+         case KP_BACK:
+				SoftTimerStop(SoftTimer2[SC_VUDecay]);				
+				SoftTimerStop(SoftTimer2[SC_VUMeterUpdate]);
+				//SoftTimerStart(SoftTimer1[SC_MIDIOutput]);				
+				MenuSetInput(KP_BACK);
+            stateMachine(currentState);
+            MenuSetInput(0);
+            firstEnter = 1;
+            executeState(currentState);
+            
+         return;
+	}
+	firstEnter = 0;
+		
+	/* Start the VU Meter */
+	MenuPrint_P(PSTR("123456789ABCDEFG"));
+
+	if( GetVURows() == MAX_ROWS )
+	{
+		VUSetPosition(0,0);
+	}
+	else
+	{
+		VUSetPosition(1,0);
+	}
+	//SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
+	SoftTimerStart(SoftTimer2[SC_VUMeterUpdate]);
+	SoftTimerStart(SoftTimer2[SC_VUDecay]);
+}
 
 
 
