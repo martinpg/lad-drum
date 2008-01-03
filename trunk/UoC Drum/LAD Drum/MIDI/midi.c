@@ -26,8 +26,8 @@ MidiSettings_t MIDISettings = {
 void MIDI_Output(void)
 {
    uint8_t i;
-   /* Do digital inputs then do analogue inputs  */
-   for( i = 0; i < NUMBER_OF_INPUTS; i++)
+   /* do analogue inputs then do digital inputs  */
+   for( i = 0; i < ANALOGUE_INPUTS; i++)
    {      
       if( GetChannelStatus(i) && 
           (RetriggerPeriod[i].timerEnable == 0) && 
@@ -48,8 +48,20 @@ void MIDI_Output(void)
 			{
 	         /* Send a NOTE ON | Channel */
 	         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
-	         MIDI_Tx(GetChannelKey(i));
-	         if( conditionedSignal > 127 )
+	         
+	         if( GetDualMode(i) && 
+					 GetDigitalState(GetDigitalTrigger(i)) == GetActiveState(GetDigitalTrigger(i)) )
+				{
+	         	MIDI_Tx(GetChannelKeyClosed(i));
+				}
+				else
+				{
+					MIDI_Tx(GetChannelKey(i));
+				}
+	         
+				
+				
+				if( conditionedSignal > 127 )
 	         {
 	            MIDI_Tx( 127 );   
 	         }
@@ -57,38 +69,32 @@ void MIDI_Output(void)
 	         {
 	            MIDI_Tx( conditionedSignal );
 	         } 
-	         SoftTimerStart(RetriggerPeriod[i]);
-	         
-         	if( SoftTimer2[SC_VUMeterUpdate].timerEnable == 1)
-				{
-					UpdateVUValues(SignalPeak);
-				}	         
-	         
+	         SoftTimerStart(RetriggerPeriod[i]); 
+				
+				VUValues[i] = SignalPeak[i];
 			}
       }  
    }
 }
 
 
-void MIDI_FastOutput(void)
+void MIDI_DigitalOutput(void)
 {
    uint8_t i;
-   for( i = 0; i < NUMBER_OF_INPUTS; i++)
+   for( i = ANALOGUE_INPUTS; i < NUMBER_OF_INPUTS; i++)
    {      
-      if( GetChannelStatus(i) )
+      if( GetChannelStatus(i) && 
+          (RetriggerPeriod[i].timerEnable == 0))
       {
-   		uint16_t conditionedSignal = (SignalPeak[i] >> GetChannelGain(i));
-         /* Send a NOTE ON | Channel */
-         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
-         MIDI_Tx(GetChannelKey(i));
-         if( conditionedSignal > 127 )
-         {
-            MIDI_Tx( 127 );   
-         }
-         else
-         {
-            MIDI_Tx( conditionedSignal );
-         } 
+   		if( SignalPeak[i] )
+   		{	
+	         /* Send a NOTE ON | Channel */
+	         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
+	         MIDI_Tx(GetChannelKey(i));
+	         MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );   
+			}
+			
+			SoftTimerStart(RetriggerPeriod[i]);
       }
    }
 }

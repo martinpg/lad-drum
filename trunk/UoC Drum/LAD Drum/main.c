@@ -53,7 +53,8 @@ int main(void)
 
    ProfileInit();    
    SensorInit();
-
+	DigitalInputInit();
+	
 	Profile_Read(DEFAULT_PROFILE);
 
    /* Implement the changes */
@@ -132,7 +133,7 @@ int main(void)
             {
                /* Change the channel */              
                SensorChannel(i);
-               _delay_us(1);
+               _delay_us(150);
                /* Take a sample */
                sample = ADC12_Sample();                              
                /* Obtain Peak */
@@ -188,7 +189,7 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
    {
 		UI_LCD_Pos(3, 10);
 		
-		UI_LCD_Char(8);
+		UI_LCD_Char(0);
 		UI_LCD_Char(1);
 		UI_LCD_Char(2);
 		UI_LCD_Char(3);		

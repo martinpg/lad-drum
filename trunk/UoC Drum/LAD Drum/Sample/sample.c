@@ -7,9 +7,15 @@
 #include "Profiles/profiles.h"
 #include "SoftTimer/Softtimer.h"
 
+/* Signal Peak also holds the value of the Digital State */
 uint16_t SignalPeak[NUMBER_OF_INPUTS];
+
+/* The Digital Triggers must be cycled for the singleshot triggers */
+uint8_t DigitalCycle[DIGITAL_INPUTS];
+
 /* For Retrigger Timers */
 SoftTimer_8   RetriggerPeriod[NUMBER_OF_INPUTS];
+
 
 /* The functions below all work on the 'current profile */
 
@@ -97,7 +103,7 @@ GainSettings_t GainSettings = {
 
 uint8_t GetChannelStatus(uint8_t channel)
 {
-   return ((ChannelSettings.ChannelStatus & (1 << channel)) != 0);
+   return ((ChannelSettings.ChannelStatus & ((uint32_t)1 << channel)) != 0);
 }
 
 
@@ -108,8 +114,8 @@ void ChannelToggle(uint8_t channel)
 
 void SetChannelStatus(uint8_t channel, uint8_t status)
 {
-   ChannelSettings.ChannelStatus &=  ~(1 << channel);
-   ChannelSettings.ChannelStatus |=   (status << channel);
+   ChannelSettings.ChannelStatus &=  ~((uint32_t)1 << channel);
+   ChannelSettings.ChannelStatus |=   ((uint32_t)status << channel);
 }
 
 /* General Channel Key Notes, and also the Dual Input Open Notes */
@@ -160,12 +166,16 @@ uint16_t GetChannelThresh(uint8_t channel)
    return ChannelSettings.ChannelThreshold[channel];
 }
 
-void SetChannelThresh(uint8_t channel, uint16_t thresh)
+void SetChannelThresh(uint8_t channel, int16_t thresh)
 {
    if( thresh > MAX_THRESHOLD)
    {
-      thresh = MAX_THRESHOLD;  
+      thresh = 0;  
    }
+   if( thresh < 0 )
+   {
+		thresh = MAX_THRESHOLD;	
+	}
    ChannelSettings.ChannelThreshold[channel] = thresh + MIN_THRESHOLD;
 }
 
@@ -255,12 +265,12 @@ void SetDigitalTrigger(uint8_t AnalogueChannel, int8_t DigitalChannel)
 
 
 /* Digital Channel Velocity Outputs */
-uint8_t GetDigitalVelocity(uint8_t channel)
+uint8_t GetDigitalVelocity(uint8_t DigitalChannel)
 {
-   return DigitalSettings.DigitalVelocity[channel];
+   return DigitalSettings.DigitalVelocity[DigitalChannel];
 }
 
-void SetDigitalVelocity(uint8_t channel, int16_t velocity)
+void SetDigitalVelocity(uint8_t DigitalChannel, int16_t velocity)
 {
    if( velocity > MAX_VELOCITY)
    {
@@ -270,7 +280,7 @@ void SetDigitalVelocity(uint8_t channel, int16_t velocity)
    {
 		velocity = MAX_VELOCITY;	
 	}
-   DigitalSettings.DigitalVelocity[channel] = velocity;
+   DigitalSettings.DigitalVelocity[DigitalChannel] = velocity;
 }
 
 /* To alter the switch type from Active Low/High */
@@ -407,8 +417,68 @@ void SetCrossover(uint8_t channel, uint16_t crossover)
 
 
 
+void DigitalInputInit(void)
+{
+	/* Turn all associated pins to inputs */
+	DIGITAL_DDR1 &= ~(DIGITAL_0 | DIGITAL_1 | DIGITAL_2 | DIGITAL_3 | DIGITAL_4);
+	DIGITAL_DDR2 &= ~(DIGITAL_5 | DIGITAL_6 | DIGITAL_7);
+	
+	DIGITAL_PORT1 |= (DIGITAL_0 | DIGITAL_1 | DIGITAL_2 | DIGITAL_3 | DIGITAL_4);
+	DIGITAL_PORT2 |= (DIGITAL_5 | DIGITAL_6 | DIGITAL_7);
+	
+}
 
+/* Returns the state of the passed digital input channel */
+uint8_t GetDigitalState(uint8_t DigitalChannel)
+{
+	if( DigitalChannel >= D5 )
+	{
+		return ((DIGITAL_PIN2 & (1 << DigitalChannel)) != 0);
+	}
+	else
+	{
+		return ((DIGITAL_PIN1 & (1 << DigitalChannel)) != 0);	
+	}
+}
 
+/* Updates the SignalPeak Variable regardless of whether the Digital Input is
+ * Active */
+void ScanDigitalInputs(void)
+{
+	uint8_t i;
+	
+	for( i = 0; i < DIGITAL_INPUTS; i++)
+	{
+		if( GetDigitalState(i) == GetActiveState(i) )
+		{
+			if( GetTriggerMode(i) == SINGLE_SHOT )
+			{
+				/* Schmitt Trigger Type Operation */
+				if( DigitalCycle[i] == INPUT_HAS_BEEN_CYCLED )
+				{
+					SignalPeak[i | ANALOGUE_INPUTS] = 1;
+					DigitalCycle[i] = INPUT_IS_DOWN;	
+				}
+				else
+				{
+					/* Reset Value */
+					SignalPeak[i | ANALOGUE_INPUTS] = 0;						
+				}
+			}
+			else
+			{
+				SignalPeak[i | ANALOGUE_INPUTS] = 1;
+			}
+		}
+		else
+		{
+			/* Reset Value */
+			SignalPeak[i | ANALOGUE_INPUTS] = 0;
+			DigitalCycle[i] = INPUT_HAS_BEEN_CYCLED;
+		}
+	}
+	
+}
 
 
 
@@ -416,7 +486,7 @@ void SetCrossover(uint8_t channel, uint16_t crossover)
 void ResetValues(void)
 {
    uint8_t i;
-   for( i = 0; i < NUMBER_OF_INPUTS; i++)
+   for( i = 0; i < ANALOGUE_INPUTS; i++)
    {
       SignalPeak[i] = 0;  
    }
@@ -445,16 +515,14 @@ void TimerInit(void)
    TBCTL |= (TBSSEL_SMCLK | MC_CONT | TBIE);
      
    /* 100us timer */
-   TBCCTL1 |= (CCIE);   
-   TBCCR1 = SAMPLE_100US;
+   /*TBCCTL1 |= (CCIE);   
+   TBCCR1 = SAMPLE_100US;*/
 
    /* 1ms Timer */
    TBCCTL2 |= (CCIE);
    TBCCR2 = SAMPLE_1MS;
    
-   
-   /* Need to setup the timer specs */
-
+   	
    
 }
 

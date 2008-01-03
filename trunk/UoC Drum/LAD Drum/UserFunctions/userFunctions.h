@@ -38,4 +38,7 @@ void SetSwitchType(void* data);
 void AmpInputSelect(void* data);
 void SensorInputChange(void* data);
 
+/* VU Meter */
+void VUMeterSetup(void* data);
+
 #endif

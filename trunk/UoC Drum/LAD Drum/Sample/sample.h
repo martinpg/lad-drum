@@ -18,8 +18,8 @@
 #define MAX_VELOCITY			(127)
 
 /* Retrigger Defines */
-#define MAX_RETRIGGER      (200)
-#define DEFAULT_RETRIGGER	(15)
+#define MAX_RETRIGGER      (255)
+#define DEFAULT_RETRIGGER	(1)
 #define MIN_RETRIGGER         (0)
 
 #define CHANNEL_ON   (1)
@@ -43,9 +43,43 @@
 #define MAX_GAIN           (7)
 /* Attenuation */
 #define MIN_GAIN				(-12)
-
-
 #define MAX_CROSSOVER	(4095)
+
+
+
+#define DIGITAL_PIN1	P5IN
+#define DIGITAL_PIN2	P4IN
+
+#define DIGITAL_PORT1	P5OUT
+#define DIGITAL_PORT2	P4OUT
+
+#define DIGITAL_DDR1		P5DIR
+#define DIGITAL_DDR2		P4DIR
+
+enum {
+	D0 = 0,
+	D1,
+	D2,
+	D3,
+	D4,
+	D5,
+	D6,
+	D7	
+} digitalPort1;
+
+/* In Digital Port 1 */
+#define DIGITAL_0		(1<<0)
+#define DIGITAL_1		(1<<1)
+#define DIGITAL_2		(1<<2)
+#define DIGITAL_3		(1<<3)
+#define DIGITAL_4		(1<<4)
+
+/* In Digital Port 2 */
+#define DIGITAL_5		(1<<5)
+#define DIGITAL_6		(1<<6)
+#define DIGITAL_7		(1<<7)
+#define INPUT_HAS_BEEN_CYCLED	(0)
+#define INPUT_IS_DOWN (1)
 
 typedef struct {
 
@@ -57,7 +91,7 @@ typedef struct {
 
    uint16_t  ChannelThreshold[ANALOGUE_INPUTS];
    
-   /* in 1ms resolution for both Analogue and Digital Settings */
+   /* in 10ms resolution for both Analogue and Digital Settings */
    uint8_t	 ChannelRetrigger[NUMBER_OF_INPUTS];
    
    /* Associating an analogue input with a digital one */
@@ -79,7 +113,7 @@ typedef struct {
    /* Slope 2 Gradient */
    int8_t	ChannelGain2[ANALOGUE_INPUTS];
    
-   /* Crossover Level */
+   /* Crossover Level from Gain 1 to Gain 2*/
    uint16_t  Crossover[ANALOGUE_INPUTS];
 	
 	uint16_t   GainType;
@@ -102,6 +136,7 @@ typedef struct {
 
 extern uint16_t SignalPeak[];
 extern SoftTimer_8   RetriggerPeriod[];
+extern uint8_t DigitalCycle[];
 
 extern ChannelSettings_t ChannelSettings;
 extern DigitalSettings_t DigitalSettings;
@@ -127,7 +162,7 @@ void SetChannelKeyClosed(uint8_t channel, int16_t key);
 
 /* Channel Thresholds */
 uint16_t GetChannelThresh(uint8_t channel);
-void SetChannelThresh(uint8_t channel, uint16_t thresh);
+void SetChannelThresh(uint8_t channel, int16_t thresh);
 
 /* Channel Retrigger */
 uint8_t GetChannelReTrig(uint8_t channel);
@@ -145,8 +180,8 @@ uint8_t GetDigitalTrigger(uint8_t AnalogueChannel);
 void SetDigitalTrigger(uint8_t AnalogueChannel, int8_t DigitalChannel);
 
 
-uint8_t GetDigitalVelocity(uint8_t channel);
-void SetDigitalVelocity(uint8_t channel, int16_t velocity);
+uint8_t GetDigitalVelocity(uint8_t DigitalChannel);
+void SetDigitalVelocity(uint8_t DigitalChannel, int16_t velocity);
 
 
 /* Switch Type */
@@ -179,6 +214,10 @@ void SetGainType(uint8_t channel, uint8_t status);
 /* Gain Settings */
 uint16_t GetCrossover(uint8_t channel);
 void SetCrossover(uint8_t channel, uint16_t crossover);
+
+void DigitalInputInit(void);
+uint8_t GetDigitalState(uint8_t DigitalChannel);
+void ScanDigitalInputs(void);
 
 
 #endif

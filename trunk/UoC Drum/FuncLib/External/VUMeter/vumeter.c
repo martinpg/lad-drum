@@ -16,6 +16,8 @@ static uint8_t VUColStart = 0;
 static uint8_t VURow = 0;
 static uint8_t VUCol = 0;
 
+static uint8_t VURows = 1;
+
 uint16_t	VUValues[MAX_METERS];
 
 void UpdateVUValues(void* src)
@@ -37,7 +39,7 @@ void ResetVUValues(void)
 void VUSetLevel(uint8_t meterIndex, uint8_t normalValue, uint8_t rows)
 {
 	/* Ensure the VU Level is within limits */
-   if( normalValue < (rows << 3) )
+   if( normalValue <= (rows << 3) )
    {
    	VULevel[meterIndex] = normalValue;
 	}
@@ -53,11 +55,25 @@ void VUSetLevel(uint8_t meterIndex, uint8_t normalValue, uint8_t rows)
  * pixels to draw if each row has 8 pixels */
  
 /* Max value and maxVal values are 2047 */ 
-uint16_t VUNormalise(uint16_t value, uint16_t maxVal, uint8_t rows)
+uint16_t VUNormalise(uint16_t value, uint16_t maxVal, uint16_t rows)
 {
 	
    value = value * (rows << 3);
    value = value / maxVal;
+   
+   return value;
+}
+
+/* Normalises the value to MIDI pixels
+ * The return value is effectively the number of 
+ * pixels to draw if each row has 8 pixels */
+ 
+/* Max value and maxVal values are 2047 */ 
+uint16_t VUNormaliseMIDI(uint16_t value, uint16_t rows)
+{
+	
+   value = value * (rows << 3);
+   value = value >> 7;
    
    return value;
 }
@@ -89,9 +105,12 @@ void VUMeterPrint(uint8_t meterIndex, uint8_t rows )
       rows = FULL_RANGE;  
    }
    
-   
    if( meterIndex == ALL_METERS )
    {
+	   VUPosition(VURowStart, VUColStart);
+	   VURow = VURowStart;
+   	VUCol = VUColStart;
+   
       /* For each VUMeter, print out the pixels */
       for( row = rows - 1; row >= stop; row-- )
       {
@@ -101,7 +120,7 @@ void VUMeterPrint(uint8_t meterIndex, uint8_t rows )
 		   /* Print out all the required VUMeters */
 		   for( col = 0; col < MAX_METERS; col++ )
 		   {
-	         temp = (VULevel[col] & 0x1F) - (row << 3);
+	         temp = (VULevel[col]) - (row << 3);
 	         /* Limit the pixels to each row to 0 -> 8 */
 	         if( temp <= 0 )
 	         {
@@ -128,13 +147,13 @@ void VUMeterPrint(uint8_t meterIndex, uint8_t rows )
       VUPosition(VURowStart, col);
 		
 		
-      if( (meterIndex == ALL_METERS) || (col == meterIndex) )
+      if( col == meterIndex )
       {
          /* For each VUMeter, print out the pixels */
          for( row = rows - 1; row >= stop; row-- )
          {
             int8_t temp;
-            temp = (VULevel[col] & 0x1F) - (row << 3);
+            temp = (VULevel[col]) - (row << 3);
             
             /* Limit the pixels to each row to 0 -> 8 */
             if( temp <= 0 )
@@ -186,7 +205,7 @@ void VULevelDecay(uint8_t meterIndex)
       {
          if(VULevel[i])
          {
-            VULevel[i]--;  
+            VULevel[i] --;  
          }
            
       }
@@ -195,20 +214,23 @@ void VULevelDecay(uint8_t meterIndex)
    {
       if(VULevel[meterIndex])
       {
-         VULevel[meterIndex]--;
+         VULevel[meterIndex] --;
       }
    }
 }
 
 
 
-void VUTest(void)
+void VUSetRows(uint8_t rows)
 {
-	VUPrint('A');
-	VUNewLine();
-	VUPrint('A');
-	VUNewLine();
-	VUPrint('A');
-	//VUNewLine();	
-	
+	if( rows > MAX_ROWS )
+	{
+		rows = 1;	
+	}
+	VURows = rows;
+}
+
+uint8_t GetVURows(void)
+{
+	return VURows;	
 }

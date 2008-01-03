@@ -32,6 +32,9 @@ const MENU_TEXT  MT_PROFILE_4[] = "Profile 4";
 const MENU_TEXT  MT_PROFILE_DEF[] = "Default Profile";
 
 
+const MENU_TEXT  MT_VUMETER[] = "VU Meter";
+
+
 const MENU_TEXT  MT_OPTIONS[] = "Options";
 const MENU_TEXT  MT_MIDI_OUTPUT_RATE[] = "MIDI Output Rate";
 const MENU_TEXT  MT_SET_RATE[] = "Edit Output Rate";
@@ -85,6 +88,7 @@ const menu_list MenuState[] = {
 
    {ST_MAIN,   ST_OPTIONS,   0},
    {ST_MAIN, 	ST_PROFILES,  1},
+   {ST_MAIN,	ST_VUMETER,	  2},
    {ST_OPTIONS, ST_MIDI_OUTPUT_RATE,  0},
    {ST_OPTIONS, ST_CHANNEL_SETUP, 1},
    {ST_OPTIONS, ST_CHANGE_CHANNEL_CODE, 2},
@@ -243,7 +247,8 @@ const menu_list MenuState[] = {
 const menu_data MenuData[] = {
    {ST_MAIN, 0, 0},
    {ST_PROFILES, MT_PROFILES, ShowProfile},   
-   {ST_OPTIONS, MT_OPTIONS, 0},   
+   {ST_OPTIONS, MT_OPTIONS, 0},
+	{ST_VUMETER, MT_VUMETER, VUMeterSetup},   
    {ST_MIDI_OUTPUT_RATE, MT_MIDI_OUTPUT_RATE, SetMIDIRate},
    {ST_SET_RATE, MT_SET_RATE, EditMIDIRate},
    {ST_INPUT_SELECT, MT_INPUT_SELECT, AmpInputSelect},
