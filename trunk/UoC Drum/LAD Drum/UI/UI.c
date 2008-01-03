@@ -17,7 +17,6 @@ void UI_Activate(void)
 	   
    /* Set Config to turn on and Enable Transition detect */
    UI_SetRegister(MAX7300_CONFIG, (1 << MAX7300_SHUTDOWN_CONTROL) | (1 << MAX7300_TRANSITION_ENABLE));
-
 }
 
 

@@ -45,7 +45,7 @@ int main(void)
       _delay_us(50);
    }
 
-   _delay_ms(10);
+   _delay_ms(30);
    
 
    /* SMCLK is XT2 and so is the MCLK */
@@ -85,18 +85,17 @@ int main(void)
    I2CInit();
    /* Enable Keypad */
    UI_KP_Init();   
+	UI_SetRegister(UI_INTERRUPT, 0);  
    UI_Activate();
-
 
    /* Enable Interrupt detection on INTP1.3 for a Low to High */
    P1DIR &= ~(UI_INT_PIN);
+   P1IES &= ~(UI_INT_PIN);
    P1IE  |=  (UI_INT_PIN);
-   
    
    /* Enable LCD */
    UI_LCD_HWInit();
    UI_LCD_Init();
-   UI_LCD_String("Adrian");
       
    LCD_BL_DDR |= (1 << LCD_BL_PIN);
    LCD_BL_PORT &= ~(1 << LCD_BL_PIN);
@@ -207,9 +206,12 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
 interrupt (PORT1_VECTOR)   port1_int(void)
 {  
    dint(); 
-   if( P1IN & UI_INT_PIN )
+   
+   if( (UI_INT_PORT & UI_INT_PIN) )
    {
       P1IFG &= ~(UI_INT_PIN);
+      /* Reset Interrupt */
+
       
       uint8_t IntResult;
       /* Reset Interrupt on UI */
@@ -223,14 +225,14 @@ interrupt (PORT1_VECTOR)   port1_int(void)
       if( IntResult != KP_INVALID)
       {
          MenuSetInput(IntResult);   
-         MenuUpdate();         
-      }  
-      
-      UI_SetRegister(UI_INTERRUPT, 0);      
+         MenuUpdate();
+			//SoftTimerStart(SoftTimer1[SC_SecondDelay]);         
+      }    
+   
+   	UI_SetRegister(UI_INTERRUPT, 0);
       UI_Activate();
    }
-   
-   eint();
+	eint();
 }
 
 

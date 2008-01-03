@@ -135,23 +135,23 @@ void UI_LCD_Init(void)
 {
 
    UI_LCD_SetInstruction();
-
-
-   /* Init to use 4 bit mode */
-   UI_LCD_SetRegister(UI_LCD_PORT, (LCD_FUNCTION_DEFAULT >> 4) & (0x0F) );
    UI_LCD_Strobe();
-   _delay_ms(10);         
+	/* Set to 8 - bit mode */
+   UI_LCD_SetRegister(UI_LCD_PORT, ((LCD_FUNCTION_DEFAULT) >> 4) & (0x0F) );
+   UI_LCD_Strobe();
+	_delay_ms(5);
+	
    UI_LCD_Write( LCD_FUNCTION_DEFAULT );
-   _delay_ms(4);   
+   _delay_ms(2); 	   
    UI_LCD_Write( LCD_DISPLAY_DEFAULT );
    _delay_ms(2);   
    UI_LCD_Write( LCD_MODE_DEFAULT );   
-   
    UI_LCD_Clear();
    _delay_ms(2);    
    UI_LCD_Home();
-   _delay_ms(20);    
-   
+   _delay_ms(2); 
+	
+	   
 	/* Load VU Meter */
 	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 0);	
 	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[7], 1);
