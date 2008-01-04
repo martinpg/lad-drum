@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
+#include <signal.h>
 
 #include "main.h"
 #include "Menu/Menu.h"
@@ -19,7 +20,6 @@
 #include "Profiles/profiles.h"
 #include "VUMeter/vumeter.h"
 
-
 static uint8_t SelectedProfile = DEFAULT_PROFILE;
 
 
@@ -27,6 +27,230 @@ void reset(void* data)
 {
 	_reset_vector__();
 }
+
+void about(void* data)
+{
+	uint8_t* input = data;
+
+	if( firstEnter != 1 )
+	{
+		switch( *input )
+		{	
+	      case KP_BACK:      
+			UI_LCD_LoadDefaultChars();	
+	   	MenuSetInput(KP_BACK);
+	      stateMachine(currentState);
+	      MenuSetInput(0);
+			SoftTimerStop(SoftTimer2[SC_AboutUpdate]);
+			ThanksIndex(MAIN_SCREEN);       
+	      return;	
+		}	
+	}
+	
+	firstEnter = 0;
+	SoftTimerStart(SoftTimer2[SC_AboutUpdate]);
+	aboutScroll(MAIN_SCREEN);	
+}
+
+
+
+
+/* Pass GET to obtain the index, otherwise the index is set to the passed
+ * parameter */
+uint8_t ThanksIndex(uint8_t mode)
+{
+	static uint8_t nameIndex = MAIN_SCREEN;
+	if( mode == GET )
+	{
+		return 	nameIndex;
+	}
+	else
+	{
+		nameIndex = mode;
+		return mode;
+	}
+}
+
+void aboutScroll(uint8_t nameIndex)
+{
+	if( nameIndex > SIZEOFTHANKS )
+	{
+		nameIndex = MAIN_SCREEN;	
+	}
+
+	const uint8_t lightning[][8] = {{158,143,135,140,156,142,130,129},
+											  {143,158,156,134,135,142,136,144}};
+	
+	
+	switch( nameIndex )
+	{
+		case MAIN_SCREEN:
+
+			UI_LCD_LoadCustomChar((uint8_t*)lightning[0], 0);
+			UI_LCD_LoadCustomChar((uint8_t*)lightning[1], 1);
+			
+			MenuReset();
+			MenuPrint_P( PSTR("   University of"));
+			MenuNewLine();
+			MenuPrint_P(PSTR("Canterbury presents:") );
+			MenuNewLine();	
+			MenuChar(0x00);
+			MenuPrint_P( PSTR(" L-A-D eDrum"));
+			MenuChar(0x01);
+			MenuPrint_P( PSTR(" 2008 "));	
+		   MenuNewLine();
+			MenuPrint_P(PSTR("Version: ") );
+			MenuPrint_P(VersionId);
+			MenuNewLine();			   
+		break;
+		
+		case CREATORS_SCREEN:
+			MenuReset();		
+			MenuPrint_P( PSTR("Designer: Adrian Gin"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("Supervised by:"));
+			MenuNewLine();						
+			MenuPrint_P( PSTR("Dr Larry Brackney"));
+			MenuNewLine();				
+			MenuPrint_P( PSTR("Jullada Homtientong"));
+			MenuNewLine();										
+		break;
+		
+		case THANKS_SCREEN:
+			MenuReset();		
+			MenuPrint_P( PSTR("Special Thanks to:"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("Rowan 'Robot' Sinton"));
+			MenuNewLine();						
+			MenuPrint_P( PSTR("Shreejan Pandey"));
+			MenuNewLine();				
+			MenuPrint_P( PSTR("Tic-Sieu How"));
+			MenuNewLine();										
+		break;
+		
+		case THANKS2_SCREEN:
+			MenuReset();	
+			MenuPrint_P( PSTR("Ma & Ba"));
+			MenuNewLine();					
+			MenuPrint_P( PSTR("Bus,Ry,Tim,DJ Doboy"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("Bob Sinclair"));
+			MenuNewLine();						
+			MenuPrint_P( PSTR("Elec. Eng Department"));
+			MenuNewLine();										
+		break;			
+		
+		case THANKS3_SCREEN:
+			MenuReset();		
+			MenuPrint_P( PSTR("Phil Hof (DSL)"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("Malcolm Gordon"));
+			MenuNewLine();							
+			MenuPrint_P( PSTR("CAE2 Master"));
+			MenuNewLine();						
+			MenuPrint_P( PSTR("PCB Maker & Dudley B"));
+			MenuNewLine();					
+		break;	
+		
+		case THANKS4_SCREEN:
+			MenuReset();		
+			MenuPrint_P( PSTR("Slinkee Minx"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("Special D"));
+			MenuNewLine();							
+			MenuPrint_P( PSTR("Cosmic Gate & JJ"));
+			MenuNewLine();						
+			MenuPrint_P( PSTR("Siria"));
+			MenuNewLine();					
+		break;	
+		
+		case INSPIRATION_SCREEN:
+			MenuReset();		
+			MenuPrint_P( PSTR("Inspiration from:"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("eDrum.info"));
+			MenuNewLine();							
+			MenuPrint_P( PSTR("Megadrum, Toontrack"));
+			MenuNewLine();						
+			MenuPrint_P( PSTR("Smartie LCD"));
+			MenuNewLine();					
+		break;
+		
+		case INSPIRATION2_SCREEN:
+			MenuReset();		
+			MenuPrint_P( PSTR("Winamp Plugin"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("for the VU Meters"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("Dr Hamish Laird for"));
+			MenuNewLine();	
+			MenuPrint_P( PSTR("ENEL427 Supervision"));
+			MenuNewLine();																	
+		break;
+		
+		case INFORMATION_SCREEN:
+			MenuReset();		
+			MenuPrint_P( PSTR("Built using:"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("Protel DXP"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("Dev-C++ 4.9.9.2"));
+			MenuNewLine();	
+			MenuPrint_P( PSTR("MSPGCC and MSPFET"));
+			MenuNewLine();																	
+		break;	
+		
+		case INFORMATION2_SCREEN:
+			MenuReset();		
+			MenuPrint_P( PSTR("Recommended Tools:"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("MIDI-OX"));
+			MenuNewLine();
+			MenuPrint_P( PSTR("FL Studio 7"));
+			MenuNewLine();	
+			MenuPrint_P( PSTR("RealTerm for Debug"));
+			MenuNewLine();																	
+		break;												
+					
+	}
+}
+
+
+/* Play mode disables TimerB2 */
+void PlayMode(void* data)
+{
+	uint8_t* input = data;
+	
+	if( firstEnter != 1 )
+	{
+
+		switch( *input )
+		{	
+	      default:      
+	   	MenuSetInput(KP_BACK);
+	      stateMachine(currentState);
+	      MenuSetInput(0);
+	      /* Start the Aux Timer again */
+			TBCCTL2 |= (CCIE);    
+	      return;	
+		}	
+		
+	}
+	
+	firstEnter = 0;	
+	MenuReset();		
+	MenuPrint_P( PSTR("Optimised for Play!"));
+	MenuNewLine();	
+	MenuPrint_P( PSTR("Press any key to"));
+	MenuNewLine();
+	MenuPrint_P( PSTR("return to Main Menu!"));
+	MenuNewLine();			
+	/* Stop the Auxuliary Timer */
+	TBCCTL2 &= ~(CCIE);
+}
+
+
+
 
 void SetMIDIRate(void* data)
 {
@@ -319,8 +543,16 @@ void ChannelSetup(void* data)
 	MenuNewLine();	   
 	
 	/* Display the channel 'gain' */
-	itoa(GetChannelGain(SelectedChannel), outputString, 10);
+	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
+	{
+		MenuPrint_P( PSTR("Linear ") );
+	}
+	else
+	{
+		MenuPrint_P( PSTR("Non-Linear ") );		
+	}
 	MenuPrint_P(PSTR("Gain: "));
+	itoa(GetChannelGain(SelectedChannel), outputString, 10);
 	MenuPrint(outputString);
 	
    MenuNewLine();   
@@ -348,14 +580,13 @@ void SetThreshold(void* data)
 	if( firstEnter == 1)
 	{
 				// load the first 8 custom characters
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[0], 0);
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[1], 1);
-	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[2], 2);
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[3], 3);
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[4], 4);
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[5], 5);
-	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 6);
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[7], 7);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[0], 1);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[1], 2);
+	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[2], 3);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[3], 4);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[4], 5);
+		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[5], 6);
+	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 7);
 	}
 	
 	
@@ -382,15 +613,7 @@ void SetThreshold(void* data)
             firstEnter = 1;
             
 				/* Load VU Meter */
-				// load the first 8 custom characters
-				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 0);				
-				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[7], 1);
-				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[8], 2);
-			   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[9], 3);
-				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[10], 4);
-				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[11], 5);
-				UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[12], 6);
-			   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[13], 7);
+				UI_LCD_LoadDefaultChars();
             
             executeState(currentState);
 
@@ -433,7 +656,6 @@ void SetRetrigger(void* data)
    uint8_t outputString[5];
    uint8_t SelectedChannel = GetState() - ST_RETRIGGER_1;
    
-   static uint16_t lastPotValue = 0;
 	static uint8_t firstEnter = 1;
 	
    input = data;
@@ -447,8 +669,7 @@ void SetRetrigger(void* data)
          break;
          
          case KP_B:
-				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) -1 ));        
-			break;
+				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) -1 ));        			break;
 	
 	      case KP_C:
 				//SC_AutoMenuUpdate.timerEnable ^= 1;  
@@ -477,9 +698,6 @@ void SetRetrigger(void* data)
 	
    UpdateChannelRetriggers();
    	
-/*	MenuPrint_P(PSTR("Fine Tune:"));   */
-/*	UI_LCD_Pos(1, 10);         
-   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);*/
 }
 
 
@@ -514,18 +732,18 @@ void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length)
 			{
 				// this is an empty block
 				// use space character?
-				c = 0;
+				c = 1;
 			}
 			else
 			{
 				// this is a partial block
-				c = pixelprogress % PROGRESSPIXELS_PER_CHAR;
+				c = (pixelprogress % PROGRESSPIXELS_PER_CHAR)+1;
 			}
 		}
 		else
 		{
 			// this is a full block
-			c = 5;
+			c = 6;
 		}
 		
 		// write character to display
@@ -538,17 +756,154 @@ void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length)
 
 void SetGainCurves(void* data)
 {
+
+   uint8_t* input = 0;
+   uint8_t outputString[10];
+   uint8_t SelectedChannel = GetState() - ST_SETGAIN_1;
+   static uint8_t firstEnter = 1;
+   static int8_t presetSetting = CUSTOM;
+	input = data;
+
+
+   switch( *input )
+   {
+      /* Up and down a Key for Open Key*/
+      case KP_1:
+			SetChannelGain(SelectedChannel, GetChannelGain(SelectedChannel)+1);
+      break;
+      
+      case KP_7:
+			SetChannelGain(SelectedChannel, GetChannelGain(SelectedChannel)-1);  
+      break;
+      
+      /* Up an octave 
+      case KP_STAR:
+			SetChannelGain(SelectedChannel, GetChannelGain(SelectedChannel)+NOTE_COUNT);
+      break;*/
+      
+      /* Up and down a Key for Closed */
+      case KP_3:
+			SetSlope2Gain(SelectedChannel, GetSlope2Gain(SelectedChannel)+1);
+      break;
+      
+      case KP_9:
+			SetSlope2Gain(SelectedChannel, GetSlope2Gain(SelectedChannel)-1);  
+      break;
+      
+      /* Up an octave
+      case KP_HASH:
+			SetSlope2Gain(SelectedChannel, GetSlope2Gain(SelectedChannel)+NOTE_COUNT);
+      break;*/
+      
+      /* Setting Modifiers */
+      case KP_A:
+			GainTypeToggle(SelectedChannel);
+      break;	     
+		
+		case KP_B:
+			if( ++presetSetting >= NUMBER_OF_GAIN_PRESETS )
+			{
+				presetSetting = EXPONENTIAL_1;
+			}
+		break;
+		
+		case KP_C:
+			if( --presetSetting < EXPONENTIAL_1 )
+			{
+				presetSetting = CUSTOM;
+			}
+		break; 
+      
+      /* Digital Trigger Select */
+      case KP_2:
+			SetCrossover(SelectedChannel, (int16_t)GetCrossover(SelectedChannel)+50);
+      break;
+      
+      case KP_8:
+			SetCrossover(SelectedChannel, (int16_t)GetCrossover(SelectedChannel)-50);  
+      break;
+      
+      case KP_0:
+			SetCrossover(SelectedChannel, (int16_t)GetCrossover(SelectedChannel)+100);			
+		break;
+      
+      case KB_BACK:
+      case KP_BACK:      
+      	MenuSetInput(KP_BACK);
+         stateMachine(currentState);
+         MenuSetInput(0);
+         firstEnter = 1;
+         executeState(currentState);         
+         return;
+         
+      default:
+         break;
+   }
+	
+   
+   firstEnter = 0;
+
+	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
+	{
+		presetSetting = CUSTOM;
+	}   
+   
+	if( presetSetting != CUSTOM )
+	{
+		SetChannelGain(SelectedChannel, PresetGain1[presetSetting] );
+		SetSlope2Gain(SelectedChannel, PresetGain2[presetSetting] );
+		SetCrossover(SelectedChannel, PresetGainCrossover[presetSetting]);
+	}
 	
 	
+	MenuReset();
+		
+	/* Indicate the channel selected */
+ 	MenuPrint_P(PSTR("Gain Type:"));
+	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
+	{
+		MenuPrint_P( PSTR("Linear") );
+		MenuNewLine(); 		
+		/* Display the first slope channel 'gain' */
+		itoa(GetChannelGain(SelectedChannel), outputString, 10);
+		MenuPrint_P(PSTR("Gain1:"));
+		MenuPrint(outputString);
+	   MenuNewLine();
+		MenuNewLine();		
+	}
+	else
+	{
+		MenuPrint_P( PSTR("Non-Linear") );
+		MenuNewLine(); 
+		/* Display the first slope channel 'gain' */
+		itoa(GetChannelGain(SelectedChannel), outputString, 10);
+		MenuPrint_P(PSTR("Gain1:"));
+		MenuPrint(outputString);
+		
+		/* Display the channel slope 2 'gain' */
+		itoa(GetSlope2Gain(SelectedChannel), outputString, 10);
+		MenuPrint_P(PSTR(" Gain2:"));
+		MenuPrint(outputString);
+	   MenuNewLine();   
+		
+		/* Display the gain crossover point */
+		itoa(GetCrossover(SelectedChannel), outputString, 10);
+		MenuPrint_P(PSTR("Gain Crossover:"));
+		MenuPrint(outputString);
+	   MenuNewLine();			
+		
+		MenuPrint_P(PSTR("Preset:"));
+		MenuPrint_P(PresetGainStrings[presetSetting]);			
+	}   
+	
+	   
+
+   MenuNewLine();   		
+			
+	
+}	
 		
 	
-	
-	
-	
-	
-	
-}
-
 
 
 void SetDualInput(void* data)
@@ -796,7 +1151,6 @@ void DigitalChannelSettings(void* data)
 void SetSwitchType(void* data)
 {
 	uint8_t* input;
-   uint8_t outputString[5];
    uint8_t SelectedChannel = GetState() - ST_TRIGGER_TYPE_D1;
    
 	static uint8_t firstEnter = 1;

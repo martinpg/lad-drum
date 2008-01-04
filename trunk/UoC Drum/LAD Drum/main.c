@@ -27,6 +27,9 @@
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"
 #include "VUMeter/vumeter.h"
+#include "UserFunctions/userFunctions.h"
+
+const char VersionId[] = "1.0 4/1/08";
 
 /**
 Main function with some blinking leds
@@ -99,47 +102,42 @@ int main(void)
       
    LCD_BL_DDR |= (1 << LCD_BL_PIN);
    LCD_BL_PORT &= ~(1 << LCD_BL_PIN);
-   
+
    MenuSetDisplay(MENU_LCD);
    /* Menu Setup */
-   MenuSetInput(0);   
+   MenuSetInput(0); 
+	
+	/* Menu must be Initialised first */
+	aboutScroll(MAIN_SCREEN);
+	_delay_ms(900);	
+	UI_LCD_LoadDefaultChars();					  
    /* Reprint Menu */   
    MenuUpdate();   
    
-   dint();
- 
+
    uint16_t sample;
    
-   SoftTimer_16 ReadADC = {0, 0, 1};
-   //ChannelThreshold[0] = 0;
-   
-
 
    /* Enable interrupts */
    eint();  
    
-   SensorChannel(0);
-   
    while(1)
    {     
-      while( ReadADC.timerEnable )
-      {
-         uint8_t i;
-			eint();  
-			for( i = 0; i < NUMBER_OF_INPUTS; i++ )
-         {
-            if(GetChannelStatus(i) && (RetriggerPeriod[i].timerEnable == 0) )
-            {
-               /* Change the channel */              
-               SensorChannel(i);
-               _delay_us(150);
-               /* Take a sample */
-               sample = ADC12_Sample();                              
-               /* Obtain Peak */
-               ObtainPeak(i, sample);
-            }
-         }           
-      }        
+	   uint8_t i;
+		eint();  
+		for( i = 0; i < NUMBER_OF_INPUTS; i++ )
+	   {
+	      if(GetChannelStatus(i) && (RetriggerPeriod[i].timerEnable == 0) )
+	      {
+	         /* Change the channel */              
+	         SensorChannel(i);
+	         _delay_us(150);
+	         /* Take a sample */
+	         sample = ADC12_Sample();                              
+	         /* Obtain Peak */
+	         ObtainPeak(i, sample);
+	      }
+	   } 
    }
    
    return 0;
@@ -151,7 +149,6 @@ int main(void)
 interrupt (USART0RX_VECTOR) usart0_rx(void)
 {
    uint8_t buffer = U0RXBUF;
-   uint8_t outputString[20];
    static uint8_t channel = 0;
    
    if( buffer == '+' )
@@ -225,8 +222,7 @@ interrupt (PORT1_VECTOR)   port1_int(void)
       if( IntResult != KP_INVALID)
       {
          MenuSetInput(IntResult);   
-         MenuUpdate();
-			//SoftTimerStart(SoftTimer1[SC_SecondDelay]);         
+         MenuUpdate();       
       }    
    
    	UI_SetRegister(UI_INTERRUPT, 0);

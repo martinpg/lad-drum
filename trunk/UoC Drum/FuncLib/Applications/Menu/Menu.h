@@ -84,6 +84,7 @@ typedef struct
 /* Menu Texts */
 enum {  
    ST_MAIN = 10,
+   ST_PLAYMODE,
    ST_PROFILES,
    ST_OPTIONS,
    ST_MIDI_OUTPUT_RATE,
@@ -227,7 +228,7 @@ enum {
    ST_VUMETER,
    ST_SYSTEM_SETUP,
 	ST_SYSTEM_RESET,     
-   
+   ST_SYSTEM_ABOUT,
    
 } menuIds;
 
@@ -245,7 +246,7 @@ void (*MenuPrint)(char* string);
 void (*MenuPrint_P)(const char* string);
 void (*MenuNewLine)(void);
 void (*MenuReset)(void);
-
+void (*MenuChar)(char data);
 
 
 

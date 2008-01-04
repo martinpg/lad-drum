@@ -70,6 +70,7 @@ enum {
    SC_VUMeterUpdate,
    SC_VUDecay,
    SC_RetriggerReset,
+   SC_AboutUpdate,
    TIMER2B_COUNT 
    
 } timer2BIds;

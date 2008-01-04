@@ -35,20 +35,14 @@ void MIDI_Output(void)
       {
 			uint16_t conditionedSignal = (SignalPeak[i] - GetChannelThresh(i));
 			
-			if ( GetChannelGain(i) > 0 )
-			{
-				conditionedSignal = conditionedSignal << GetChannelGain(i);
-			}
-			else
-			{
-				conditionedSignal = conditionedSignal >> (-GetChannelGain(i));
-			}
+			conditionedSignal = GainFunction(i, conditionedSignal);
 			
 			if( conditionedSignal )
 			{
 	         /* Send a NOTE ON | Channel */
 	         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
 	         
+	         /* Output the correct Closed or Open Key */
 	         if( GetDualMode(i) && 
 					 GetDigitalState(GetDigitalTrigger(i)) == GetActiveState(GetDigitalTrigger(i)) )
 				{

@@ -21,6 +21,9 @@ uint8_t lowerLimit = 0;
 uint8_t firstEnter = 1;
 
 
+const MENU_TEXT  MT_PLAYMODE[] = "Optimise for Play!";
+
+
 const MENU_TEXT  MT_PROFILES[] = "Profiles";
 const MENU_TEXT  MT_LOAD_PROFILE[] = "Load Profile";
 const MENU_TEXT  MT_SAVE_PROFILE[] = "Save Profile As...";
@@ -36,6 +39,7 @@ const MENU_TEXT  MT_VUMETER[] = "VU Meter";
 const MENU_TEXT  MT_SYSTEM_SETUP[] = "System Setup";
 
 const MENU_TEXT  MT_SYSTEM_RESET[] = "Reset eDrum";
+const MENU_TEXT  MT_SYSTEM_ABOUT[] = "About";
 
 const MENU_TEXT  MT_OPTIONS[] = "Options";
 const MENU_TEXT  MT_MIDI_OUTPUT_RATE[] = "MIDI Output Rate";
@@ -88,10 +92,11 @@ const MENU_TEXT  MT_VARIABLE_GAIN[] = "Variable Gain";
  * */
 const menu_list MenuState[] = {
 
-   {ST_MAIN,   ST_OPTIONS,   0},
-   {ST_MAIN,	ST_VUMETER,	  1},
-   {ST_MAIN, 	ST_PROFILES,  2},
-   {ST_MAIN,   ST_SYSTEM_SETUP, 3},
+	{ST_MAIN,	ST_PLAYMODE,  0},
+   {ST_MAIN,   ST_OPTIONS,   1},
+   {ST_MAIN,	ST_VUMETER,	  2},
+   {ST_MAIN, 	ST_PROFILES,  3},
+   {ST_MAIN,   ST_SYSTEM_SETUP, 4},
 
    {ST_OPTIONS, ST_MIDI_OUTPUT_RATE,  0},
    {ST_OPTIONS, ST_CHANNEL_SETUP, 1},
@@ -241,6 +246,7 @@ const menu_list MenuState[] = {
 	{ST_SAVE_PROFILE, ST_SAVE_PROFILE_4, 3},
 		
 	{ST_SYSTEM_SETUP, ST_SYSTEM_RESET, 0},
+	{ST_SYSTEM_SETUP, ST_SYSTEM_ABOUT, 1},
 			   
    {0, 0, 0}
 };
@@ -251,11 +257,13 @@ const menu_list MenuState[] = {
 
 const menu_data MenuData[] = {
    {ST_MAIN, 0, 0},
+   {ST_PLAYMODE, MT_PLAYMODE, PlayMode},
    {ST_PROFILES, MT_PROFILES, ShowProfile},   
    {ST_OPTIONS, MT_OPTIONS, 0},
 	{ST_VUMETER, MT_VUMETER, VUMeterSetup},
 	{ST_SYSTEM_SETUP, MT_SYSTEM_SETUP, 0},
 	{ST_SYSTEM_RESET, MT_SYSTEM_RESET, reset},
+	{ST_SYSTEM_ABOUT, MT_SYSTEM_ABOUT, about},
 	
    {ST_MIDI_OUTPUT_RATE, MT_MIDI_OUTPUT_RATE, SetMIDIRate},
    {ST_SET_RATE, MT_SET_RATE, EditMIDIRate},
@@ -416,6 +424,7 @@ void MenuSetDisplay(uint8_t display)
       MenuPrint_P = UI_LCD_String_P;
       MenuNewLine = LCD_NewLine;
       MenuReset = LCD_Reset;
+      MenuChar = UI_LCD_Char;
    }
    /* Route output to UART */
    else
@@ -423,7 +432,8 @@ void MenuSetDisplay(uint8_t display)
       MenuPrint = MenuUartTxString;
       MenuPrint_P = MenuUartTxString_P;
       MenuNewLine = MenuUart_NewLine;
-      MenuReset = MenuUart_Reset;      
+      MenuReset = MenuUart_Reset;
+		MenuChar = UART_Tx;      
    }
 }
 
@@ -531,13 +541,14 @@ void MenuUpdate(void)
             if(sequenceIndex > WINDOW_SIZE)
             {
                UI_LCD_Pos(0, 19);
-               MenuPrint_P( PSTR("^") );               
+               MenuChar( '^' );               
             }
             
             if( MenuMax - sequenceIndex + MenuOffset  > WINDOW_SIZE)
             {
                UI_LCD_Pos(3, 19);
-               MenuPrint_P( PSTR("v") );
+               /* Down arrow assumed to be in CGRAM 1 */
+               MenuChar( 0 );
             }
             
             UI_LCD_Pos(RowPosition, 0); 
@@ -552,11 +563,11 @@ void MenuUpdate(void)
                printf(" ");   
             }
 #else
-               MenuPrint_P( PSTR("*") );    
+               MenuChar( '*' );    
             }
             else
             {
-               MenuPrint_P( PSTR(" ") );   
+               MenuChar( ' ' );   
             }
 #endif
                        

@@ -1,9 +1,33 @@
 #ifndef USERFUNCTIONS_H
 #define USERFUNCTIONS_H
 
+#define GET (0xFF)
+enum {
+	MAIN_SCREEN = 0,
+	CREATORS_SCREEN,
+	THANKS_SCREEN,
+	THANKS2_SCREEN,
+	THANKS3_SCREEN,
+	THANKS4_SCREEN,
+	INSPIRATION_SCREEN,
+	INSPIRATION2_SCREEN,
+	INFORMATION_SCREEN,
+	INFORMATION2_SCREEN,
+	SIZEOFTHANKS
+};
+
 #include "Profiles/profiles.h"
 
+
 void reset(void* data);
+void about(void* data);
+void aboutScroll(uint8_t nameIndex);
+/* Pass GET to obtain the index, otherwise the index is set to the passed
+ * parameter */
+uint8_t ThanksIndex(uint8_t mode);
+
+/* Play mode disables TimerB2 */
+void PlayMode(void* data);
 
 /* Saves the passed profile into the profileIndex */
 void SaveProfile(void* data);

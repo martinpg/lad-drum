@@ -5,6 +5,8 @@
 
 /* Interrupt Macros */
 
+extern const char VersionId[];
+
 #define UI_INT_PORT  P1IN
 #define UI_INT_PIN   (1<<3)
 

@@ -21,8 +21,6 @@ void _delay_us(uint16_t us)
 
 void _delay_ms(uint16_t ms)
 {
-   uint16_t i;
-   
    while( ms-- )
    {
       _delay_us(1000);
