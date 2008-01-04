@@ -101,6 +101,17 @@ GainSettings_t GainSettings = {
 
 
 
+const char PresetGainStrings[][20] = {{"Exponential 1"},
+												  {"Logorithmic 1"},
+												  {"Exponential 2"},
+												  {"Logorithmic 2"},
+												  {"Custom"}};
+
+const int8_t PresetGain1[NUMBER_OF_GAIN_PRESETS] = {-4, 1 ,-6, 2};
+const int8_t PresetGain2[NUMBER_OF_GAIN_PRESETS] = {-2, -1 ,-2, 1};
+const int16_t PresetGainCrossover[NUMBER_OF_GAIN_PRESETS] = {950, 150 ,1300, 50};
+
+
 uint8_t GetChannelStatus(uint8_t channel)
 {
    return ((ChannelSettings.ChannelStatus & ((uint32_t)1 << channel)) != 0);
@@ -383,19 +394,19 @@ void SetSlope2Gain(uint8_t channel, int8_t Gain)
 /* Gain Type setup */
 uint8_t GetGainType(uint8_t channel)
 {
-   return ((GainSettings.GainType & (1 << channel)) != 0);
+   return ((GainSettings.GainType & ((uint16_t)(1) << channel)) != 0);
 }
 
 
 void GainTypeToggle(uint8_t channel)
 {
-   SetChannelStatus( channel, !GetChannelStatus(channel) );
+   SetGainType( channel, !GetGainType(channel) );
 }
 
 void SetGainType(uint8_t channel, uint8_t status)
 {
-   GainSettings.GainType &=  ~(1 << channel);
-   GainSettings.GainType |=   (status << channel);
+   GainSettings.GainType &=  ~((uint16_t)1 << channel);
+   GainSettings.GainType |=   ((uint16_t)status << channel);
 }
 
 
@@ -405,15 +416,50 @@ uint16_t GetCrossover(uint8_t channel)
    return GainSettings.Crossover[channel];
 }
 
-void SetCrossover(uint8_t channel, uint16_t crossover)
+void SetCrossover(uint8_t channel, int16_t crossover)
 {
    if( crossover > MAX_CROSSOVER)
    {
-      crossover = MAX_CROSSOVER;  
+      crossover = MIN_CROSSOVER;  
    }
+   if( crossover < MIN_CROSSOVER)
+   {
+		crossover = MAX_CROSSOVER;	
+	}
+   
    GainSettings.Crossover[channel] = crossover;
 }
 
+/* Returns the conditioned signal after being passed through the
+ * configured gain settings */
+uint16_t GainFunction(uint8_t channel, uint16_t signalValue)
+{
+	if( GetGainType(channel) == NON_LINEAR_GAIN )
+	{
+		if( signalValue >= GetCrossover(channel) )
+		{
+			return ApplyGain(signalValue, GetSlope2Gain(channel));	
+		}	
+	}
+
+	return ApplyGain(signalValue, GetChannelGain(channel));		
+}
+
+/* The signal is multiplied by 2^ (gain) */
+uint16_t ApplyGain(uint16_t signalValue, int8_t gain)
+{
+	if( gain > 0 )
+	{
+		signalValue = signalValue << gain;
+	}
+	else
+	{
+		signalValue = signalValue >> (-gain);	
+	}
+	
+	return signalValue;
+	
+}
 
 
 
@@ -518,12 +564,13 @@ void TimerInit(void)
    /*TBCCTL1 |= (CCIE);   
    TBCCR1 = SAMPLE_100US;*/
 
-   /* 1ms Timer */
+   /* 1ms Timer for Auxiliary use */
    TBCCTL2 |= (CCIE);
    TBCCR2 = SAMPLE_1MS;
    
-   	
-   
+   /* 1ms Playmode Timer */
+   TBCCTL0 |= (CCIE);
+   TBCCR0 = (SAMPLE_1MS);
 }
 
 

@@ -21,16 +21,53 @@
 
 
    
-SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},
-														 {15, 0, 1},
-														 {10000, 0, 0}	 };
+SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},  // Second Delay...
+														 {15, 0, 1},   // MIDI Output
+														 {10000, 0, 0}	 }; 
 
 
 
-SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{10, 0, 0},
-                                           {50, 0, 0},
-														 {25, 0, 0},
-														 {10, 0, 1}};
+SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{10, 0, 0},  // Threshold Bar 
+                                           {50, 0, 0},  // VU Meter Update 
+														 {25, 0, 0},  // VU Decay
+														 {10, 0, 1},  // Retrigger Reset
+														 {2500,2500,0}}; // AboutUpdate
+
+
+interrupt (TIMERB0_VECTOR) timerb0_int(void)
+{
+	dint(); 
+
+	TBCCR0 += (SAMPLE_1MS);
+   /* MIDI output is in 1ms steps */
+	if(SoftTimerInterrupt(SoftTimer1[SC_MIDIOutput]))
+	{
+		/* Update the Digital States */
+		ScanDigitalInputs();
+      MIDI_Output();
+      MIDI_DigitalOutput();
+		ResetValues();	
+      SoftTimerReset(SoftTimer1[SC_MIDIOutput]);     
+   }	    
+	      
+	if(SoftTimerInterrupt(SoftTimer2[SC_RetriggerReset]))
+	{   
+		SoftTimerReset(SoftTimer2[SC_RetriggerReset]);
+		uint8_t i;      
+      /* Each increment of Retrigger increases the time by 1ms */
+      for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
+      {
+         if(SoftTimerInterrupt(RetriggerPeriod[i]))
+         {
+            SoftTimerStop(RetriggerPeriod[i]);
+            SoftTimerReset(RetriggerPeriod[i]);      
+         }
+      }
+	} 	
+
+	
+	eint();
+}
 
 
 interrupt (TIMERB1_VECTOR) timerb1_int(void)
@@ -38,12 +75,6 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
    dint();   
    
    uint8_t intVec = TBIV;
-   uint8_t i;
-   /* For Timer 1 */
-/*   if( intVec & TBIV_CCR1 )
-   {
-
-	}*/
 					
    if( intVec & TBIV_CCR2 )
    {
@@ -58,17 +89,6 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
          SoftTimerReset(SoftTimer2[SC_AutoMenuUpdate]);     
       }
          
-      /* MIDI output is in 1ms steps */
-		if(SoftTimerInterrupt(SoftTimer1[SC_MIDIOutput]))
-		{
-			/* Update the Digital States */
-			ScanDigitalInputs();
-         MIDI_Output();
-         MIDI_DigitalOutput();
-			ResetValues();	
-         SoftTimerReset(SoftTimer1[SC_MIDIOutput]);     
-      }	    	   
-
 		if(SoftTimerInterrupt(SoftTimer2[SC_VUDecay]))
 		{
 			SoftTimerReset(SoftTimer2[SC_VUDecay]); 
@@ -89,20 +109,11 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
          {
 				if( GetChannelStatus(i) )
 				{
-	            int8_t Gain =  GetChannelGain(i);
-	            	
 					if( VUValues[i] > GetChannelThresh(i) )
 					{
 						uint16_t conditionedSignal = (VUValues[i] - GetChannelThresh(i));
 						
-						if ( GetChannelGain(i) > 0 )
-						{
-							conditionedSignal = conditionedSignal << GetChannelGain(i);
-						}
-						else
-						{
-							conditionedSignal = conditionedSignal >> (-GetChannelGain(i));
-						}
+						conditionedSignal = GainFunction(i, conditionedSignal);
 						
 		            /* Normalise with x rows */
 		            VUSetLevel(i, VUNormaliseMIDI(conditionedSignal, VURows), VURows);            
@@ -112,35 +123,20 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
          VUMeterPrint(ALL_METERS, VURows);
          ResetVUValues();
       }         
-         
-         
-		if(SoftTimerInterrupt(SoftTimer2[SC_RetriggerReset]))
-		{   
-			SoftTimerReset(SoftTimer2[SC_RetriggerReset]);
-			      
-	      /* Each increment of Retrigger increases the time by 1ms */
-	      for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
-	      {
-	         if(SoftTimerInterrupt(RetriggerPeriod[i]))
-	         {
-	            SoftTimerStop(RetriggerPeriod[i]);
-	            SoftTimerReset(RetriggerPeriod[i]);      
-	         }
-	      }
-		} 
-		
-		if(SoftTimerInterrupt(SoftTimer1[SC_SecondDelay]))
+      
+		/* About Strings Update routine */   
+      if( SoftTimerInterrupt(SoftTimer2[SC_AboutUpdate]) )
 		{
-			UART_TxString("2 Sec");
-         if( (UI_INT_PORT & UI_INT_PIN) )
-         {
-				UART_TxString("Deact");
-				UI_SetRegister(UI_INTERRUPT, 0);  
-            UI_Activate();
-            SoftTimerStop(SoftTimer1[SC_SecondDelay]);
-         }            
-         SoftTimerReset(SoftTimer1[SC_SecondDelay]);      
-      }
+			uint8_t nameIndex = 0;
+			nameIndex = ThanksIndex(GET);
+			if( ++nameIndex == SIZEOFTHANKS )
+			{
+				nameIndex = ThanksIndex(MAIN_SCREEN);	
+			}
+			ThanksIndex(nameIndex);
+			aboutScroll(nameIndex);
+			SoftTimerReset(SoftTimer2[SC_AboutUpdate]);
+		}   
 	}
 	
 	eint();

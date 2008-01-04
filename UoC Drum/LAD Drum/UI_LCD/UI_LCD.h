@@ -121,5 +121,7 @@ void UI_LCD_BL_On(void);
 
 /* Accepts a 7 Byte custom char array */
 void UI_LCD_LoadCustomChar(uint8_t* lcdCustomCharArray, uint8_t lcdCharNum);
+void UI_LCD_LoadDefaultChars(void);
+
 
 #endif

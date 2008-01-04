@@ -44,7 +44,7 @@
 /* Attenuation */
 #define MIN_GAIN				(-12)
 #define MAX_CROSSOVER	(4095)
-
+#define MIN_CROSSOVER	(0)
 
 
 #define DIGITAL_PIN1	P5IN
@@ -132,7 +132,14 @@ typedef struct {
 	
 } DigitalSettings_t;
 
-
+enum {
+	EXPONENTIAL_1 = 0,
+	LOGORITHMIC_1,
+	EXPONENTIAL_2,
+	LOGORITHMIC_2,
+	CUSTOM,
+	NUMBER_OF_GAIN_PRESETS
+};
 
 extern uint16_t SignalPeak[];
 extern SoftTimer_8   RetriggerPeriod[];
@@ -141,6 +148,12 @@ extern uint8_t DigitalCycle[];
 extern ChannelSettings_t ChannelSettings;
 extern DigitalSettings_t DigitalSettings;
 extern GainSettings_t	 GainSettings;
+
+
+extern const char PresetGainStrings[][20];
+extern const int8_t PresetGain1[];
+extern const int8_t PresetGain2[];
+extern const int16_t PresetGainCrossover[];
 
 void ResetValues(void);
 
@@ -213,7 +226,13 @@ void SetGainType(uint8_t channel, uint8_t status);
 
 /* Gain Settings */
 uint16_t GetCrossover(uint8_t channel);
-void SetCrossover(uint8_t channel, uint16_t crossover);
+void SetCrossover(uint8_t channel, int16_t  crossover);
+
+/* Returns the conditioned signal after being passed through the
+ * configured gain settings */
+uint16_t GainFunction(uint8_t channel, uint16_t signalValue);
+/* The signal is multiplied by 2^ (gain) */
+uint16_t ApplyGain(uint16_t signalValue, int8_t gain);
 
 void DigitalInputInit(void);
 uint8_t GetDigitalState(uint8_t DigitalChannel);
