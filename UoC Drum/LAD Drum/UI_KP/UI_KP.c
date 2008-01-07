@@ -1,8 +1,12 @@
 
 #include <stdint.h>
 #include "UI/UI.h"
-#include "SoftI2C/softi2c.h"
 #include "UI_KP.h"
+
+#if USE_MAX7300 == 1
+
+#include "SoftI2C/softi2c.h"
+
 
 
 
@@ -56,3 +60,61 @@ uint8_t UI_KP_GetPress(void)
    
 }
 
+
+#else /* For code without the MAX7300 port expander */
+
+
+/* Set all UI_ROWS outputs */
+/* UI_COLS to Inputs */
+void UI_KP_Init(void)
+{
+	/* Set all UI_ROWS outputs */
+   UI_ROW_DIR |= (UI_ROWS);
+   /* Set UI_Rows to to output LOW */
+   UI_ROW_OUT &= ~(UI_ROWS);
+   
+   /* Set Columns to Inputs */
+   UI_COL_DIR &= ~(UI_COLS);
+}
+
+uint8_t UI_KP_GetPress(void)
+{
+   uint8_t ColResult;
+   uint8_t RowResult;
+   uint8_t KPResult;
+   
+	ColResult = UI_COL_IN & (UI_COLS);
+   
+   /* Set rows to inputs with no PULLUP and columns to outputs*/
+   UI_ROW_DIR &= ~(UI_ROWS);
+
+   /* Set Columns to outputs */
+   UI_COL_DIR |= (UI_COLS);
+	
+	/* Set all columns to Output High */
+	UI_COL_OUT |= (UI_COLS);
+   
+   /* Get the row result */
+	RowResult = (UI_ROW_IN & UI_ROWS);
+	
+	/* Remap Row0 to correct position */
+	if( RowResult & UI_ROW0 )
+	{
+		RowResult |= (UI_ROW0 << 1);		
+	}
+	
+	RowResult = ~((RowResult >> 2) & (0x0F));
+
+
+   KPResult = (ColResult) | RowResult;
+   
+   /* Reset the buttons to original state */
+   UI_KP_Init();
+   
+   return KPResult;
+   
+}
+
+
+
+#endif

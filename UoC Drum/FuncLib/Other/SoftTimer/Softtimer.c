@@ -14,6 +14,7 @@
 #include "UserFunctions/userFunctions.h"
 #include "VUMeter/vumeter.h"
 #include "UART/uart.h"
+#include "UI_LCD/UI_LCD.h"
 
 #define NUMBER_OF_TIMERS   (4)
 
@@ -31,7 +32,8 @@ SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{10, 0, 0},  // Threshold Bar
                                            {50, 0, 0},  // VU Meter Update 
 														 {25, 0, 0},  // VU Decay
 														 {10, 0, 1},  // Retrigger Reset
-														 {2500,2500,0}}; // AboutUpdate
+														 {2500,2500,0}, // AboutUpdate
+														 {10000, 10000, 0}}; //LCD Backlight
 
 
 interrupt (TIMERB0_VECTOR) timerb0_int(void)
@@ -65,7 +67,6 @@ interrupt (TIMERB0_VECTOR) timerb0_int(void)
       }
 	} 	
 
-	
 	eint();
 }
 
@@ -81,7 +82,6 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 		TBCCR2 += SAMPLE_1MS;
 		
 	
-		
 		if(SoftTimerInterrupt(SoftTimer2[SC_AutoMenuUpdate]))
 		{
          /* Update the Threshold bar */
@@ -96,6 +96,12 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
    	   VULevelDecay(ALL_METERS);    				
 		}
 		
+		if( SoftTimerInterrupt(SoftTimer2[SC_LCD_BL_Period]) )
+		{
+			SoftTimerReset( SoftTimer2[SC_LCD_BL_Period] );
+			SoftTimerStop( SoftTimer2[SC_LCD_BL_Period] );
+			UI_LCD_BL_Off();
+		}
          
 		if(SoftTimerInterrupt(SoftTimer2[SC_VUMeterUpdate]))
 		{

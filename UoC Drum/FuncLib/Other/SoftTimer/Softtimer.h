@@ -71,6 +71,7 @@ enum {
    SC_VUDecay,
    SC_RetriggerReset,
    SC_AboutUpdate,
+   SC_LCD_BL_Period,
    TIMER2B_COUNT 
    
 } timer2BIds;

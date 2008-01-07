@@ -88,14 +88,15 @@ int main(void)
    I2CInit();
    /* Enable Keypad */
    UI_KP_Init();   
-	UI_SetRegister(UI_INTERRUPT, 0);  
    UI_Activate();
 
-   /* Enable Interrupt detection on INTP1.3 for a Low to High */
+   /* Enable Interrupt detection on INTP1.3 for a Low to High only for
+	 * MAX7300 */
+#if USE_MAX7300 == 1   
    P1DIR &= ~(UI_INT_PIN);
    P1IES &= ~(UI_INT_PIN);
    P1IE  |=  (UI_INT_PIN);
-   
+#endif
    /* Enable LCD */
    UI_LCD_HWInit();
    UI_LCD_Init();
@@ -198,8 +199,8 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
    
 }
 
-
-/* Handle a key press */
+#if USE_MAX7300 == 1
+/* Handle a key press from a MAX7300 interrupt */
 interrupt (PORT1_VECTOR)   port1_int(void)
 {  
    dint(); 
@@ -225,10 +226,38 @@ interrupt (PORT1_VECTOR)   port1_int(void)
          MenuUpdate();       
       }    
    
-   	UI_SetRegister(UI_INTERRUPT, 0);
+   	//UI_SetRegister(UI_INTERRUPT, 0);
+      UI_Activate();
+   }
+	eint();
+}
+#else
+/* Handle a key press from direct Keypad connection */
+interrupt (PORT1_VECTOR)   port1_int(void)
+{  
+   dint(); 
+   
+   if( (UI_COL_IN & UI_COLS) )
+   {
+		/* Reset Interrupt */
+      UI_INT_IFG &= ~(UI_COLS);
+      
+      uint8_t IntResult;
+      /* Reset Interrupt on UI */
+      IntResult = UI_KP_GetPress();      
+          
+      if( IntResult != KP_INVALID)
+      {
+			UI_LCD_BL_On();
+			SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );
+         MenuSetInput(IntResult);   
+         MenuUpdate();       
+      }
       UI_Activate();
    }
 	eint();
 }
 
+
+#endif
 

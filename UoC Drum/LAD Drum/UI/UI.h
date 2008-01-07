@@ -17,6 +17,10 @@
 #ifndef	_UI_ROUTINES
 #define	_UI_ROUTINES
 
+#define USE_MAX7300	(0)
+
+#if USE_MAX7300 == 1
+
 #include "MAX7300/max7300.h"
 
 #define UI_MAX7300_ADDRESS   (0x80)
@@ -47,5 +51,27 @@ void UI_Activate(void);
 #define UI_EnableInterrupt() UI_SetRegister(MAX7300_CONFIG, (1 << MAX7300_SHUTDOWN_CONTROL) | (1 << MAX7300_TRANSITION_ENABLE))
 
 
+#else
 
+/* Without the use of a middleman port expander */
+#include <io.h>
+
+#define UI_KP_PIN	P1IN
+#define UI_KP_DIR	P1DIR
+#define UI_INT_IES	P1IES
+#define UI_INT_IE		P1IE
+#define UI_INT_IFG	P1IFG
+
+#define UI_INT_COL0  (1<<4)
+#define UI_INT_COL1  (1<<5)
+#define UI_INT_COL2  (1<<6)
+#define UI_INT_COL3  (1<<7)
+
+
+void UI_Activate(void);
+
+
+
+
+#endif // Use MAX7300
 #endif
