@@ -1,6 +1,3 @@
-
-
-
 #include "UI/UI.h"
 #include "MAX7300/max7300.h"
 #include "PWM/pwm.h"
@@ -14,7 +11,7 @@
  * the LCD is in shutdown */
 
 static uint8_t UI_LCD_PowerStatus = LCD_ON;
-static uint8_t UI_LCD_RSStatus = UI_LCD_INSTRUCTION;
+static uint8_t UI_LCD_RSStatus = UI_LCD_RS_INSTRUCTION;
 
 
 
@@ -40,6 +37,24 @@ const uint8_t LcdCustomChar[][8] =
 
 
 
+
+
+
+/* Internal Functions */
+
+
+void UI_LCD_SetInstruction(void)
+{
+   UI_LCD_RSStatus = UI_LCD_RS_INSTRUCTION;
+}
+   
+
+void UI_LCD_SetData(void)
+{
+   UI_LCD_RSStatus = UI_LCD_RS_DATA;  
+}
+
+#if USE_MAX7300 == 1
 /* Use a wrapper for the UI_MAX7300 interface to ensure LCD_Power is enabled
  * if any write commands are used */
 void UI_LCD_SetRegister(uint8_t reg, uint8_t data)
@@ -59,22 +74,6 @@ void UI_LCD_SetRegister(uint8_t reg, uint8_t data)
    }
 }
 
-
-/* Internal Functions */
-
-
-void UI_LCD_SetInstruction(void)
-{
-   UI_LCD_RSStatus = UI_LCD_INSTRUCTION;
-}
-   
-
-
-
-void UI_LCD_SetData(void)
-{
-   UI_LCD_RSStatus = UI_LCD_DATA;  
-}
 
 
 /* Setup all of the UI_MAX7300 LCD Pins as an Output */
@@ -106,9 +105,71 @@ void UI_LCD_HWInit(void)
    PWM_Disable();*/
 }
 
+void UI_LCD_Strobe(void)
+{  
+	UI_LCD_SetRegister(UI_LCD_E, 0x01);   
+	UI_LCD_SetRegister(UI_LCD_E, 0x00);    
+}
+
+/* Shutdown and Activate only used in special cases (ie. not edrum) */
+void UI_LCD_Activate(void)
+{
+   UI_LCD_PowerStatus = LCD_ON;
+   /* Set UI_LCD pins to to output LOW except for LCD Power which is high*/
+	UI_SetRegister(UI_LCD_POWER, 0x01);    
+   /* Need to wait 40ms after applying power */
+   _delay_ms(40);
+}
+
+void UI_LCD_Shutdown(void)
+{
+   /* Set UI_LCD pins to to output LOW */
+	UI_SetRegister(UI_LCD_PORT, 0x00);   
+   UI_SetRegister(UI_LCD_POWER, 0x00); 
+   UI_LCD_PowerStatus = LCD_OFF;
+}
 
 
-/* Assumes 4-bit Mode */
+#else
+void UI_LCD_SetRegister(uint8_t reg, uint8_t data)
+{
+   data = MSB2LSB(data) >> 4;         
+   //data &= ~(1 << UI_LCD_PRS);
+   //data |= (UI_LCD_RSStatus << UI_LCD_PRS); 
+	
+	UI_LCD_CONTROL_PORT &= ~(UI_LCD_RS);
+	UI_LCD_CONTROL_PORT |= (UI_LCD_RSStatus << UI_LCD_PRS);
+	 
+   UI_LCD_DATA_PORT &= ~(UI_LCD_DATA);
+	UI_LCD_DATA_PORT |= data;  
+}
+
+/* Setup all of the LCD Pins as Outputs */
+void UI_LCD_HWInit(void)
+{
+	/* Make all pins outputs */
+   UI_LCD_DATA_DIR |= (UI_LCD_DATA);
+   UI_LCD_CONTROL_DIR |= (UI_LCD_CONTROL);   
+
+	/* Bring all lines low */
+	UI_LCD_DATA_PORT &= ~(UI_LCD_DATA);
+	UI_LCD_CONTROL_PORT &= ~(UI_LCD_CONTROL);
+
+	/* LCD BL as an output */
+	LCD_BL_DDR |= (1 << LCD_BL_PIN);
+}
+
+
+void UI_LCD_Strobe(void)
+{  
+	UI_LCD_CONTROL_DIR |= UI_LCD_E;
+	_delay_us(1);
+	UI_LCD_CONTROL_DIR &= ~UI_LCD_E;	  
+}
+
+#endif
+
+/* Assumes 4-bit Mode, 4 MSB are sent first */
 void UI_LCD_Write(char code)
 {
 	UI_LCD_SetRegister(UI_LCD_PORT, (code >> 4) & (0x0F) );
@@ -125,11 +186,7 @@ void  UI_LCD_Char(char data)
 }
 
 
-void UI_LCD_Strobe(void)
-{  
-	UI_LCD_SetRegister(UI_LCD_E, 0x01);   
-	UI_LCD_SetRegister(UI_LCD_E, 0x00);    
-}
+
 
 /* Clears the screen, sets up the LCD to accept commands */
 void UI_LCD_Init(void)
@@ -224,19 +281,7 @@ void UI_LCD_Pos(uint8_t row, uint8_t col)
 }
 
 
-void UI_LCD_Activate(void)
-{
 
-   UI_LCD_PowerStatus = LCD_ON;
-
-   /* Set UI_LCD pins to to output LOW except for LCD Power which is high*/
-	UI_SetRegister(UI_LCD_POWER, 0x01);    
-   
-   
-   /* Need to wait 40ms after applying power */
-   _delay_ms(40);
-   
-}
 
 
 void UI_LCD_SetCursor(void)
@@ -258,14 +303,6 @@ void UI_LCD_ClearCursor(void)
 }
 
 
-
-void UI_LCD_Shutdown(void)
-{
-   /* Set UI_LCD pins to to output LOW */
-	UI_SetRegister(UI_LCD_PORT, 0x00);   
-   UI_SetRegister(UI_LCD_POWER, 0x00); 
-   UI_LCD_PowerStatus = LCD_OFF;
-}
    
    
 /* Back light control don't need to use PWM, use the 16-bit timer for
@@ -273,28 +310,12 @@ void UI_LCD_Shutdown(void)
  */
 void UI_LCD_BL_On(void)
 {
-   uint16_t i;
-   for(i = 0; i >= LCD_BL_MAX; i++)
-   {      
-      PWM_Duty(i);
-      _delay_us(2);
-   }
-   
-   PWM_OUT |= (1 << PWM_PIN);   
-   PWM_Disable();
+   LCD_BL_PORT |= (1 << LCD_BL_PIN);   
 }
 
 void UI_LCD_BL_Off(void)
 {
-   uint16_t i;
-   for(i = LCD_BL_MAX; i != 0; i--)
-   {      
-      PWM_Duty(i);
-      _delay_us(2);
-   }
-   PWM_Disable();
-   PWM_OUT &= ~(1 << PWM_PIN);
-   
+   LCD_BL_PORT &= ~(1 << LCD_BL_PIN);  
 }
 
 

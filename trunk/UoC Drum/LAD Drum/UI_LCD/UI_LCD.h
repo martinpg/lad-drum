@@ -19,6 +19,10 @@
 #ifndef	_UI_LCD_ROUTINES
 #define	_UI_LCD_ROUTINES
 
+#include <io.h>
+
+#if USE_MAX7300 == 1
+
 #include "MAX7300/max7300.h"
 
 /* LCD Inputs */
@@ -39,8 +43,39 @@
 #define UI_LCD_PD5      (1)
 #define UI_LCD_PD4      (0)
 
-#define UI_LCD_INSTRUCTION (0)
-#define UI_LCD_DATA        (1)
+#else
+
+/* Not used in Direct Mode */
+#define UI_LCD_PORT     (0x00)
+
+/* LCD Inputs */
+#define UI_LCD_PRS      (7)
+#define UI_LCD_RS       (1<<7)
+#define UI_LCD_E        (1<<6)
+#define UI_LCD_D4       (1<<3)
+#define UI_LCD_D5       (1<<2)
+#define UI_LCD_D6       (1<<1)
+#define UI_LCD_D7       (1<<0)    
+
+#define UI_LCD_CONTROL_DIR   (P2DIR)
+#define UI_LCD_DATA_DIR      (P3DIR)
+
+#define UI_LCD_DATA	(UI_LCD_D4 | UI_LCD_D5 | UI_LCD_D6 | UI_LCD_D7)
+#define UI_LCD_CONTROL	(UI_LCD_RS | UI_LCD_E)
+
+#define UI_LCD_DATA_PORT		(P2OUT)
+#define UI_LCD_CONTROL_PORT	(P3OUT)
+
+
+
+
+
+
+
+#endif
+
+#define UI_LCD_RS_INSTRUCTION (0)
+#define UI_LCD_RS_DATA        (1)
 
 // HD44780 LCD controller command set (do not modify these)
 // writing:
