@@ -25,12 +25,14 @@ ChannelSettings_t ChannelSettings = {
 	0x0000000F,
 	
 	/* Default Open Keys*/
-	{0x42, 0x28, 0x53, 0x34,
-    0x30, 0x30, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x30},
+//Analogue Inputs	
+	{OPEN_HIGH_HAT, ELECTRIC_SNARE, ACOUSTIC_BASS_DRUM, HAND_CLAP,
+    LOW_FLOOR_TOM, HIGH_FLOOR_TOM, LOW_TOM, LOW_MID_TOM,
+    HI_MID_TOM, HIGH_TOM, CRASH_CYMBAL1, RIDE_CYMBAL1,
+    CHINESE_CYMBAL, SPLASH_CYMBAL, HIGH_TIMBALE, CLAVES,
+//Digital inputs     
+    PEDAL_HIGH_HAT, NO_ITEM, BASS_DRUM1, NO_ITEM, 
+    MUTE_HI_CONGA, OPEN_HI_CONGA, LOW_CONGA, LOW_TIMBALE},
    
             
 	/* Default Thresholds */
@@ -54,26 +56,24 @@ ChannelSettings_t ChannelSettings = {
 	  0x00000000},
 	  
 	/* Default Closed Keys*/
-	{0x30, 0x30, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x30,
-    0x30, 0x30, 0x30, 0x30}	  
+	{CLOSED_HI_HAT, SIDE_STICK, NO_ITEM, RIDE_CYMBAL2,
+    HIGH_FLOOR_TOM, LOW_FLOOR_TOM, LOW_MID_TOM, LOW_TOM,
+    NO_ITEM, NO_ITEM, CRASH_CYMBAL2, NO_ITEM,
+    NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM}	  
 };
 
 
 DigitalSettings_t DigitalSettings = {
 
 	/* Hit Velocities */
-	{0x64, 0x64, 0x64, 0x64,
-    0x64, 0x64, 0x64, 0x64},
+	{DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
+    DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY},
     
    /* All swtiches are Active low type */
    0x00,
    
    /* All switches use single shot triggering */
    0x00
-	
-	
 };
 
 GainSettings_t GainSettings = {
