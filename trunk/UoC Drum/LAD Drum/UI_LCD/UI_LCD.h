@@ -20,8 +20,9 @@
 #define	_UI_LCD_ROUTINES
 
 #include <io.h>
+#include <version.h>
 
-#if USE_MAX7300 == 1
+#if VERSION_CODE == VERSION_WITH_PE	
 
 #include "MAX7300/max7300.h"
 
@@ -43,7 +44,10 @@
 #define UI_LCD_PD5      (1)
 #define UI_LCD_PD4      (0)
 
-#else
+#endif
+
+
+#if VERSION_CODE == VERSION_WITHOUT_PE	
 
 /* Not used in Direct Mode */
 #define UI_LCD_PORT     (0x00)
@@ -63,15 +67,10 @@
 #define UI_LCD_DATA	(UI_LCD_D4 | UI_LCD_D5 | UI_LCD_D6 | UI_LCD_D7)
 #define UI_LCD_CONTROL	(UI_LCD_RS | UI_LCD_E)
 
-#define UI_LCD_DATA_PORT		(P2OUT)
-#define UI_LCD_CONTROL_PORT	(P3OUT)
+#define UI_LCD_CONTROL_PORT	(P2OUT)
+#define UI_LCD_DATA_PORT		(P3OUT)
 
-
-
-
-
-
-
+/* END OF VERSION WITHOUT PE Defines */
 #endif
 
 #define UI_LCD_RS_INSTRUCTION (0)

@@ -7,10 +7,7 @@
 
 #define LCD_BL_MAX   65000
 
-/* Need to provide protection so that data lines are never high when
- * the LCD is in shutdown */
-
-static uint8_t UI_LCD_PowerStatus = LCD_ON;
+static uint8_t UI_LCD_PowerStatus = LCD_OFF;
 static uint8_t UI_LCD_RSStatus = UI_LCD_RS_INSTRUCTION;
 
 
@@ -54,24 +51,30 @@ void UI_LCD_SetData(void)
    UI_LCD_RSStatus = UI_LCD_RS_DATA;  
 }
 
-#if USE_MAX7300 == 1
+
 /* Use a wrapper for the UI_MAX7300 interface to ensure LCD_Power is enabled
  * if any write commands are used */
 void UI_LCD_SetRegister(uint8_t reg, uint8_t data)
 {
-   if( UI_LCD_PowerStatus == LCD_ON )
-   {
 
-      
-      if( reg == UI_LCD_PORT )
-      {
-         data = MSB2LSB(data) >> 4;         
-         data &= ~(1 << UI_LCD_PRS);
-         data |= (1 << UI_LCD_PPOWER) | (UI_LCD_RSStatus << UI_LCD_PRS); 
-      }
-      
-      UI_SetRegister(reg, data);   
+#if VERSION_CODE == VERSION_WITH_PE
+   if( reg == UI_LCD_PORT )
+   {   
+		data = MSB2LSB(data) >> 4;		
+      data &= ~(1 << UI_LCD_PRS);
+      data |= (1 << UI_LCD_PPOWER) | (UI_LCD_RSStatus << UI_LCD_PRS); 
    }
+   UI_SetRegister(reg, data);   
+#endif
+
+#if VERSION_CODE == VERSION_WITHOUT_PE	
+	data = MSB2LSB(data) >> 4;
+	UI_LCD_CONTROL_PORT &= ~(UI_LCD_RS);
+	UI_LCD_CONTROL_PORT |= (UI_LCD_RSStatus << UI_LCD_PRS);
+	 
+   UI_LCD_DATA_PORT &= ~(UI_LCD_DATA);
+	UI_LCD_DATA_PORT |= data;  
+#endif   
 }
 
 
@@ -79,16 +82,9 @@ void UI_LCD_SetRegister(uint8_t reg, uint8_t data)
 /* Setup all of the UI_MAX7300 LCD Pins as an Output */
 void UI_LCD_HWInit(void)
 {
-   
+#if VERSION_CODE == VERSION_WITH_PE
    uint8_t LCD_INIT[] = {MAX7300_DDRA1, 0x55, 0xA5};
-   /* All ports are by default inputs with no pullups */
-
-   /* When setting ports up as outputs, they must not be high otherwise
-    * the LCD Pins will be powering the LCD (BAD!) */
-   
-   /* Set all LCD Pins to inputs except for LCD_ENABLE */
-//	UI_LCD_SetRegister(MAX7300_DDRB1, 0x9A);
-        
+   /* All ports are by default inputs with no pullups */      
 
 	/* Set all UI_LCD pins to outputs */
 	/* UI_LCD Pins P12 - P15 as Outputs */	
@@ -97,20 +93,37 @@ void UI_LCD_HWInit(void)
 
    /* Set UI_LCD pins to to output LOW */
 	UI_LCD_SetRegister(UI_LCD_PORT, 0x00);   
+#endif
 
+#if VERSION_CODE == VERSION_WITHOUT_PE
+	/* Make all pins outputs */
+   UI_LCD_DATA_DIR |= (UI_LCD_DATA);
+   UI_LCD_CONTROL_DIR |= (UI_LCD_CONTROL);   
 
-   /* Set it to an output */
-/*   PWMInit();
-   PWM_TopCount(LCD_BL_MAX);
-   PWM_Disable();*/
+	/* Bring all lines low */
+	UI_LCD_DATA_PORT &= ~(UI_LCD_DATA);
+	UI_LCD_CONTROL_PORT &= ~(UI_LCD_CONTROL);
+
+	/* LCD BL as an output */
+	LCD_BL_DDR |= (1 << LCD_BL_PIN);
+#endif
+	
 }
 
 void UI_LCD_Strobe(void)
 {  
+#if VERSION_CODE == VERSION_WITH_PE	
 	UI_LCD_SetRegister(UI_LCD_E, 0x01);   
 	UI_LCD_SetRegister(UI_LCD_E, 0x00);    
+#endif
+
+#if VERSION_CODE == VERSION_WITHOUT_PE	
+	UI_LCD_CONTROL_PORT |= UI_LCD_E;
+	UI_LCD_CONTROL_PORT &= ~UI_LCD_E; 
+#endif
 }
 
+#if VERSION_CODE == VERSION_WITH_PE	
 /* Shutdown and Activate only used in special cases (ie. not edrum) */
 void UI_LCD_Activate(void)
 {
@@ -128,45 +141,6 @@ void UI_LCD_Shutdown(void)
    UI_SetRegister(UI_LCD_POWER, 0x00); 
    UI_LCD_PowerStatus = LCD_OFF;
 }
-
-
-#else
-void UI_LCD_SetRegister(uint8_t reg, uint8_t data)
-{
-   data = MSB2LSB(data) >> 4;         
-   //data &= ~(1 << UI_LCD_PRS);
-   //data |= (UI_LCD_RSStatus << UI_LCD_PRS); 
-	
-	UI_LCD_CONTROL_PORT &= ~(UI_LCD_RS);
-	UI_LCD_CONTROL_PORT |= (UI_LCD_RSStatus << UI_LCD_PRS);
-	 
-   UI_LCD_DATA_PORT &= ~(UI_LCD_DATA);
-	UI_LCD_DATA_PORT |= data;  
-}
-
-/* Setup all of the LCD Pins as Outputs */
-void UI_LCD_HWInit(void)
-{
-	/* Make all pins outputs */
-   UI_LCD_DATA_DIR |= (UI_LCD_DATA);
-   UI_LCD_CONTROL_DIR |= (UI_LCD_CONTROL);   
-
-	/* Bring all lines low */
-	UI_LCD_DATA_PORT &= ~(UI_LCD_DATA);
-	UI_LCD_CONTROL_PORT &= ~(UI_LCD_CONTROL);
-
-	/* LCD BL as an output */
-	LCD_BL_DDR |= (1 << LCD_BL_PIN);
-}
-
-
-void UI_LCD_Strobe(void)
-{  
-	UI_LCD_CONTROL_DIR |= UI_LCD_E;
-	_delay_us(1);
-	UI_LCD_CONTROL_DIR &= ~UI_LCD_E;	  
-}
-
 #endif
 
 /* Assumes 4-bit Mode, 4 MSB are sent first */
@@ -176,6 +150,7 @@ void UI_LCD_Write(char code)
    UI_LCD_Strobe();
 	UI_LCD_SetRegister(UI_LCD_PORT, (code) & (0x0F) );   
    UI_LCD_Strobe();
+   _delay_us(50);
 }
 
 void  UI_LCD_Char(char data)
@@ -195,12 +170,13 @@ void UI_LCD_Init(void)
    UI_LCD_SetInstruction();
    UI_LCD_Strobe();
 	/* Set to 8 - bit mode */
-   UI_LCD_SetRegister(UI_LCD_PORT, ((LCD_FUNCTION_DEFAULT) >> 4) & (0x0F) );
+	UI_LCD_SetRegister(UI_LCD_PORT, ((LCD_FUNCTION_DEFAULT) >> 4) & (0x0F) );
    UI_LCD_Strobe();
 	_delay_ms(5);
 	
    UI_LCD_Write( LCD_FUNCTION_DEFAULT );
    _delay_ms(2); 	   
+   
    UI_LCD_Write( LCD_DISPLAY_DEFAULT );
    _delay_ms(2);   
    UI_LCD_Write( LCD_MODE_DEFAULT );   
@@ -221,6 +197,7 @@ void UI_LCD_Home(void)
 {
    UI_LCD_SetInstruction();   
    UI_LCD_Write( (1 << LCD_HOME ) );   
+   _delay_ms(2);   
 }
 
 
@@ -228,6 +205,7 @@ void UI_LCD_Clear(void)
 {
    UI_LCD_SetInstruction();   
    UI_LCD_Write( (1 << LCD_CLR ) );
+   _delay_ms(2);
 }
 
 /* Prints a string to the LCD at the current position 

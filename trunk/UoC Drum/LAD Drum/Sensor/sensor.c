@@ -42,7 +42,7 @@
 
 
 
-SensorSettings_t SensorSettings = {SENSOR_OUTPUT2};
+SensorSettings_t SensorSettings = {SENSOR_OUTPUT2, DEFAULT_CROSSTALK};
 
 
 /* Init the ports as low outputs */
@@ -73,11 +73,27 @@ void SensorInputSelect(uint8_t newPort)
    ADC12_SetupAddress(0, newPort);
 }
 
-
 uint8_t GetSensorInput(void)
 {
 	return SensorSettings.SensorInputPort;
 }
+
+
+
+/* Crosstalk controls the delay between changing the channel */
+uint16_t GetCrossTalkDelay(void)
+{
+	return SensorSettings.CrosstalkDelay;
+}
+
+
+void SetCrossTalkDelay(uint16_t newCrosstalk)
+{
+	SensorSettings.CrosstalkDelay = newCrosstalk;
+}
+
+
+
 
 
 uint16_t SensorPotValue(void)

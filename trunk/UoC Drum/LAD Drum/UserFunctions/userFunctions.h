@@ -63,6 +63,7 @@ void SetSwitchType(void* data);
 /* Amplifer Input Select */
 void AmpInputSelect(void* data);
 void SensorInputChange(void* data);
+void AdjustCrosstalk(void* data);
 
 /* VU Meter */
 void VUMeterSetup(void* data);
