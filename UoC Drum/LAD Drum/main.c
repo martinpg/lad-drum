@@ -28,8 +28,16 @@
 #include "Profiles/profiles.h"
 #include "VUMeter/vumeter.h"
 #include "UserFunctions/userFunctions.h"
+#include "version.h"
 
+#if VERSION_CODE == VERSION_WITH_PE
+const char VersionId[] = "1.0W 4/1/08";
+#endif
+
+#if VERSION_CODE == VERSION_WITHOUT_PE
 const char VersionId[] = "1.0 4/1/08";
+#endif
+
 
 /**
 Main function with some blinking leds
@@ -48,15 +56,15 @@ int main(void)
       _delay_us(50);
    }
 
-   _delay_ms(30);
-   
-
    /* SMCLK is XT2 and so is the MCLK */
    BCSCTL2 |= (SELM1 | SELS);   
 
    ProfileInit();    
    SensorInit();
 	DigitalInputInit();
+   /* Setup the communications module */   
+   UART_Select(0);
+   UART_Init();
 	
 	Profile_Read(DEFAULT_PROFILE);
 
@@ -68,14 +76,11 @@ int main(void)
    /* Update the Retrigger periods */
    UpdateChannelRetriggers();
 
-   
+   /* Make all ADC inputs as inputs and select as special function */
    P6SEL |= (0xFF);
    P6DIR &= ~(0xFF);
    
-   /* Setup the communications module */   
-   UART_Select(0);
-   UART_Init();
-   UART_SetBaudRate(0x00,0xD0);
+
    
    /* ADC Module Init */
    ADC12_Init();
@@ -85,22 +90,26 @@ int main(void)
    
    TimerInit();
    
-   I2CInit();
+
+
+   /* Enable Interrupt detection on INTP1.3 for a Low to High only for
+	 * MAX7300 */
+#if VERSION_CODE == VERSION_WITH_PE  
+   P1DIR &= ~(UI_INT_PIN);
+   P1IES &= ~(UI_INT_PIN);
+   P1IE  |=  (UI_INT_PIN);
+
+   I2CInit();   
+#endif
+
    /* Enable Keypad */
    UI_KP_Init();   
    UI_Activate();
 
-   /* Enable Interrupt detection on INTP1.3 for a Low to High only for
-	 * MAX7300 */
-#if USE_MAX7300 == 1   
-   P1DIR &= ~(UI_INT_PIN);
-   P1IES &= ~(UI_INT_PIN);
-   P1IE  |=  (UI_INT_PIN);
-#endif
    /* Enable LCD */
    UI_LCD_HWInit();
-   UI_LCD_Init();
-      
+	UI_LCD_Init();
+
    LCD_BL_DDR |= (1 << LCD_BL_PIN);
    LCD_BL_PORT &= ~(1 << LCD_BL_PIN);
 
@@ -108,8 +117,11 @@ int main(void)
    /* Menu Setup */
    MenuSetInput(0); 
 	
+	
 	/* Menu must be Initialised first */
 	aboutScroll(MAIN_SCREEN);
+	UI_LCD_BL_On();
+	SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );	
 	_delay_ms(900);	
 	UI_LCD_LoadDefaultChars();					  
    /* Reprint Menu */   
@@ -132,7 +144,7 @@ int main(void)
 	      {
 	         /* Change the channel */              
 	         SensorChannel(i);
-	         _delay_us(150);
+	         _delay_us(SensorSettings.CrosstalkDelay);
 	         /* Take a sample */
 	         sample = ADC12_Sample();                              
 	         /* Obtain Peak */
@@ -185,7 +197,6 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
    if( buffer == 'c' )
    {
 		UI_LCD_Pos(3, 10);
-		
 		UI_LCD_Char(0);
 		UI_LCD_Char(1);
 		UI_LCD_Char(2);
@@ -194,70 +205,47 @@ interrupt (USART0RX_VECTOR) usart0_rx(void)
 		UI_LCD_Char(5);
 		UI_LCD_Char(6);
 		UI_LCD_Char(7);		
-			
 	}
    
 }
 
-#if USE_MAX7300 == 1
-/* Handle a key press from a MAX7300 interrupt */
+/* Handle a key press from a MAX7300 interrupt / or directly  */
 interrupt (PORT1_VECTOR)   port1_int(void)
 {  
    dint(); 
-   
+#if VERSION_CODE == VERSION_WITH_PE     
    if( (UI_INT_PORT & UI_INT_PIN) )
    {
-      P1IFG &= ~(UI_INT_PIN);
-      /* Reset Interrupt */
-
+		/* Reset Interrupt */
+      UI_INT_IFG &= ~(UI_INT_PIN);  
+#endif
       
-      uint8_t IntResult;
-      /* Reset Interrupt on UI */
-      IntResult = UI_KP_GetPress();      
-      /*
-      if( IntResult == KP_D )
-      {
-         LCD_BL_PORT ^= (1 << LCD_BL_PIN);  
-      }*/
-            
-      if( IntResult != KP_INVALID)
-      {
-         MenuSetInput(IntResult);   
-         MenuUpdate();       
-      }    
-   
-   	//UI_SetRegister(UI_INTERRUPT, 0);
-      UI_Activate();
-   }
-	eint();
-}
-#else
-/* Handle a key press from direct Keypad connection */
-interrupt (PORT1_VECTOR)   port1_int(void)
-{  
-   dint(); 
-   
+#if VERSION_CODE == VERSION_WITHOUT_PE
    if( (UI_COL_IN & UI_COLS) )
    {
-		/* Reset Interrupt */
-      UI_INT_IFG &= ~(UI_COLS);
-      
+#endif      
       uint8_t IntResult;
       /* Reset Interrupt on UI */
       IntResult = UI_KP_GetPress();      
-          
+      
       if( IntResult != KP_INVALID)
       {
 			UI_LCD_BL_On();
 			SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );
          MenuSetInput(IntResult);   
          MenuUpdate();       
-      }
+      }    
+#if VERSION_CODE == VERSION_WITH_PE    
+   	UI_SetRegister(UI_INTERRUPT, 0);
+#endif   
+
+#if VERSION_CODE == VERSION_WITHOUT_PE 
+		/* Reset Interrupt */
+      UI_INT_IFG &= ~(UI_COLS);
+#endif      
+	
       UI_Activate();
    }
 	eint();
 }
-
-
-#endif
 

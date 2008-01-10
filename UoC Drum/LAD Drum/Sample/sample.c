@@ -78,16 +78,16 @@ DigitalSettings_t DigitalSettings = {
 
 GainSettings_t GainSettings = {
 	/* Default Gains */                                     
-	{3,3,3,3,
-    3,3,3,3,
-    3,3,3,3,
-    3,3,3,3},
+	{DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN},
     
 	/* Default 2nd Slope Gains */                                     
-	{3,3,3,3,
-    3,3,3,3,
-    3,3,3,3,
-    3,3,3,3},
+	{DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN},
 	 
 	/* Crossover Level */                                     
 	{300,300,300,300,
@@ -558,7 +558,7 @@ void ObtainPeak(uint8_t channel, uint16_t sample)
 void TimerInit(void)
 {
    /* No Divider, 16bit operation @ SMCLK rate, activate Interrupts */
-   TBCTL |= (TBSSEL_SMCLK | MC_CONT | TBIE);
+   TBCTL |= (TBSSEL_SMCLK | MC_CONT);
      
    /* 100us timer */
    /*TBCCTL1 |= (CCIE);   

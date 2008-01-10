@@ -41,6 +41,8 @@
 
 /* Amplification */
 #define MAX_GAIN           (7)
+/* Most significant seven bits */
+#define DEFAULT_GAIN		(-5)
 /* Attenuation */
 #define MIN_GAIN				(-12)
 #define MAX_CROSSOVER	(4095)

@@ -99,7 +99,7 @@ void aboutScroll(uint8_t nameIndex)
 			MenuChar(0x01);
 			MenuPrint_P( PSTR(" 2008 "));	
 		   MenuNewLine();
-			MenuPrint_P(PSTR("Version: ") );
+			MenuPrint_P(PSTR("Version:") );
 			MenuPrint_P(VersionId);
 			MenuNewLine();			   
 		break;
@@ -223,7 +223,6 @@ void PlayMode(void* data)
 	
 	if( firstEnter != 1 )
 	{
-
 		switch( *input )
 		{	
 	      default:      
@@ -234,8 +233,10 @@ void PlayMode(void* data)
 			TBCCTL2 |= (CCIE);    
 	      return;	
 		}	
-		
 	}
+	
+	/* Turn Backlight off */
+	UI_LCD_BL_Off();
 	
 	firstEnter = 0;	
 	MenuReset();		
@@ -289,7 +290,7 @@ void SetMIDIRate(void* data)
 
 void PrintMIDIRate(void)
 {
-	uint8_t outputString[8];
+	uint8_t outputString[15];
 	uint8_t selectedBaud = 0;
 	
 	MenuPrint_P( PSTR("MIDI Output Rate: ") );
@@ -310,7 +311,11 @@ void PrintMIDIRate(void)
 		
 		case BAUD_115200:
 			selectedBaud = B115200;
-		break;		
+		break;
+		
+		case BAUD_1M:
+			selectedBaud = B1M;
+		break;				
 	
 		default:
 		break;
@@ -324,7 +329,7 @@ void EditMIDIRate(void* data)
 	uint8_t* input = (uint8_t*)data;
 	static uint16_t	Delay;
 	uint8_t selectedBaud = 0;
-	uint8_t outputString[4];
+	uint8_t outputString[10];
 	
 	if( firstEnter == 1)
 	{
@@ -365,8 +370,12 @@ void EditMIDIRate(void* data)
 						break;
 						
 						case BAUD_115200:
-							MIDI_SetBaud(BAUD_31250); 
+							MIDI_SetBaud(BAUD_1M); 
 						break;		
+						
+						case BAUD_1M:
+							MIDI_SetBaud(BAUD_31250);
+						break;
 					
 						default:
 						break;
@@ -402,7 +411,7 @@ void EditMIDIRate(void* data)
 	MIDI_SetRate( Delay );
 
 	MenuNewLine();
-   MenuPrint_P( PSTR("Baud Rate: "));
+   MenuPrint_P( PSTR("Baud Rate:"));
    switch(MIDI_GetBaud())
    {
 		case BAUD_31250:
@@ -416,6 +425,9 @@ void EditMIDIRate(void* data)
 		case BAUD_115200:
 			selectedBaud = B115200;
 		break;		
+		
+		case BAUD_1M:
+			selectedBaud = B1M;
 	
 		default:
 		break;
@@ -570,9 +582,9 @@ void SetThreshold(void* data)
 	
    input = data;
    
-   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
+   //SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
 	uint16_t PotValue = SensorPotValue() >> THRESHOLD_LEVELS;
-   SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
+   //SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
    
 	SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
 	
@@ -1446,6 +1458,7 @@ void LoadProfile(void* data)
 
 	/* Update the sensor select */
 	SensorInputSelect(GetSensorInput());
+	
 
    /* Update the Retrigger periods */
    UpdateChannelRetriggers();
@@ -1479,7 +1492,75 @@ void LoadProfile(void* data)
 
 
 
+void AdjustCrosstalk(void* data)
+{
+	uint8_t* input = (uint8_t*)data;
+	uint16_t crosstalk;
+	uint8_t outputString[5];
+	
+	crosstalk = GetCrossTalkDelay();
+	
+	
+   if( firstEnter == 0 )
+   {     
+      switch( *input )
+      {
+         /* Increment crosstalk delay */
+         case 'q':
+         case KP_A:
+				crosstalk += 10;
+            if( crosstalk > MAX_CROSSTALK)
+            {
+               crosstalk = MIN_CROSSTALK;   
+            }   
+         break;
+            
+         /* Deccrement crosstalk delay */  
+         case 'a':                   
+         case KP_B:
+				crosstalk -= 10;
+            if(crosstalk < MIN_CROSSTALK)
+            {
+               crosstalk = MAX_CROSSTALK;   
+            }
+         break;
 
+         /* Increment crosstalk delay by 100 */  
+        case KP_C:
+				crosstalk += 100;
+            if(crosstalk > MAX_CROSSTALK)
+            {
+               crosstalk = MIN_CROSSTALK;   
+            }
+         break;           
+           
+         /* Time Component increment function */
+         case KB_BACK:
+         case KP_BACK:
+				/* Go back up one menu */   
+   			MenuSetInput(KB_BACK);
+  				stateMachine(currentState);
+  				MenuSetInput(0);
+  				return;
+  				
+         break;
+                        
+         default:
+         break;     
+      }
+   }
+   
+   firstEnter = 0;
+   
+   SetCrossTalkDelay(crosstalk);
+   
+   MenuPrint_P( PSTR("Crosstalk Delay:"));
+   MenuNewLine();
+	utoa(crosstalk, outputString, 10);
+	MenuPrint(outputString);		
+   MenuPrint_P( PSTR(" us"));
+	
+}
 
 
 

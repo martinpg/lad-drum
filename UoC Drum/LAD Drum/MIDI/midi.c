@@ -9,9 +9,10 @@
 #define MIDI_Tx(x)   UART_Tx(x)
 
 const char MIDI_NOTES[] = "C C#D D#E F F#G G#A A#B ";
-const char MIDI_BAUD[][8] = {"31.25k",
+const char MIDI_BAUD[][11] = {"31.25k",
 									  "38.4k",
-									  "115.2k"};
+									  "115.2kUSB",
+									  "1.0M USB"};
 
 
 MidiSettings_t MIDISettings = {	
@@ -53,8 +54,6 @@ void MIDI_Output(void)
 					MIDI_Tx(GetChannelKey(i));
 				}
 	         
-				
-				
 				if( conditionedSignal > 127 )
 	         {
 	            MIDI_Tx( 127 );   
