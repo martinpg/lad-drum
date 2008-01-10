@@ -16,6 +16,7 @@
 #define THRESHOLD_LEVELS	(6)
 
 #define MAX_VELOCITY			(127)
+#define DEFAULT_VELOCITY (0x64)
 
 /* Retrigger Defines */
 #define MAX_RETRIGGER      (255)
