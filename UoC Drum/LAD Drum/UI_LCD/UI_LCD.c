@@ -150,14 +150,13 @@ void UI_LCD_Write(char code)
    UI_LCD_Strobe();
 	UI_LCD_SetRegister(UI_LCD_PORT, (code) & (0x0F) );   
    UI_LCD_Strobe();
-   _delay_us(50);
+   _delay_us(40);
 }
 
 void  UI_LCD_Char(char data)
 {
    UI_LCD_SetData();
    UI_LCD_Write(data);
-   
 }
 
 
