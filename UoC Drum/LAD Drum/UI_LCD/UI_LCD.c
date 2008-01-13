@@ -296,7 +296,10 @@ void UI_LCD_BL_Off(void)
    LCD_BL_PORT &= ~(1 << LCD_BL_PIN);  
 }
 
-
+void UI_LCD_BL_Toggle(void)
+{
+   LCD_BL_PORT ^= (1 << LCD_BL_PIN);   
+}
 
 
 

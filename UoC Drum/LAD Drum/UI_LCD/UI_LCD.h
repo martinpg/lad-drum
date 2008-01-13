@@ -115,6 +115,8 @@
 #define LCD_BL_PIN   2
 #define LCD_BL_DDR   P1DIR
 
+#define LCD_BL_TIMED   0
+
 #define LCD_RAM_END  (0x67)
 
 //#define 
@@ -152,6 +154,7 @@ void UI_LCD_Shutdown(void);
 
 void UI_LCD_BL_Off(void);
 void UI_LCD_BL_On(void);
+void UI_LCD_BL_Toggle(void);
 
 /* Accepts a 7 Byte custom char array */
 void UI_LCD_LoadCustomChar(uint8_t* lcdCustomCharArray, uint8_t lcdCharNum);

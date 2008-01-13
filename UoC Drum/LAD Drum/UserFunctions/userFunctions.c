@@ -225,6 +225,11 @@ void PlayMode(void* data)
 	{
 		switch( *input )
 		{	
+         /* The LCD BL key does not exit however */
+         case KP_5:
+         
+         break;
+         
 	      default:      
 	   	MenuSetInput(KP_BACK);
 	      stateMachine(currentState);
@@ -234,10 +239,7 @@ void PlayMode(void* data)
 	      return;	
 		}	
 	}
-	
-	/* Turn Backlight off */
-	UI_LCD_BL_Off();
-	
+		
 	firstEnter = 0;	
 	MenuReset();		
 	MenuPrint_P( PSTR("Optimised for Play!"));
