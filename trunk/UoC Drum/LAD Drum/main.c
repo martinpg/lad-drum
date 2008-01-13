@@ -229,30 +229,38 @@ interrupt (PORT1_VECTOR)   port1_int(void)
       /* Reset Interrupt on UI */
       IntResult = UI_KP_GetPress();      
       
-      /* Toggles the permanent state of the LCD BL */
-      if( IntResult == KP_5 )
-      {
-         LCD_BL_Mode ^= 1;
-         
-         if( LCD_BL_Mode == LCD_BL_TIMED )
-         {
-            UI_LCD_BL_Off();    
-         }
-         
-      }      
-      
       if( IntResult != KP_INVALID)
       {
 			UI_LCD_BL_On();
+         MenuSetInput(IntResult);   
+         MenuUpdate();  
+			
+	      /* Toggles the permanent state of the LCD BL */
+	      if( IntResult == KP_5 )
+	      {
+	         LCD_BL_Mode ^= 1;
+	         
+	         if( LCD_BL_Mode == LCD_BL_TIMED )
+	         {
+	            UI_LCD_BL_Off();    
+	         }
+	         else
+	         {
+					SoftTimerReset( SoftTimer2[SC_LCD_BL_Period] );
+					SoftTimerStop( SoftTimer2[SC_LCD_BL_Period] );
+				}
+	      }   
 			
 			if( LCD_BL_Mode == LCD_BL_TIMED )
 			{
-            SoftTimerReset( SoftTimer2[SC_LCD_BL_Period] );
+	         SoftTimerReset( SoftTimer2[SC_LCD_BL_Period] );
 			   SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );
-         }
-         MenuSetInput(IntResult);   
-         MenuUpdate();       
+	      }						     
       }
+      
+    
+      
+      
       
           
 #if VERSION_CODE == VERSION_WITH_PE    

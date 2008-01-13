@@ -29,7 +29,7 @@ SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},  // Second Delay...
 
 
 SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{10, 0, 0},  // Threshold Bar 
-                                           {50, 0, 0},  // VU Meter Update 
+                                           {70, 0, 0},  // VU Meter Update 
 														 {25, 0, 0},  // VU Decay
 														 {10, 0, 1},  // Retrigger Reset
 														 {2500,2500,0}, // AboutUpdate

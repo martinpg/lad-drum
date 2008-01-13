@@ -1252,6 +1252,7 @@ void VUMeterSetup(void* data)
 	firstEnter = 0;
 		
 	/* Start the VU Meter */
+	MenuReset();
 	MenuPrint_P(PSTR("123456789ABCDEFG"));
 
 	if( GetVURows() == MAX_ROWS )
