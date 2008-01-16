@@ -51,6 +51,7 @@ const MENU_TEXT  MT_INPUT_SELECT[] = "Amp. Input Select";
 
 const MENU_TEXT  MT_ANALOGUE_INPUTS[] = "Analogue Inputs";
 const MENU_TEXT  MT_DIGITAL_INPUTS[] = "Digital Inputs";
+const MENU_TEXT  MT_METRONOME_INPUTS[] = "Metronome Inputs";
 
 const MENU_TEXT  MT_CHANNEL_1[] = "Channel 1";
 const MENU_TEXT  MT_CHANNEL_2[] = "Channel 2";
@@ -77,6 +78,15 @@ const MENU_TEXT  MT_DIGITAL_5[] = "Digital Channel 5";
 const MENU_TEXT  MT_DIGITAL_6[] = "Digital Channel 6";
 const MENU_TEXT  MT_DIGITAL_7[] = "Digital Channel 7";
 const MENU_TEXT  MT_DIGITAL_8[] = "Digital Channel 8";
+
+const MENU_TEXT  MT_METRONOME_1[] = "Metronome Input 1";
+const MENU_TEXT  MT_METRONOME_2[] = "Metronome Input 2";
+const MENU_TEXT  MT_METRONOME_3[] = "Metronome Input 3";
+const MENU_TEXT  MT_METRONOME_4[] = "Metronome Input 4";
+const MENU_TEXT  MT_METRONOME_5[] = "Metronome Input 5";
+const MENU_TEXT  MT_METRONOME_6[] = "Metronome Input 6";
+const MENU_TEXT  MT_METRONOME_7[] = "Metronome Input 7";
+const MENU_TEXT  MT_METRONOME_8[] = "Metronome Input 8";
 
 const MENU_TEXT  MT_THRESHOLD[] = "Set Threshold";
 const MENU_TEXT  MT_TRIGGER_TYPE[] = "Switch Settings";
@@ -111,7 +121,8 @@ const menu_list MenuState[] = {
    {ST_MIDI_OUTPUT_RATE, ST_SET_RATE, 1},
 
    {ST_CHANNEL_SETUP, ST_ANALOGUE_INPUTS,  0},
-   {ST_CHANNEL_SETUP, ST_DIGITAL_INPUTS,  1},   
+   {ST_CHANNEL_SETUP, ST_DIGITAL_INPUTS,  1}, 
+   {ST_CHANNEL_SETUP, ST_METRONOME_INPUTS, 2},  
 
    {ST_ANALOGUE_INPUTS, ST_CHANNEL_1,  0},
    {ST_ANALOGUE_INPUTS, ST_CHANNEL_2,  1},
@@ -231,7 +242,25 @@ const menu_list MenuState[] = {
 	{ST_DIGITAL_7,ST_RETRIGGER_D7, 4},
 	{ST_DIGITAL_8,ST_RETRIGGER_D8, 4},
 
-
+   {ST_METRONOME_INPUTS, ST_METRONOME_1, 1},
+   {ST_METRONOME_INPUTS, ST_METRONOME_2, 2},
+   {ST_METRONOME_INPUTS, ST_METRONOME_3, 3},
+   {ST_METRONOME_INPUTS, ST_METRONOME_4, 4},
+   {ST_METRONOME_INPUTS, ST_METRONOME_5, 5},
+   {ST_METRONOME_INPUTS, ST_METRONOME_6, 6},
+   {ST_METRONOME_INPUTS, ST_METRONOME_7, 7},                  
+   {ST_METRONOME_INPUTS, ST_METRONOME_8, 8},
+   
+	/* Metronome (Digital) Retrigger Menu's */
+	{ST_METRONOME_1, ST_RETRIGGER_M1, 3},
+	{ST_METRONOME_2, ST_RETRIGGER_M2, 3},
+	{ST_METRONOME_3, ST_RETRIGGER_M3, 3},
+	{ST_METRONOME_4, ST_RETRIGGER_M4, 3},
+	{ST_METRONOME_5, ST_RETRIGGER_M5, 3},
+	{ST_METRONOME_6, ST_RETRIGGER_M6, 3},
+	{ST_METRONOME_7, ST_RETRIGGER_M7, 3},
+	{ST_METRONOME_8, ST_RETRIGGER_M8, 3},   
+   
    {ST_PROFILES, ST_LOAD_PROFILE, 2},
    {ST_PROFILES, ST_SAVE_PROFILE, 3},
    {ST_PROFILES, ST_LOAD_PROFILE, 4},
@@ -275,6 +304,7 @@ const menu_data MenuData[] = {
  	
    {ST_ANALOGUE_INPUTS, MT_ANALOGUE_INPUTS,  0},
    {ST_DIGITAL_INPUTS, MT_DIGITAL_INPUTS,  0},    	
+   {ST_METRONOME_INPUTS, MT_METRONOME_INPUTS,  0},
  	
  	/* Analogue Menus */
    {ST_CHANNEL_1, MT_CHANNEL_1,   ChannelSetup},
@@ -396,6 +426,27 @@ const menu_data MenuData[] = {
 	{ST_RETRIGGER_D6, MT_RETRIGGER, SetRetrigger},
 	{ST_RETRIGGER_D7, MT_RETRIGGER, SetRetrigger},
 	{ST_RETRIGGER_D8, MT_RETRIGGER, SetRetrigger},
+
+	/* Digital Menus */
+   {ST_METRONOME_1, MT_METRONOME_1,   DigitalChannelSettings},
+   {ST_METRONOME_2, MT_METRONOME_2,   DigitalChannelSettings},
+   {ST_METRONOME_3, MT_METRONOME_3,   DigitalChannelSettings},
+   {ST_METRONOME_4, MT_METRONOME_4,   DigitalChannelSettings},
+   {ST_METRONOME_5, MT_METRONOME_5,   DigitalChannelSettings},            
+   {ST_METRONOME_6, MT_METRONOME_6,   DigitalChannelSettings},
+   {ST_METRONOME_7, MT_METRONOME_7,   DigitalChannelSettings},
+   {ST_METRONOME_8, MT_METRONOME_8,   DigitalChannelSettings},
+
+	/* Digital Retriggers */
+	{ST_RETRIGGER_M1, MT_RETRIGGER, SetRetriggerAnalogue},
+	{ST_RETRIGGER_M2, MT_RETRIGGER, SetRetriggerAnalogue},
+	{ST_RETRIGGER_M3, MT_RETRIGGER, SetRetriggerAnalogue},
+	{ST_RETRIGGER_M4, MT_RETRIGGER, SetRetriggerAnalogue},
+	{ST_RETRIGGER_M5, MT_RETRIGGER, SetRetriggerAnalogue},
+	{ST_RETRIGGER_M6, MT_RETRIGGER, SetRetriggerAnalogue},
+	{ST_RETRIGGER_M7, MT_RETRIGGER, SetRetriggerAnalogue},
+	{ST_RETRIGGER_M8, MT_RETRIGGER, SetRetriggerAnalogue},
+
 
 	{ST_FIXED_GAIN, MT_FIXED_GAIN, SensorInputChange},
 	{ST_VARIABLE_GAIN, MT_VARIABLE_GAIN, SensorInputChange},

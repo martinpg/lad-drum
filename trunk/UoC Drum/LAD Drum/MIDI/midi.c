@@ -76,7 +76,7 @@ void MIDI_Output(void)
 void MIDI_DigitalOutput(void)
 {
    uint8_t i;
-   for( i = ANALOGUE_INPUTS; i < NUMBER_OF_INPUTS; i++)
+   for( i = ANALOGUE_INPUTS; i < NUMBER_OF_REAL_INPUTS; i++)
    {      
       if( GetChannelStatus(i) && 
           (RetriggerPeriod[i].timerEnable == 0))
@@ -89,13 +89,28 @@ void MIDI_DigitalOutput(void)
 	         MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
 				SoftTimerStart(RetriggerPeriod[i]);   
 			}
-			
-			
       }
    }
 }
 
 
+
+void MIDI_MetronomeOutput(void)
+{
+   uint8_t i;
+   for( i = NUMBER_OF_REAL_INPUTS; i < NUMBER_OF_INPUTS; i++)
+   {      
+      if( GetChannelStatus(i) && 
+          (RetriggerPeriod[i].timerEnable == 0))
+      {
+	      /* Send a NOTE ON | Channel */
+	      MIDI_Tx(MIDISettings.MIDI_ChannelCode);
+	      MIDI_Tx(GetChannelKey(i));
+	      MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
+			SoftTimerStart(RetriggerPeriod[i]);
+      }
+   }
+}
 
 uint16_t MIDI_GetRate(void)
 {

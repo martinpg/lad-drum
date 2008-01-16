@@ -112,7 +112,7 @@ extern MidiSettings_t MIDISettings;
 
 void MIDI_Output(void);
 void MIDI_DigitalOutput(void);
-
+void MIDI_MetronomeOutput(void);
 
 uint16_t MIDI_GetRate(void);
 void MIDI_SetRate(uint16_t newRate);

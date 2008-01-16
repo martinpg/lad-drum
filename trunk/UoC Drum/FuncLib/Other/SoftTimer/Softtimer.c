@@ -28,7 +28,8 @@ SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},  // Second Delay...
 
 
 
-SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{10, 0, 0},  // Threshold Bar 
+SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{100, 0, 0},  // Threshold Bar 
+                                           {100, 0, 0},  // Retrigger Bar
                                            {70, 0, 0},  // VU Meter Update 
                                            {70, 0, 0},  // Digital VU Meter Update
 														 {25, 0, 0},  // VU Decay
@@ -49,6 +50,7 @@ interrupt (TIMERB0_VECTOR) timerb0_int(void)
 		ScanDigitalInputs();
       MIDI_Output();
       MIDI_DigitalOutput();
+      MIDI_MetronomeOutput();
 		ResetValues();	
       SoftTimerReset(SoftTimer1[SC_MIDIOutput]);     
    }	    
@@ -86,7 +88,9 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 		if(SoftTimerInterrupt(SoftTimer2[SC_AutoMenuUpdate]))
 		{
          /* Update the Threshold bar */
-         ThresholdBar();
+         MenuSetInput(0);
+         MenuUpdate();
+         //ThresholdBar();
          SoftTimerReset(SoftTimer2[SC_AutoMenuUpdate]);     
       }
          
@@ -142,7 +146,7 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 			   			           
          for( i = 0 ; i < DIGITAL_INPUTS; i++ )
          {
-				if( GetChannelStatus(i+ANALOGUE_INPUTS) )
+				if( GetChannelStatus(i + ANALOGUE_INPUTS) )
 				{	
 					if( GetDigitalState(i) == GetActiveState(i) )
 					{

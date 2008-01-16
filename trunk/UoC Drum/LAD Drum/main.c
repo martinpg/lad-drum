@@ -65,8 +65,6 @@ int main(void)
    /* Setup the communications module */   
    UART_Select(0);
    UART_Init();
-	
-	Profile_Read(DEFAULT_PROFILE);
 
    /* Implement the changes */
 	MIDI_SetRate(MIDI_GetRate());
@@ -79,8 +77,6 @@ int main(void)
    /* Make all ADC inputs as inputs and select as special function */
    P6SEL |= (0xFF);
    P6DIR &= ~(0xFF);
-   
-
    
    /* ADC Module Init */
    ADC12_Init();
