@@ -32,7 +32,11 @@ ChannelSettings_t ChannelSettings = {
     CHINESE_CYMBAL, SPLASH_CYMBAL, HIGH_TIMBALE, CLAVES,
 //Digital inputs     
     PEDAL_HIGH_HAT, NO_ITEM, BASS_DRUM1, NO_ITEM, 
-    MUTE_HI_CONGA, OPEN_HI_CONGA, LOW_CONGA, LOW_TIMBALE},
+    MUTE_HI_CONGA, OPEN_HI_CONGA, LOW_CONGA, LOW_TIMBALE,
+
+//Metronome inputs 
+    BASS_DRUM1, CLOSED_HI_HAT, MUTE_TRIANGLE, ELECTRIC_SNARE,
+    RIDE_CYMBAL1, ACOUSTIC_BASS_DRUM, OPEN_TRIANGLE, SIDE_STICK},
    
             
 	/* Default Thresholds */
@@ -67,6 +71,8 @@ DigitalSettings_t DigitalSettings = {
 
 	/* Hit Velocities */
 	{DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
+    DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
+    DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
     DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY},
     
    /* All swtiches are Active low type */
@@ -200,9 +206,9 @@ void SetChannelReTrig(uint8_t channel, int16_t retrig)
 {
    if( retrig > MAX_RETRIGGER)
    {
-      retrig = 0;  
+      retrig = MIN_RETRIGGER;  
    }
-   if( retrig < 0)
+   if( retrig < MIN_RETRIGGER)
    {
 		retrig = MAX_RETRIGGER;	
 	}   

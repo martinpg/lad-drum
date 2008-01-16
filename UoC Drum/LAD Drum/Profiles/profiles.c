@@ -21,31 +21,20 @@ void ProfileInit(void)
    CurrentProfile.sensorSettings = &SensorSettings;
    CurrentProfile.gainSettings = &GainSettings;
    
-   Profile_Write((ProfilePtr_t*)&CurrentProfile, DEFAULT_PROFILE);   
-   
 }
 
 
 void Profile_Copy(void)
 {
-   flash_erase_segment( (uint16_t*)PROFILE_IMAGE_ADDRESS(0));
-   flash_erase_segment( (uint16_t*)PROFILE_IMAGE_ADDRESS(1));
-   flash_erase_segment( (uint16_t*)PROFILE_IMAGE_ADDRESS(2));
-
-
-   flash_write((uint16_t*)PROFILE_IMAGE_ADDRESS(0), 
-               (uint16_t*)PROFILE_FLASH_ADDRESS(0), 
-               FLASH_BLOCK_SIZE);
-               
-   flash_write((uint16_t*)PROFILE_IMAGE_ADDRESS(1), 
-               (uint16_t*)PROFILE_FLASH_ADDRESS(1), 
-               FLASH_BLOCK_SIZE);  
-					
-   flash_write((uint16_t*)PROFILE_IMAGE_ADDRESS(2), 
-               (uint16_t*)PROFILE_FLASH_ADDRESS(2), 
-               FLASH_BLOCK_SIZE);
-						
-					  					             
+   uint16_t i;
+   for( i = 0 ; i < SEGMENTS_TO_USE; i++ )
+   {
+      flash_erase_segment( (uint16_t*)PROFILE_IMAGE_ADDRESS(i)); 
+      
+      flash_write((uint16_t*)PROFILE_IMAGE_ADDRESS(i), 
+                  (uint16_t*)PROFILE_FLASH_ADDRESS(i), 
+                   FLASH_BLOCK_SIZE);        
+   }				  					             
 }
 
 
@@ -56,10 +45,11 @@ void Profile_Write(ProfilePtr_t* profile, uint8_t profileIndex)
    uint16_t i;
    
    Profile_Copy();   
-   flash_erase_segment( (uint16_t*)PROFILE_FLASH_ADDRESS(0));
-   flash_erase_segment( (uint16_t*)PROFILE_FLASH_ADDRESS(1));
-   flash_erase_segment( (uint16_t*)PROFILE_FLASH_ADDRESS(2)); 
-	     
+   for( i = 0 ; i < SEGMENTS_TO_USE; i++ )
+   {
+      flash_erase_segment( (uint16_t*)PROFILE_FLASH_ADDRESS(i));
+   }	   
+
    for( i = 0; i < NUMBER_OF_PROFILES; i++ )
    {
       if( i == profileIndex )

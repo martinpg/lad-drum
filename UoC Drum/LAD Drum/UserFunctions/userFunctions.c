@@ -593,14 +593,7 @@ void SetThreshold(void* data)
 
 	if( firstEnter == 1)
 	{
-				// load the first 8 custom characters
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[0], 1);
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[1], 2);
-	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[2], 3);
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[3], 4);
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[4], 5);
-		UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[5], 6);
-	   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 7);
+      LCD_Load_ProgressBar();
 	}
 	
 	
@@ -664,6 +657,8 @@ void ThresholdBar(void)
 }
 
 
+
+
 void SetRetrigger(void* data)
 {
 	uint8_t* input;
@@ -677,17 +672,23 @@ void SetRetrigger(void* data)
 
 	switch( *input )
 	{
-         /* Up and down a Trigger Level */
-         case KP_A:
+         /* Increase and decrease retrigger level */
+
+	      case KP_A:
+				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) + 100 ));  
+	      break;  	           
+         
+         case KP_B:
 				SetChannelReTrig(SelectedChannel, (int16_t)(GetChannelReTrig(SelectedChannel) + 1));
          break;
          
-         case KP_B:
-				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) -1 ));        			break;
+         case KP_C:
+				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) -1 ));        			
+         break;
 	
-	      case KP_C:
-				//SC_AutoMenuUpdate.timerEnable ^= 1;  
-	      break;  	  
+	      case KP_D:
+				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) - 100 ));  
+	      break;  	      
 			       
          case KP_BACK:
 				//SoftTimerStop(SC_AutoMenuUpdate);
@@ -714,6 +715,61 @@ void SetRetrigger(void* data)
    	
 }
 
+
+
+void SetRetriggerAnalogue(void* data)
+{
+	uint8_t* input;
+   uint8_t outputString[5];
+   uint8_t SelectedChannel = GetState() - ST_RETRIGGER_1;
+     
+	static uint8_t firstEnter = 1;
+	
+   input = data;
+
+	uint16_t PotValue = SensorPotValue();
+	SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
+	
+	if( firstEnter == 1)
+	{
+      LCD_Load_ProgressBar();
+	}	
+	
+	switch( *input )
+	{     
+         case KP_BACK:
+            SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
+         	MenuSetInput(KP_BACK);
+            stateMachine(currentState);
+            MenuSetInput(0);
+            firstEnter = 1;
+            UI_LCD_LoadDefaultChars();
+            executeState(currentState);     
+            
+            
+         return;
+	}
+		
+	firstEnter = 0;	
+
+   /* Use the settings pot to adjust the retrigger period */
+	SetChannelReTrig(SelectedChannel, PotValue >> 4);
+
+	uint8toa(GetChannelReTrig(SelectedChannel), outputString);
+	MenuPrint_P(PSTR("Retrigger Level: "));
+	MenuNewLine(); 
+	MenuPrint(outputString);    
+	MenuPrint_P(PSTR("0 ms"));	
+   
+	UI_LCD_Pos(1, 9);         
+   lcdProgressBar(GetChannelReTrig(SelectedChannel), MAX_RETRIGGER, 11);   
+	MenuNewLine(); 
+	
+	MenuPrint_P(PSTR("Default: 10ms"));	
+	
+   UpdateChannelRetriggers();	
+	
+}
 
 // progress bar defines
 #define PROGRESSPIXELS_PER_CHAR	6
@@ -765,7 +821,17 @@ void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length)
 	}
 }
 
-
+void LCD_Load_ProgressBar(void)
+{
+	// load the progress bar Chars
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[0], 1);
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[1], 2);
+   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[2], 3);
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[3], 4);
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[4], 5);
+	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[5], 6);
+   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 7);  
+}
 
 
 void SetGainCurves(void* data)
@@ -1122,8 +1188,17 @@ void DigitalChannelSettings(void* data)
 	MenuReset();
 		
 	/* Indicate the channel selected */
-	MenuPrint_P(PSTR("Digital Ch "));
-	uint8toa(SelectedDigitalChannel + 1, outputString);	
+	
+	if( SelectedDigitalChannel > DIGITAL_INPUTS )
+	{
+   	MenuPrint_P(PSTR("Metronome Ch "));
+   	uint8toa(SelectedDigitalChannel - 7, outputString);
+   }
+   else
+   {
+   	MenuPrint_P(PSTR("Digital Ch "));
+   	uint8toa(SelectedDigitalChannel + 1, outputString);      
+   }
 	MenuPrint(outputString);          
    
  	MenuPrint_P(PSTR(": "));
@@ -1496,9 +1571,14 @@ void LoadProfile(void* data)
 	
    MenuNewLine();		
 
+   /* Loading the default profile resets the device */
+	if( ProfileSlot == DEFAULT_PROFILE)
+	{
+      reset(0);
+   }
+
+
 	Profile_Read(ProfileSlot);
-
-
    /* Implement the changes */
 	MIDI_SetRate(MIDI_GetRate());
 	MIDI_SetBaud(MIDI_GetBaud());
@@ -1511,17 +1591,10 @@ void LoadProfile(void* data)
    /* Update the Retrigger periods */
    UpdateChannelRetriggers();
 
-	if( ProfileSlot == DEFAULT_PROFILE)
-	{
-		MenuPrint_P( PSTR("Default Profile"));			
-	}
-	else
-	{
-		MenuPrint_P( PSTR("Profile "));
-		uint8toa( ProfileSlot + 1, outputString );
-		MenuPrint(outputString);			
-	}
-	
+
+	MenuPrint_P( PSTR("Profile "));
+	uint8toa( ProfileSlot + 1, outputString );
+	MenuPrint(outputString);				
    MenuNewLine();		
 	MenuPrint_P( PSTR("successfully loaded!") );
 

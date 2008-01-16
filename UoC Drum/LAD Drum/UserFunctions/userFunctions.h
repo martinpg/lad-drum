@@ -45,11 +45,13 @@ void ChannelSetup(void* data);
 
 void SetThreshold(void* data);
 void SetRetrigger(void* data);
+void SetRetriggerAnalogue(void* data);
 void SetGainCurves(void* data);
 
 
 void ThresholdBar(void);
 void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length);
+void LCD_Load_ProgressBar(void);
 void SetDualInput(void* data);
 
 

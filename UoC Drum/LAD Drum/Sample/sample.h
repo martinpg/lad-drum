@@ -6,8 +6,10 @@
 
 
 #define ANALOGUE_INPUTS	(16)
+#define METRONOME_INPUTS (8)
 #define DIGITAL_INPUTS	(8)
-#define NUMBER_OF_INPUTS   (ANALOGUE_INPUTS + DIGITAL_INPUTS)
+#define NUMBER_OF_REAL_INPUTS (ANALOGUE_INPUTS + DIGITAL_INPUTS)
+#define NUMBER_OF_INPUTS   (ANALOGUE_INPUTS + DIGITAL_INPUTS + METRONOME_INPUTS)
 
 /* The number of bits in the ADC Reading */
 #define MAX_THRESHOLD      (4095)
@@ -128,7 +130,7 @@ typedef struct {
 typedef struct {
 
    /* The velocity of the digital outputs is constant */
-   uint8_t	 DigitalVelocity[DIGITAL_INPUTS];
+   uint8_t	 DigitalVelocity[DIGITAL_INPUTS+METRONOME_INPUTS];
    
    /* Sets the input to either active high/low */
    uint8_t 	 DigitalActiveState;

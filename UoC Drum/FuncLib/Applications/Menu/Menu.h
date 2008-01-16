@@ -93,6 +93,7 @@ enum {
    ST_CHANNEL_SETUP,
    ST_ANALOGUE_INPUTS,
    ST_DIGITAL_INPUTS,
+   ST_METRONOME_INPUTS,
    ST_CHANNEL_1,
    ST_CHANNEL_2,
    ST_CHANNEL_3,
@@ -109,7 +110,7 @@ enum {
    ST_CHANNEL_14,
    ST_CHANNEL_15,   
    ST_CHANNEL_16,
-/* Effectively Channel 17 -> 25 */   
+/* Effectively Channel 17 -> 32 */   
 	ST_DIGITAL_1,
 	ST_DIGITAL_2,
 	ST_DIGITAL_3,
@@ -118,6 +119,15 @@ enum {
 	ST_DIGITAL_6,
 	ST_DIGITAL_7,
 	ST_DIGITAL_8,
+/* Metronome inputs are basically Digital inputs CH9->16 */	
+   ST_METRONOME_1,
+   ST_METRONOME_2,
+   ST_METRONOME_3,
+   ST_METRONOME_4,
+   ST_METRONOME_5,
+   ST_METRONOME_6,
+   ST_METRONOME_7,
+   ST_METRONOME_8,	
 /* Analogue Thresholds */	
 	ST_THRESHOLD_1,
 	ST_THRESHOLD_2,
@@ -171,7 +181,15 @@ enum {
 	ST_RETRIGGER_D7,
 	ST_RETRIGGER_D8,
 /* End of Digital Retrigger enums */
-
+/* Metronome Retrigger enums */
+	ST_RETRIGGER_M1,
+	ST_RETRIGGER_M2,
+	ST_RETRIGGER_M3,
+	ST_RETRIGGER_M4,
+	ST_RETRIGGER_M5,
+	ST_RETRIGGER_M6,
+	ST_RETRIGGER_M7,
+	ST_RETRIGGER_M8,
 /* Dual Input Menu States */
 	ST_DUALINPUT_1,
 	ST_DUALINPUT_2,
