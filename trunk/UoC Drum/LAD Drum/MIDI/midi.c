@@ -63,8 +63,10 @@ void MIDI_Output(void)
 	            MIDI_Tx( conditionedSignal );
 	         } 
 	         SoftTimerStart(RetriggerPeriod[i]); 
-				
-				VUValues[i] = SignalPeak[i];
+	         if( SoftTimer2[SC_VUMeterUpdate].timerEnable )
+	         {
+	         	VUValues[i] = SignalPeak[i];
+				}
 			}
       }  
    }
@@ -84,10 +86,11 @@ void MIDI_DigitalOutput(void)
 	         /* Send a NOTE ON | Channel */
 	         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
 	         MIDI_Tx(GetChannelKey(i));
-	         MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );   
+	         MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
+				SoftTimerStart(RetriggerPeriod[i]);   
 			}
 			
-			SoftTimerStart(RetriggerPeriod[i]);
+			
       }
    }
 }

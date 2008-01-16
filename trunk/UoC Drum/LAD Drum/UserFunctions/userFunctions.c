@@ -1246,7 +1246,8 @@ void VUMeterSetup(void* data)
             MenuSetInput(0);
             firstEnter = 1;
             executeState(currentState);
-            
+            /* Reset the VU Height */
+            VUSetRows(1);
          return;
 	}
 	firstEnter = 0;
@@ -1263,12 +1264,56 @@ void VUMeterSetup(void* data)
 	{
 		VUSetPosition(1,0);
 	}
-	//SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
 	SoftTimerStart(SoftTimer2[SC_VUMeterUpdate]);
 	SoftTimerStart(SoftTimer2[SC_VUDecay]);
 }
 
+void DigitalVUMeterSetup(void* data)
+{
 
+	uint8_t* input = data;
+	static uint8_t firstEnter = 1;
+
+	switch( *input )
+	{         
+			case KP_A:
+				VUSetRows(GetVURows() + 1);	
+			   SoftTimer2[SC_VUDecay].timeCompare = (MAX_ROWS + 1 - GetVURows()) << 2;
+						
+			break;
+		
+		
+         case KP_BACK:
+				SoftTimerStop(SoftTimer2[SC_VUDecay]);				
+				SoftTimerStop(SoftTimer2[SC_DigitalVUUpdate]);
+				//SoftTimerStart(SoftTimer1[SC_MIDIOutput]);				
+				MenuSetInput(KP_BACK);
+            stateMachine(currentState);
+            MenuSetInput(0);
+            firstEnter = 1;
+            executeState(currentState);
+            /* Reset the VU Height */
+            VUSetRows(1);            
+         return;
+	}
+	firstEnter = 0;
+		
+	/* Start the VU Meter */
+	MenuReset();
+	MenuPrint_P(PSTR("12345678"));
+
+	if( GetVURows() == MAX_ROWS )
+	{
+		VUSetPosition(0,0);
+	}
+	else
+	{
+		VUSetPosition(1,0);
+	}
+	SoftTimerStart(SoftTimer2[SC_DigitalVUUpdate]);
+	SoftTimerStart(SoftTimer2[SC_VUDecay]);	
+	
+}
 
 
 /* Amplifer Input Select */

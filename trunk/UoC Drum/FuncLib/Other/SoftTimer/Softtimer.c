@@ -30,6 +30,7 @@ SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},  // Second Delay...
 
 SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{10, 0, 0},  // Threshold Bar 
                                            {70, 0, 0},  // VU Meter Update 
+                                           {70, 0, 0},  // Digital VU Meter Update
 														 {25, 0, 0},  // VU Decay
 														 {10, 0, 1},  // Retrigger Reset
 														 {2500,2500,0}, // AboutUpdate
@@ -129,6 +130,29 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
          VUMeterPrint(ALL_METERS, VURows);
          ResetVUValues();
       }         
+      
+      /* Digital VU Meter */
+		if(SoftTimerInterrupt(SoftTimer2[SC_DigitalVUUpdate]))
+		{
+			SoftTimerReset(SoftTimer2[SC_DigitalVUUpdate]); 
+		
+         /* Do the VU Meter*/
+         uint16_t i;
+         uint8_t  VURows = GetVURows();
+			   			           
+         for( i = 0 ; i < DIGITAL_INPUTS; i++ )
+         {
+				if( GetChannelStatus(i+ANALOGUE_INPUTS) )
+				{	
+					if( GetDigitalState(i) == GetActiveState(i) )
+					{
+						VUSetLevel(i, VUNormaliseMIDI(GetDigitalVelocity(i), VURows), VURows); 
+					}
+				}
+			}
+         VUMeterPrint(ALL_METERS, VURows);
+         ResetVUValues();
+      }          
       
 		/* About Strings Update routine */   
       if( SoftTimerInterrupt(SoftTimer2[SC_AboutUpdate]) )

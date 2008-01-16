@@ -472,6 +472,9 @@ void DigitalInputInit(void)
 	DIGITAL_PORT1 |= (DIGITAL_0 | DIGITAL_1 | DIGITAL_2 | DIGITAL_3 | DIGITAL_4);
 	DIGITAL_PORT2 |= (DIGITAL_5 | DIGITAL_6 | DIGITAL_7);
 	
+	/* Enable the pullup resistor */
+	DIGITAL_DDR2 |= DIGITAL_PULLUP;
+	DIGITAL_PORT2 |= DIGITAL_PULLUP;
 }
 
 /* Returns the state of the passed digital input channel */
@@ -502,26 +505,27 @@ void ScanDigitalInputs(void)
 				/* Schmitt Trigger Type Operation */
 				if( DigitalCycle[i] == INPUT_HAS_BEEN_CYCLED )
 				{
-					SignalPeak[i | ANALOGUE_INPUTS] = 1;
+					SignalPeak[i + ANALOGUE_INPUTS] = 1;
 					DigitalCycle[i] = INPUT_IS_DOWN;	
 				}
 				else
 				{
 					/* Reset Value */
-					SignalPeak[i | ANALOGUE_INPUTS] = 0;						
+					SignalPeak[i + ANALOGUE_INPUTS] = 0;						
 				}
 			}
 			else
 			{
-				SignalPeak[i | ANALOGUE_INPUTS] = 1;
+				SignalPeak[i + ANALOGUE_INPUTS] = 1;
 			}
 		}
 		else
 		{
 			/* Reset Value */
-			SignalPeak[i | ANALOGUE_INPUTS] = 0;
+			SignalPeak[i + ANALOGUE_INPUTS] = 0;
 			DigitalCycle[i] = INPUT_HAS_BEEN_CYCLED;
 		}
+
 	}
 	
 }
