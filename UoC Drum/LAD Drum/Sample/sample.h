@@ -78,9 +78,11 @@ enum {
 #define DIGITAL_4		(1<<4)
 
 /* In Digital Port 2 */
+#define DIGITAL_PULLUP 	(1<<4)
 #define DIGITAL_5		(1<<5)
 #define DIGITAL_6		(1<<6)
 #define DIGITAL_7		(1<<7)
+
 #define INPUT_HAS_BEEN_CYCLED	(0)
 #define INPUT_IS_DOWN (1)
 

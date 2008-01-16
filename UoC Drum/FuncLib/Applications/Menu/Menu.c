@@ -36,6 +36,7 @@ const MENU_TEXT  MT_PROFILE_DEF[] = "Default Profile";
 
 
 const MENU_TEXT  MT_VUMETER[] = "VU Meter";
+const MENU_TEXT  MT_DIGITAL_VUMETER[] = "Digital VU Meter";
 const MENU_TEXT  MT_SYSTEM_SETUP[] = "System Setup";
 
 const MENU_TEXT  MT_SYSTEM_RESET[] = "Reset eDrum";
@@ -95,8 +96,9 @@ const menu_list MenuState[] = {
 	{ST_MAIN,	ST_PLAYMODE,  0},
    {ST_MAIN,   ST_OPTIONS,   1},
    {ST_MAIN,	ST_VUMETER,	  2},
-   {ST_MAIN, 	ST_PROFILES,  3},
-   {ST_MAIN,   ST_SYSTEM_SETUP, 4},
+   {ST_MAIN,   ST_DIGITAL_VUMETER, 3},
+   {ST_MAIN, 	ST_PROFILES,  4},
+   {ST_MAIN,   ST_SYSTEM_SETUP, 5},
 
    {ST_OPTIONS, ST_MIDI_OUTPUT_RATE,  0},
    {ST_OPTIONS, ST_CHANNEL_SETUP, 1},
@@ -261,6 +263,7 @@ const menu_data MenuData[] = {
    {ST_PROFILES, MT_PROFILES, ShowProfile},   
    {ST_OPTIONS, MT_OPTIONS, 0},
 	{ST_VUMETER, MT_VUMETER, VUMeterSetup},
+	{ST_DIGITAL_VUMETER, MT_DIGITAL_VUMETER, DigitalVUMeterSetup},
 	{ST_SYSTEM_SETUP, MT_SYSTEM_SETUP, 0},
 	{ST_SYSTEM_RESET, MT_SYSTEM_RESET, reset},
 	{ST_SYSTEM_ABOUT, MT_SYSTEM_ABOUT, about},
