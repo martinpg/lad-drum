@@ -50,6 +50,8 @@ ChannelSettings_t ChannelSettings = {
 	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
 	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
  	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+  	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
 	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER},
 	 
 	 /* Has Dual Input */
@@ -442,9 +444,13 @@ uint16_t GainFunction(uint8_t channel, uint16_t signalValue)
 {
 	if( GetGainType(channel) == NON_LINEAR_GAIN )
 	{
-		if( signalValue >= GetCrossover(channel) )
+		/* Signal > Crossover */
+		uint16_t crossover = GetCrossover(channel);
+		int16_t signalOffset = signalValue - crossover;
+		if( signalOffset )
 		{
-			return ApplyGain(signalValue, GetSlope2Gain(channel));	
+			return ApplyGain(signalOffset , GetSlope2Gain(channel)) +
+					 ApplyGain(crossover, GetChannelGain(channel));	
 		}	
 	}
 

@@ -224,7 +224,7 @@ interrupt (PORT1_VECTOR)   port1_int(void)
       static uint8_t LCD_BL_Mode = LCD_BL_TIMED;
       /* Reset Interrupt on UI */
       IntResult = UI_KP_GetPress();      
-      
+
       if( IntResult != KP_INVALID)
       {
 			UI_LCD_BL_On();
