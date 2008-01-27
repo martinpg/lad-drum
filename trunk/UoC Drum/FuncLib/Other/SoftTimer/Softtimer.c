@@ -135,7 +135,7 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
          ResetVUValues();
       }         
       
-      /* Digital VU Meter */
+      /* Digital & Metronome VU Meter  */
 		if(SoftTimerInterrupt(SoftTimer2[SC_DigitalVUUpdate]))
 		{
 			SoftTimerReset(SoftTimer2[SC_DigitalVUUpdate]); 
@@ -144,11 +144,13 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
          uint16_t i;
          uint8_t  VURows = GetVURows();
 			   			           
-         for( i = 0 ; i < DIGITAL_INPUTS; i++ )
+         for( i = 0 ; i < DIGITAL_INPUTS+METRONOME_INPUTS; i++ )
          {
-				if( GetChannelStatus(i + ANALOGUE_INPUTS) )
+            uint8_t ActualChannel = i + ANALOGUE_INPUTS;
+            
+				if( GetChannelStatus(ActualChannel) )
 				{	
-					if( GetDigitalState(i) == GetActiveState(i) )
+					if( (RetriggerPeriod[ActualChannel].timerEnable == 1) )
 					{
 						VUSetLevel(i, VUNormaliseMIDI(GetDigitalVelocity(i), VURows), VURows); 
 					}
