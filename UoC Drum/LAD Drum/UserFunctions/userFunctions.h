@@ -69,6 +69,6 @@ void AdjustCrosstalk(void* data);
 
 /* VU Meter */
 void VUMeterSetup(void* data);
-void DigitalVUMeterSetup(void* data);
+//void DigitalVUMeterSetup(void* data);
 
 #endif

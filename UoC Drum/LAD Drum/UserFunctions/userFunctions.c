@@ -1268,6 +1268,7 @@ void VUMeterSetup(void* data)
 
 	uint8_t* input = data;
 	static uint8_t firstEnter = 1;
+   uint8_t VUMeterIndex = GetState() - ST_VUMETER;
 
 	if( firstEnter == 1)
 	{
@@ -1285,8 +1286,16 @@ void VUMeterSetup(void* data)
 		
 		
          case KP_BACK:
-				SoftTimerStop(SoftTimer2[SC_VUDecay]);				
-				SoftTimerStop(SoftTimer2[SC_VUMeterUpdate]);
+				SoftTimerStop(SoftTimer2[SC_VUDecay]);	
+            
+            if( VUMeterIndex == 0 )
+            {
+				  SoftTimerStop(SoftTimer2[SC_VUMeterUpdate]);
+            }
+            else
+            {
+              SoftTimerStop(SoftTimer2[SC_DigitalVUUpdate]);   
+            }
 				//SoftTimerStart(SoftTimer1[SC_MIDIOutput]);				
 				MenuSetInput(KP_BACK);
             stateMachine(currentState);
@@ -1311,10 +1320,21 @@ void VUMeterSetup(void* data)
 	{
 		VUSetPosition(1,0);
 	}
-	SoftTimerStart(SoftTimer2[SC_VUMeterUpdate]);
+
+   /* Start the correct timer */
+   if( VUMeterIndex == 0 )
+   {
+	  SoftTimerStart(SoftTimer2[SC_VUMeterUpdate]);
+   }
+   else
+   {
+     SoftTimerStart(SoftTimer2[SC_DigitalVUUpdate]);   
+   }
+
 	SoftTimerStart(SoftTimer2[SC_VUDecay]);
 }
 
+/*
 void DigitalVUMeterSetup(void* data)
 {
 
@@ -1323,7 +1343,6 @@ void DigitalVUMeterSetup(void* data)
 
 	if( firstEnter == 1)
 	{
-		/* Load VU Meter */
 		UI_LCD_LoadDefaultChars();
 	}
 
@@ -1339,21 +1358,21 @@ void DigitalVUMeterSetup(void* data)
          case KP_BACK:
 				SoftTimerStop(SoftTimer2[SC_VUDecay]);				
 				SoftTimerStop(SoftTimer2[SC_DigitalVUUpdate]);
-				//SoftTimerStart(SoftTimer1[SC_MIDIOutput]);				
+			
 				MenuSetInput(KP_BACK);
             stateMachine(currentState);
             MenuSetInput(0);
             firstEnter = 1;
             executeState(currentState);
-            /* Reset the VU Height */
+
             VUSetRows(1);            
          return;
 	}
 	firstEnter = 0;
 		
-	/* Start the VU Meter */
+	
 	MenuReset();
-	MenuPrint_P(PSTR("12345678"));
+	MenuPrint_P(PSTR("123456789ABCDEFG"));
 
 	if( GetVURows() == MAX_ROWS )
 	{
@@ -1366,7 +1385,7 @@ void DigitalVUMeterSetup(void* data)
 	SoftTimerStart(SoftTimer2[SC_DigitalVUUpdate]);
 	SoftTimerStart(SoftTimer2[SC_VUDecay]);	
 	
-}
+}*/
 
 
 /* Amplifer Input Select */
