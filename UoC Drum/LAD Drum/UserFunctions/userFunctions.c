@@ -618,10 +618,6 @@ void SetThreshold(void* data)
             stateMachine(currentState);
             MenuSetInput(0);
             firstEnter = 1;
-            
-				/* Load VU Meter */
-				UI_LCD_LoadDefaultChars();
-            
             executeState(currentState);
 
          return;
@@ -644,19 +640,6 @@ void SetThreshold(void* data)
 }
 
 
-void ThresholdBar(void)
-{
-   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
-   ADC12_SetupAddress(0, INCH_A3);
-   uint16_t PotValue = (ADC12_Sample() >> THRESHOLD_LEVELS);
-   ADC12_SetupAddress(0, INCH_A0); 
-   SoftTimerStart(SoftTimer1[SC_MIDIOutput]);	
-	
-	UI_LCD_Pos(1, 10);         
-   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);	
-}
-
-
 
 
 void SetRetrigger(void* data)
@@ -665,17 +648,22 @@ void SetRetrigger(void* data)
    uint8_t outputString[5];
    uint8_t SelectedChannel = GetState() - ST_RETRIGGER_1;
    
+   static uint8_t adjustStyle = DIGITAL_ADJUST;
 	static uint8_t firstEnter = 1;
 	
    input = data;
+
+	if( firstEnter == 1)
+	{
+      LCD_Load_ProgressBar();
+	}	
 
 
 	switch( *input )
 	{
          /* Increase and decrease retrigger level */
-
 	      case KP_A:
-				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) + 100 ));  
+				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) + 10 ));  
 	      break;  	           
          
          case KP_B:
@@ -687,10 +675,26 @@ void SetRetrigger(void* data)
          break;
 	
 	      case KP_D:
-				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) - 100 ));  
+				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) - 10 ));  
 	      break;  	      
-			       
+			
+			
+			/* Toggle retrigger adjustment style */
+			case KP_HASH:
+				adjustStyle ^= 1;
+				if( adjustStyle == ANALOGUE_ADJUST )
+				{
+					SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
+				}
+				else
+				{
+					SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
+				}
+			break;
+			
          case KP_BACK:
+				SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
+				adjustStyle = DIGITAL_ADJUST;
 				//SoftTimerStop(SC_AutoMenuUpdate);
          	MenuSetInput(KP_BACK);
             stateMachine(currentState);
@@ -702,73 +706,35 @@ void SetRetrigger(void* data)
 		
 	firstEnter = 0;
 
+	if( adjustStyle == ANALOGUE_ADJUST )
+	{
+		uint16_t PotValue = SensorPotValue();
+		SetChannelReTrig(SelectedChannel, PotValue >> 4);	
+	}
+
 	/*SetChannelThresh(SelectedChannel, GetChannelThresh(SelectedChannel) - lastPotValue + PotValue - MIN_THRESHOLD );
 	lastPotValue = PotValue;*/   
-	uint8toa(GetChannelReTrig(SelectedChannel), outputString);
+
+	MenuPrint_P(PSTR("Use # to change adj."));
+	MenuNewLine();	
+	
 	MenuPrint_P(PSTR("Retrigger Level: "));
-	MenuNewLine();
+	MenuNewLine();	
+	uint8toa(GetChannelReTrig(SelectedChannel), outputString);
+	
 	MenuPrint(outputString);
-	MenuPrint_P(PSTR("0 ms"));	    
+	MenuPrint_P(PSTR("0 ms "));	
+   
+	UI_LCD_Pos(2, 9);
+	 
+   lcdProgressBar(GetChannelReTrig(SelectedChannel), MAX_RETRIGGER, 11);   	
+	    
 	MenuNewLine(); 
+
+	MenuPrint_P(PSTR("Default Retrig: 10ms"));	
 	
    UpdateChannelRetriggers();
    	
-}
-
-
-
-void SetRetriggerAnalogue(void* data)
-{
-	uint8_t* input;
-   uint8_t outputString[5];
-   uint8_t SelectedChannel = GetState() - ST_RETRIGGER_1;
-     
-	static uint8_t firstEnter = 1;
-	
-   input = data;
-
-	uint16_t PotValue = SensorPotValue();
-	SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
-	
-	if( firstEnter == 1)
-	{
-      LCD_Load_ProgressBar();
-	}	
-	
-	switch( *input )
-	{     
-         case KP_BACK:
-            SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
-         	MenuSetInput(KP_BACK);
-            stateMachine(currentState);
-            MenuSetInput(0);
-            firstEnter = 1;
-            UI_LCD_LoadDefaultChars();
-            executeState(currentState);     
-            
-            
-         return;
-	}
-		
-	firstEnter = 0;	
-
-   /* Use the settings pot to adjust the retrigger period */
-	SetChannelReTrig(SelectedChannel, PotValue >> 4);
-
-	uint8toa(GetChannelReTrig(SelectedChannel), outputString);
-	MenuPrint_P(PSTR("Retrigger Level: "));
-	MenuNewLine(); 
-	MenuPrint(outputString);    
-	MenuPrint_P(PSTR("0 ms"));	
-   
-	UI_LCD_Pos(1, 9);         
-   lcdProgressBar(GetChannelReTrig(SelectedChannel), MAX_RETRIGGER, 11);   
-	MenuNewLine(); 
-	
-	MenuPrint_P(PSTR("Default: 10ms"));	
-	
-   UpdateChannelRetriggers();	
-	
 }
 
 // progress bar defines
@@ -1189,7 +1155,7 @@ void DigitalChannelSettings(void* data)
 		
 	/* Indicate the channel selected */
 	
-	if( SelectedDigitalChannel > DIGITAL_INPUTS )
+	if( SelectedDigitalChannel >= DIGITAL_INPUTS )
 	{
    	MenuPrint_P(PSTR("Metronome Ch "));
    	uint8toa(SelectedDigitalChannel - 7, outputString);
@@ -1303,6 +1269,12 @@ void VUMeterSetup(void* data)
 	uint8_t* input = data;
 	static uint8_t firstEnter = 1;
 
+	if( firstEnter == 1)
+	{
+		/* Load VU Meter */
+		UI_LCD_LoadDefaultChars();
+	}
+
 	switch( *input )
 	{         
 			case KP_A:
@@ -1348,6 +1320,12 @@ void DigitalVUMeterSetup(void* data)
 
 	uint8_t* input = data;
 	static uint8_t firstEnter = 1;
+
+	if( firstEnter == 1)
+	{
+		/* Load VU Meter */
+		UI_LCD_LoadDefaultChars();
+	}
 
 	switch( *input )
 	{         

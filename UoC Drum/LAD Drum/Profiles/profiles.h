@@ -9,7 +9,7 @@
 
 #define FLASH_BLOCK_SIZE      (512)
 #define SEGMENTS_TO_USE       (4)
-#define FLASH_END             (0x10000)
+#define FLASH_END             (0xFE00)
 
 #define PROFILE_FLASH_START (uint16_t)(FLASH_END - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE*2))
 #define PROFILE_IMAGE_START (uint16_t)(FLASH_END - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
