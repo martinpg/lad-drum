@@ -18,7 +18,7 @@
 
 
 #define DEFAULT_BAUD_RATE	BAUD_31250
-#define MAX_MIDI_CHANNEL (0x10)
+#define MAX_MIDI_CHANNEL (0x0F)
 
 
 extern const char MIDI_NOTES[];

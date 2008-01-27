@@ -1696,7 +1696,7 @@ void ChangeChannelCode(void* data)
          case KP_B:
             if(--code < 0)
             {
-               code = MAX_MIDI_CHANNEL - 1;   
+               code = MAX_MIDI_CHANNEL;   
             }
          break;
            
@@ -1721,7 +1721,7 @@ void ChangeChannelCode(void* data)
    MIDI_SetChannelCode(code);
    
    MenuPrint_P( PSTR("eDrum MIDI Code: "));
-	uint8toa( code, outputString);
+	uint8toa( code + 1, outputString);
 	MenuPrint(outputString);		
 }
 
