@@ -150,7 +150,7 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
             
 				if( GetChannelStatus(ActualChannel) )
 				{	
-					if( (RetriggerPeriod[ActualChannel].timerEnable == 1) )
+					if( VUValues[i] )
 					{
 						VUSetLevel(i, VUNormaliseMIDI(GetDigitalVelocity(i), VURows), VURows); 
 					}

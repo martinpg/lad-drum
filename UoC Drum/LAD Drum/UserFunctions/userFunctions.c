@@ -90,9 +90,9 @@ void aboutScroll(uint8_t nameIndex)
 			UI_LCD_LoadCustomChar((uint8_t*)lightning[1], 1);
 			
 			MenuReset();
-			MenuPrint_P( PSTR("   University of"));
+			MenuPrint_P( PSTR("      FuzzyJohn"));
 			MenuNewLine();
-			MenuPrint_P(PSTR("Canterbury presents:") );
+			MenuPrint_P(PSTR("   Inc. presents:") );
 			MenuNewLine();	
 			MenuChar(0x00);
 			MenuPrint_P( PSTR(" L-A-D eDrum"));
