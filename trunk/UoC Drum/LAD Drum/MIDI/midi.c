@@ -87,7 +87,14 @@ void MIDI_DigitalOutput(void)
 	         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
 	         MIDI_Tx(GetChannelKey(i));
 	         MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
-				SoftTimerStart(RetriggerPeriod[i]);   
+				SoftTimerStart(RetriggerPeriod[i]);
+				
+				
+				if( SoftTimer2[SC_DigitalVUUpdate].timerEnable )
+	         {
+	         	VUValues[i-ANALOGUE_INPUTS] = GetDigitalVelocity(i - ANALOGUE_INPUTS);
+				}
+				   
 			}
       }
    }
@@ -108,6 +115,11 @@ void MIDI_MetronomeOutput(void)
 	      MIDI_Tx(GetChannelKey(i));
 	      MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
 			SoftTimerStart(RetriggerPeriod[i]);
+			
+			if( SoftTimer2[SC_DigitalVUUpdate].timerEnable )
+	      {
+	         VUValues[i-ANALOGUE_INPUTS] = GetDigitalVelocity(i - ANALOGUE_INPUTS);
+			}
       }
    }
 }
