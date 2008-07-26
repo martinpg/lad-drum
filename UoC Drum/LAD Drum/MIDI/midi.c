@@ -15,14 +15,7 @@ const char MIDI_BAUD[][11] = {"31.25k",
 									  "1.0M USB"};
 
 
-MidiSettings_t MIDISettings = {	
-	/* 15ms output rate */
-	15,
-	DEFAULT_BAUD_RATE,
-	/* MIDI Channel Instrument # */
-	(0x09 | MIDI_NOTE_ON)
-};
-
+MidiSettings_t* MIDISettings;
 
 void MIDI_Output(void)
 {
@@ -40,8 +33,8 @@ void MIDI_Output(void)
 			
 			if( conditionedSignal )
 			{
-	         /* Send a NOTE ON | Channel */
-	         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
+	         /* Send a NOTE ON (default) | Channel */
+	         MIDI_Tx( (GetChannelCommand(i) << 4) | MIDISettings->MIDI_ChannelCode);
 	         
 	         /* Output the correct Closed or Open Key */
 	         if( GetDualMode(i) && 
@@ -83,8 +76,8 @@ void MIDI_DigitalOutput(void)
       {
    		if( SignalPeak[i] )
    		{	
-	         /* Send a NOTE ON | Channel */
-	         MIDI_Tx(MIDISettings.MIDI_ChannelCode);
+	         /* Send a NOTE ON (default) | Channel */
+	         MIDI_Tx((GetChannelCommand(i) << 4) | MIDISettings->MIDI_ChannelCode);
 	         MIDI_Tx(GetChannelKey(i));
 	         MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
 				SoftTimerStart(RetriggerPeriod[i]);
@@ -110,8 +103,8 @@ void MIDI_MetronomeOutput(void)
       if( GetChannelStatus(i) && 
           (RetriggerPeriod[i].timerEnable == 0))
       {
-	      /* Send a NOTE ON | Channel */
-	      MIDI_Tx(MIDISettings.MIDI_ChannelCode);
+	      /* Send a NOTE ON (default) | Channel */
+	      MIDI_Tx((GetChannelCommand(i) << 4) | MIDISettings->MIDI_ChannelCode);
 	      MIDI_Tx(GetChannelKey(i));
 	      MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
 			SoftTimerStart(RetriggerPeriod[i]);
@@ -126,38 +119,38 @@ void MIDI_MetronomeOutput(void)
 
 uint16_t MIDI_GetRate(void)
 {
-   return MIDISettings.MIDI_OutputRate;
+   return MIDISettings->MIDI_OutputRate;
 }
 
 void MIDI_SetRate(uint16_t newRate)
 {
-	MIDISettings.MIDI_OutputRate = newRate;
+	MIDISettings->MIDI_OutputRate = newRate;
    SoftTimer1[SC_MIDIOutput].timeCompare = newRate;
 }
 
 void MIDI_SetBaud(uint16_t newBaud)
 {
 
-   MIDISettings.MIDI_BaudRate = newBaud; 
+   MIDISettings->MIDI_BaudRate = newBaud; 
    UART_SetBaudRate( newBaud >> 8, newBaud & 0xFF );
 }
 
 
 uint16_t MIDI_GetBaud(void)
 {
-   return MIDISettings.MIDI_BaudRate;
+   return MIDISettings->MIDI_BaudRate;
 }
 
 uint8_t MIDI_GetChannelCode(void)
 {
-	return (MIDISettings.MIDI_ChannelCode & 0x0F);
+	return (MIDISettings->MIDI_ChannelCode);
 }
 
 void MIDI_SetChannelCode(uint8_t newCode)
 {
-   if( newCode < 0x0F )
+   if( newCode <= 0x0F )
    {
-		MIDISettings.MIDI_ChannelCode = MIDI_NOTE_ON | newCode;
+		MIDISettings->MIDI_ChannelCode = newCode;
    }
 }
 
