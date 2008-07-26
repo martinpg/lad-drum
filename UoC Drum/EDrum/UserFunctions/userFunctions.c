@@ -75,14 +75,7 @@ void UF_MenuPrint(char* string)
 
 void UF_MenuUpOneLevel(Menu_t* menu)
 {
-   
    Menu_UpOneLevel(menu);
-//   UF_MenuReset();
-// 	UF_MenuSetInput(KP_BACK);
-//   UF_stateMachine(menu->currentState);
-//   UF_MenuSetInput(0);
-//   menu->firstEnter = 1;
-//   UF_executeState( menu->currentState);
 }
 
 /* End of wrapper functions */
