@@ -9,45 +9,105 @@
 #include "Menu/Menu.h"
 #include "UI_KP/UI_KP.h"
 #include "UI_LCD/UI_LCD.h"
+#include "UART/uart.h"
 #include "UserFunctions/userFunctions.h"
 #include "mmculib/uint16toa.h"
 #include "mmculib/uint8toa.h"
 #include "MIDI/midi.h"
+#include "MIDI/SysEx/SysEx.h"
 #include "Sample/sample.h"
 #include "Sensor/sensor.h"
 #include "ADC/adc12.h"
 #include "Delay/delay.h"
 #include "Profiles/profiles.h"
 #include "VUMeter/vumeter.h"
+#include "MenuSettings.h"
+#include "LCDSettings.h"
 
 static uint8_t SelectedProfile = DEFAULT_PROFILE;
-
+static uint8_t SelectedChannel = 0;
 
 void reset(void* data)
 {
 	_reset_vector__();
 }
 
+/* Menu wrapper functions */
+void UF_MenuSetInput(uint8_t NewInput)
+{
+   MenuSetInput(&primaryMenu, NewInput);
+}
+
+void UF_stateMachine(uint8_t CurrentState)
+{
+   stateMachine(&primaryMenu, CurrentState);
+}
+
+void UF_executeState(uint8_t state)
+{
+   executeState(&primaryMenu, state);
+}
+
+void UF_MenuReset(void)
+{
+   primaryMenu.MenuReset();
+}
+
+void UF_MenuNewLine(void)
+{
+   primaryMenu.MenuNewLine();
+}
+
+void UF_MenuChar(uint8_t data)
+{
+   primaryMenu.MenuChar(data);
+}
+
+void UF_MenuPrint_P(const char* string)
+{
+   primaryMenu.MenuPrint_P(string);  
+}   
+
+void UF_MenuPrint(char* string)
+{
+   primaryMenu.MenuPrint(string);    
+}
+
+void UF_MenuUpOneLevel(Menu_t* menu)
+{
+   
+   Menu_UpOneLevel(menu);
+//   UF_MenuReset();
+// 	UF_MenuSetInput(KP_BACK);
+//   UF_stateMachine(menu->currentState);
+//   UF_MenuSetInput(0);
+//   menu->firstEnter = 1;
+//   UF_executeState( menu->currentState);
+}
+
+/* End of wrapper functions */
+   
+
 void about(void* data)
 {
 	uint8_t* input = data;
 
-	if( firstEnter != 1 )
+	if( primaryMenu.firstEnter != 1 )
 	{
 		switch( *input )
 		{	
 	      case KP_BACK:      
 			UI_LCD_LoadDefaultChars();	
-	   	MenuSetInput(KP_BACK);
-	      stateMachine(currentState);
-	      MenuSetInput(0);
+	   	UF_MenuSetInput(KP_BACK);
+	      UF_stateMachine(primaryMenu.currentState);
+	      UF_MenuSetInput(0);
 			SoftTimerStop(SoftTimer2[SC_AboutUpdate]);
 			ThanksIndex(MAIN_SCREEN);       
 	      return;	
 		}	
 	}
 	
-	firstEnter = 0;
+	primaryMenu.firstEnter = 0;
 	SoftTimerStart(SoftTimer2[SC_AboutUpdate]);
 	aboutScroll(MAIN_SCREEN);	
 }
@@ -86,133 +146,255 @@ void aboutScroll(uint8_t nameIndex)
 	{
 		case MAIN_SCREEN:
 
-			UI_LCD_LoadCustomChar((uint8_t*)lightning[0], 0);
-			UI_LCD_LoadCustomChar((uint8_t*)lightning[1], 1);
+			UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)lightning[0], 0);
+			UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)lightning[1], 1);
 			
-			MenuReset();
-			MenuPrint_P( PSTR("      FuzzyJohn"));
-			MenuNewLine();
-			MenuPrint_P(PSTR("   Inc. presents:") );
-			MenuNewLine();	
-			MenuChar(0x00);
-			MenuPrint_P( PSTR(" L-A-D eDrum"));
-			MenuChar(0x01);
-			MenuPrint_P( PSTR(" 2008 "));	
-		   MenuNewLine();
-			MenuPrint_P(PSTR("Version:") );
-			MenuPrint_P(VersionId);
-			MenuNewLine();			   
+			UF_MenuReset();
+			UF_MenuPrint_P( PSTR("     FuzzyJohn"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P(PSTR("   Inc. presents:") );
+			UF_MenuNewLine();	
+			UF_MenuChar(0x00);
+			UF_MenuPrint_P( PSTR(" L-A-D eDrum"));
+			UF_MenuChar(0x01);
+			UF_MenuPrint_P( PSTR(" 2008"));	
+		   UF_MenuNewLine();
+			UF_MenuPrint_P(PSTR("Version:") );
+			UF_MenuPrint_P(VersionId);		   
 		break;
 		
 		case CREATORS_SCREEN:
-			MenuReset();		
-			MenuPrint_P( PSTR("Designer: Adrian Gin"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("Supervised by:"));
-			MenuNewLine();						
-			MenuPrint_P( PSTR("Dr Larry Brackney"));
-			MenuNewLine();				
-			MenuPrint_P( PSTR("Jullada Homtientong"));
-			MenuNewLine();										
+			UF_MenuReset();		
+			UF_MenuPrint_P( PSTR("Designer: Adrian Gin"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("Supervised by:"));
+			UF_MenuNewLine();						
+			UF_MenuPrint_P( PSTR("Dr Larry Brackney"));
+			UF_MenuNewLine();				
+			UF_MenuPrint_P( PSTR("Jullada Homtientong"));								
 		break;
 		
 		case THANKS_SCREEN:
-			MenuReset();		
-			MenuPrint_P( PSTR("Special Thanks to:"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("Rowan 'Robot' Sinton"));
-			MenuNewLine();						
-			MenuPrint_P( PSTR("Shreejan Pandey"));
-			MenuNewLine();				
-			MenuPrint_P( PSTR("Tic-Sieu How"));
-			MenuNewLine();										
+			UF_MenuReset();		
+			UF_MenuPrint_P( PSTR("Special Thanks to:"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("Rowan 'Robot' Sinton"));
+			UF_MenuNewLine();						
+			UF_MenuPrint_P( PSTR("Shreejan Pandey"));
+			UF_MenuNewLine();				
+			UF_MenuPrint_P( PSTR("Tic-Sieu How"));									
 		break;
 		
 		case THANKS2_SCREEN:
-			MenuReset();	
-			MenuPrint_P( PSTR("Ma & Ba"));
-			MenuNewLine();					
-			MenuPrint_P( PSTR("Bus,Ry,Tim,DJ Doboy"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("Bob Sinclair"));
-			MenuNewLine();						
-			MenuPrint_P( PSTR("Elec. Eng Department"));
-			MenuNewLine();										
+			UF_MenuReset();	
+			UF_MenuPrint_P( PSTR("Ma & Ba"));
+			UF_MenuNewLine();					
+			UF_MenuPrint_P( PSTR("Bus,Ry,Tim,DJ Doboy"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("Bob Sinclair"));
+			UF_MenuNewLine();						
+			UF_MenuPrint_P( PSTR("Elec. Eng Department"));									
 		break;			
 		
 		case THANKS3_SCREEN:
-			MenuReset();		
-			MenuPrint_P( PSTR("Phil Hof (DSL)"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("Malcolm Gordon"));
-			MenuNewLine();							
-			MenuPrint_P( PSTR("CAE2 Master"));
-			MenuNewLine();						
-			MenuPrint_P( PSTR("PCB Maker & Dudley B"));
-			MenuNewLine();					
+			UF_MenuReset();		
+			UF_MenuPrint_P( PSTR("Phil Hof (DSL)"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("Malcolm Gordon"));
+			UF_MenuNewLine();							
+			UF_MenuPrint_P( PSTR("CAE2 Master"));
+			UF_MenuNewLine();						
+			UF_MenuPrint_P( PSTR("PCB Maker & Dudley B"));				
 		break;	
 		
 		case THANKS4_SCREEN:
-			MenuReset();		
-			MenuPrint_P( PSTR("Slinkee Minx"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("Special D"));
-			MenuNewLine();							
-			MenuPrint_P( PSTR("Cosmic Gate & JJ"));
-			MenuNewLine();						
-			MenuPrint_P( PSTR("Siria"));
-			MenuNewLine();					
+			UF_MenuReset();		
+			UF_MenuPrint_P( PSTR("Slinkee Minx"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("Special D"));
+			UF_MenuNewLine();							
+			UF_MenuPrint_P( PSTR("Cosmic Gate & JJ"));
+			UF_MenuNewLine();						
+			UF_MenuPrint_P( PSTR("Siria"));				
 		break;	
 		
 		case INSPIRATION_SCREEN:
-			MenuReset();		
-			MenuPrint_P( PSTR("Inspiration from:"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("eDrum.info"));
-			MenuNewLine();							
-			MenuPrint_P( PSTR("Megadrum, Toontrack"));
-			MenuNewLine();						
-			MenuPrint_P( PSTR("Smartie LCD"));
-			MenuNewLine();					
+			UF_MenuReset();		
+			UF_MenuPrint_P( PSTR("Inspiration from:"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("eDrum.info"));
+			UF_MenuNewLine();							
+			UF_MenuPrint_P( PSTR("Megadrum, Toontrack"));
+			UF_MenuNewLine();						
+			UF_MenuPrint_P( PSTR("Smartie LCD"));			
 		break;
 		
 		case INSPIRATION2_SCREEN:
-			MenuReset();		
-			MenuPrint_P( PSTR("Winamp Plugin"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("for the VU Meters"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("Dr Hamish Laird for"));
-			MenuNewLine();	
-			MenuPrint_P( PSTR("ENEL427 Supervision"));
-			MenuNewLine();																	
+			UF_MenuReset();		
+			UF_MenuPrint_P( PSTR("Winamp Plugin"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("for the VU Meters"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("Dr Hamish Laird for"));
+			UF_MenuNewLine();	
+			UF_MenuPrint_P( PSTR("ENEL427 Supervision"));																
 		break;
 		
 		case INFORMATION_SCREEN:
-			MenuReset();		
-			MenuPrint_P( PSTR("Built using:"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("Protel DXP"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("Dev-C++ 4.9.9.2"));
-			MenuNewLine();	
-			MenuPrint_P( PSTR("MSPGCC and MSPFET"));
-			MenuNewLine();																	
+			UF_MenuReset();		
+			UF_MenuPrint_P( PSTR("Built using:"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("Protel DXP"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("Dev-C++ 4.9.9.2"));
+			UF_MenuNewLine();	
+			UF_MenuPrint_P( PSTR("MSPGCC and MSPFET"));																
 		break;	
 		
 		case INFORMATION2_SCREEN:
-			MenuReset();		
-			MenuPrint_P( PSTR("Recommended Tools:"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("MIDI-OX"));
-			MenuNewLine();
-			MenuPrint_P( PSTR("FL Studio 7"));
-			MenuNewLine();	
-			MenuPrint_P( PSTR("RealTerm for Debug"));
-			MenuNewLine();																	
+			UF_MenuReset();		
+			UF_MenuPrint_P( PSTR("Recommended Tools:"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("MIDI-OX"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P( PSTR("FL Studio 7"));
+			UF_MenuNewLine();	
+			UF_MenuPrint_P( PSTR("RealTerm for Debug"));																	
 		break;												
 					
 	}
+}
+
+
+void SysExDisplay(void* data)
+{
+	uint8_t* input = (uint8_t*)data;
+	uint8_t outputString[15];
+		
+	if( primaryMenu.firstEnter != 1 )
+   {     
+		UF_stateMachine( primaryMenu.currentState );
+      switch( *input )
+      {
+			case KB_BACK:
+			case KP_BACK:
+				primaryMenu.firstEnter = 1;
+				return;
+			break;
+				
+			case KB_ENTER:
+			case KP_ENTER:
+			   UF_executeState( primaryMenu.currentState);
+			   
+				return;	
+			break;
+
+			default:
+			break;
+		}	
+	}
+	
+	UF_MenuReset();
+	primaryMenu.firstEnter = 0;
+	
+	/* Since each byte is sent as 2x 7 bit SysEx 'bytes' */
+	uint16toa( sizeof(Profile_t) * 2, outputString, 0);
+	
+   UF_MenuPrint_P( PSTR("SysEx Size:") );
+
+   UF_MenuPrint(outputString);
+   UF_MenuPrint_P( PSTR(" bytes") ); 
+   
+   UF_MenuNewLine(); 
+}
+
+void DumpSysEx(void* data)
+{
+   uint8_t* input = 0;
+   uint8_t  outputString[3];
+	uint16_t i;
+	uint8_t j;
+	   
+   input = data;
+
+	UF_MenuPrint_P( PSTR("Sending SysEx Data") );	
+   UF_MenuNewLine();		
+	UF_MenuPrint_P( PSTR("Sending") );	
+
+	for( i = 0; i < 4; i++ )
+	{
+		UF_MenuPrint_P( PSTR(".") );		
+		_delay_ms(100);
+	}
+	
+   UF_MenuNewLine();		
+
+   SysexSend(&CurrentProfile);
+   
+	UF_MenuPrint_P( PSTR("Profile sucessfully"));			
+   UF_MenuNewLine();		
+	UF_MenuPrint_P( PSTR("uploaded!") );
+
+	for( i = 0; i < 4; i++ )
+	{	
+		_delay_ms(200);
+	}	
+	
+   UF_MenuUpOneLevel(&primaryMenu);  
+}
+
+
+
+void GetSysEx(void* data)
+{
+   uint8_t* input = 0;
+	uint16_t i;
+	uint8_t j;
+	   
+   input = data;
+
+	UF_MenuPrint_P( PSTR("Ready for SysEx Data") );	
+   UF_MenuNewLine();			
+
+	for( i = 0; i < 4; i++ )
+	{
+		UF_MenuPrint_P( PSTR(".") );		
+		_delay_ms(100);
+	}
+   UF_MenuNewLine();	
+	IsReceivingSysExData(RECEIVING_SYSEX_DATA);
+	
+   
+	if( primaryMenu.firstEnter != 1 )
+   {     
+      switch( *input )
+      {
+			case KB_BACK:
+			case KP_BACK:
+				primaryMenu.firstEnter = 1;
+				SysExFlush();
+            IsReceivingSysExData(!RECEIVING_SYSEX_DATA);
+            UF_MenuPrint_P( PSTR("User cancelled!"));	
+         	for( i = 0; i < 4; i++ )
+         	{	
+         		_delay_ms(200);
+         	}	
+         	
+		   	UF_MenuUpOneLevel(&primaryMenu);
+         	
+				return;
+			break;
+
+			default:
+			break;
+		}	
+	}
+   ActiveProcess = RECEIVE_SYSEX;
+   
+   /* Stop the Auxuliary Timer */
+	TBCCTL2 &= ~(CCIE);
+	TBCCTL0 &= ~(CCIE);
+	primaryMenu.firstEnter = 0;
 }
 
 
@@ -221,7 +403,7 @@ void PlayMode(void* data)
 {
 	uint8_t* input = data;
 	
-	if( firstEnter != 1 )
+	if( primaryMenu.firstEnter != 1 )
 	{
 		switch( *input )
 		{	
@@ -231,23 +413,23 @@ void PlayMode(void* data)
          break;
          
 	      default:      
-	   	MenuSetInput(KP_BACK);
-	      stateMachine(currentState);
-	      MenuSetInput(0);
+	   	UF_MenuSetInput(KP_BACK);
+	      UF_stateMachine(primaryMenu.currentState);
+	      UF_MenuSetInput(0);
 	      /* Start the Aux Timer again */
 			TBCCTL2 |= (CCIE);    
 	      return;	
 		}	
 	}
 		
-	firstEnter = 0;	
-	MenuReset();		
-	MenuPrint_P( PSTR("Optimised for Play!"));
-	MenuNewLine();	
-	MenuPrint_P( PSTR("Press any key to"));
-	MenuNewLine();
-	MenuPrint_P( PSTR("return to Main Menu!"));
-	MenuNewLine();			
+	primaryMenu.firstEnter = 0;	
+	UF_MenuReset();		
+	UF_MenuPrint_P( PSTR("Optimised for Play!"));
+	UF_MenuNewLine();	
+	UF_MenuPrint_P( PSTR("Press any key to"));
+	UF_MenuNewLine();
+	UF_MenuPrint_P( PSTR("return to Main Menu!"));
+	UF_MenuNewLine();			
 	/* Stop the Auxuliary Timer */
 	TBCCTL2 &= ~(CCIE);
 }
@@ -258,23 +440,23 @@ void PlayMode(void* data)
 void SetMIDIRate(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
-	//static uint8_t firstEnter = 1;
+	//static uint8_t primaryMenu.firstEnter = 1;
 	
 		
-	if( firstEnter != 1 )
+	if( primaryMenu.firstEnter != 1 )
    {     
-		stateMachine( currentState );
+		UF_stateMachine( primaryMenu.currentState );
       switch( *input )
       {
 			case KB_BACK:
 			case KP_BACK:
-				firstEnter = 1;
+				primaryMenu.firstEnter = 1;
 				return;
 			break;
 				
 			case KB_ENTER:
 			case KP_ENTER:
-			   executeState(currentState);
+			   UF_executeState( primaryMenu.currentState);
 				return;	
 			break;
 
@@ -283,10 +465,10 @@ void SetMIDIRate(void* data)
 		}	
 	}
 	
-	MenuReset();
-	firstEnter = 0;
+	UF_MenuReset();
+	primaryMenu.firstEnter = 0;
    PrintMIDIRate();
-   MenuNewLine(); 
+   UF_MenuNewLine(); 
 }
 
 
@@ -295,11 +477,11 @@ void PrintMIDIRate(void)
 	uint8_t outputString[15];
 	uint8_t selectedBaud = 0;
 	
-	MenuPrint_P( PSTR("MIDI Output Rate: ") );
-   MenuNewLine(); 	
+	UF_MenuPrint_P( PSTR("MIDI Output Rate: ") );
+   UF_MenuNewLine(); 	
 	uint16toa( (MIDI_GetRate()), outputString, 0);
-	MenuPrint(outputString);
-   MenuPrint_P( PSTR(" ms @ "));
+	UF_MenuPrint(outputString);
+   UF_MenuPrint_P( PSTR(" ms @ "));
    
    switch(MIDI_GetBaud())
    {
@@ -323,7 +505,7 @@ void PrintMIDIRate(void)
 		break;
 	}
       
-  	MenuPrint_P( MIDI_BAUD[selectedBaud] );	
+  	UF_MenuPrint_P( MIDI_BAUD[selectedBaud] );	
 }
 
 void EditMIDIRate(void* data)
@@ -333,12 +515,12 @@ void EditMIDIRate(void* data)
 	uint8_t selectedBaud = 0;
 	uint8_t outputString[10];
 	
-	if( firstEnter == 1)
+	if( primaryMenu.firstEnter == 1)
 	{
 		Delay = MIDI_GetRate();
 	}
 	
-   if( firstEnter == 0 )
+   if( primaryMenu.firstEnter == 0 )
    {     
       switch( *input )
       {
@@ -388,11 +570,7 @@ void EditMIDIRate(void* data)
          case KB_BACK:
          case KP_BACK:
 				/* Go back up one menu */   
-   			MenuSetInput(KB_BACK);
-  				stateMachine(currentState);
-  				MenuSetInput(0);
-  				firstEnter = 1;
-  				executeState(currentState);
+   			UF_MenuUpOneLevel(&primaryMenu);
   				return;
   				
          break;
@@ -402,18 +580,18 @@ void EditMIDIRate(void* data)
       }
    }
    
-   firstEnter = 0;
+   primaryMenu.firstEnter = 0;
    
-   MenuPrint_P( PSTR("Millisecond Delay:"));
-	MenuNewLine();
+   UF_MenuPrint_P( PSTR("Millisecond Delay:"));
+	UF_MenuNewLine();
 	
 	uint16toa( Delay, outputString, 0);
-	MenuPrint(outputString);
-	MenuPrint_P( PSTR(" milliseconds") );      
+	UF_MenuPrint(outputString);
+	UF_MenuPrint_P( PSTR(" milliseconds") );      
 	MIDI_SetRate( Delay );
 
-	MenuNewLine();
-   MenuPrint_P( PSTR("Baud Rate:"));
+	UF_MenuNewLine();
+   UF_MenuPrint_P( PSTR("Baud Rate:"));
    switch(MIDI_GetBaud())
    {
 		case BAUD_31250:
@@ -435,16 +613,8 @@ void EditMIDIRate(void* data)
 		break;
 	}
       
-  	MenuPrint_P( MIDI_BAUD[selectedBaud] );
+  	UF_MenuPrint_P( MIDI_BAUD[selectedBaud] );
 }
-
-
-
-
-
-
-
-
 
 
 
@@ -454,17 +624,21 @@ void EditMIDIRate(void* data)
 /** Function to setup each individual analogue channel */
 void ChannelSetup(void* data)
 {
-   uint8_t* input = 0;
+   uint8_t* input = data;
    uint8_t outputString[21];
-   uint8_t SelectedChannel = GetState() - ST_CHANNEL_1;
+   
+   SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 
-	input = data;
-
- 	if( firstEnter != 1 )
+ 	if( primaryMenu.firstEnter != 1 )
  	{
-		stateMachine( currentState ); 
+      UF_stateMachine( primaryMenu.currentState );
 	   switch( *input )
 	   {
+         case KP_UP:
+         case KP_DOWN:
+            MenuSetInput( &analogueMenu, *input );
+         break;
+         
 	      /* Up and down a Key */
 	      case KP_1:
 				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+1);
@@ -478,6 +652,10 @@ void ChannelSetup(void* data)
 	      case KP_STAR:
 				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+NOTE_COUNT);
 	      break;
+	      
+	      case KP_D:
+            SetChannelCommand(SelectedChannel, GetChannelCommand(SelectedChannel) + 1 );
+         break;
 	      
 	      /*
 	      case KP_7:
@@ -501,15 +679,18 @@ void ChannelSetup(void* data)
 	      
 			case KB_BACK:
 			case KP_BACK:
-				firstEnter = 1;
+            MenuSetInput( &analogueMenu, 0 );
+				primaryMenu.firstEnter = 1;
 				return;
 			break;
 				
 			case KB_ENTER:
 			case KP_ENTER:
-				MenuReset();						
-		   	executeState(currentState);
-				firstEnter = 1;
+				UF_MenuReset();
+				ActiveMenu = &analogueMenu;
+				MenuSetInput( &analogueMenu, *input );
+				executeState(&analogueMenu, analogueMenu.currentState);
+				primaryMenu.firstEnter = 1;
 
 				
 				return;	
@@ -520,56 +701,113 @@ void ChannelSetup(void* data)
 	         break;
 	   }
 	}
-   
-   firstEnter = 0;
-	MenuReset();
+	   
+   primaryMenu.firstEnter = 0;
+	UF_MenuReset();
 		
 	/* Indicate the channel selected */
-	MenuPrint_P(PSTR("Channel "));
+	UF_MenuPrint_P(PSTR("Channel "));
 	uint8toa(SelectedChannel + 1, outputString);	
-	MenuPrint(outputString);          
+	UF_MenuPrint(outputString);          
    
- 	MenuPrint_P(PSTR(": "));
+ 	UF_MenuPrint_P(PSTR(": "));
 	if( GetChannelStatus(SelectedChannel) == CHANNEL_ON )
 	{
-		MenuPrint_P( PSTR("On") );
+		UF_MenuPrint_P( PSTR("On") );
 	}
 	else
 	{
-		MenuPrint_P( PSTR("Off") );		
+		UF_MenuPrint_P( PSTR("Off") );		
 	}   
-   MenuNewLine();
+   UF_MenuNewLine();
    
 
-	MenuPrint_P(PSTR("Note: "));
-	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
-   MenuPrint(outputString);
-	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
+	UF_MenuPrint_P(PSTR("Note: "));
+	
+	if( GetChannelCommand(SelectedChannel) == MIDI_NOTE_ON )
 	{
-      MenuPrint_P( PSTR("0"));  
+   	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
+      UF_MenuPrint(outputString);
+   	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
+   	{
+         UF_MenuPrint_P( PSTR("0"));  
+      }
+      else
+      {  
+      	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+    		UF_MenuPrint(outputString); 	
+      }   
    }
    else
-   {  
-   	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
- 		MenuPrint(outputString); 	
-   }   
+   {
+      
+      uint8toa( GetChannelCommand(SelectedChannel), outputString);
+      UF_MenuPrint(outputString);
+      UF_MenuPrint_P( PSTR(" | ") );
+   	uint8toa( GetChannelKey(SelectedChannel), outputString);
+ 		UF_MenuPrint(outputString);         
+   }
    
-	MenuNewLine();	   
+	UF_MenuNewLine();	   
 	
 	/* Display the channel 'gain' */
 	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
 	{
-		MenuPrint_P( PSTR("Linear ") );
+		UF_MenuPrint_P( PSTR("Linear ") );
 	}
 	else
 	{
-		MenuPrint_P( PSTR("Non-Linear ") );		
+		UF_MenuPrint_P( PSTR("Non-Linear ") );		
 	}
-	MenuPrint_P(PSTR("Gain: "));
-	itoa(GetChannelGain(SelectedChannel), outputString, 10);
-	MenuPrint(outputString);
+	UF_MenuPrint_P(PSTR("Gain: "));
+	itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
+	UF_MenuPrint(outputString);
 	
-   MenuNewLine();   
+   UF_MenuNewLine();   
+   
+//	Don't hide sub children.
+   analogueMenu.updateOptions = 0;
+   SelectedSubMenu = &analogueMenu;
+   MenuUpdate(&analogueMenu, !RESET_MENU);
+}
+
+
+void HandleSubMenu(void* data)
+{
+   uint8_t* input = data;
+   
+   /* This is effectively the KP Back routine */
+   if( *input == KP_UPDATE )
+   {
+      /* Stop looping from occuring */
+      MenuSetInput(ActiveMenu, KP_INVALID);
+      ActiveMenu->firstEnter = 1;
+      
+      /* Show the parent options */
+      MenuSetInput(ActiveMenu->parentMenu, KP_UPDATE);   
+      MenuUpdate(ActiveMenu->parentMenu, RESET_MENU);
+
+      
+      ActiveMenu->updateOptions = HIDE_CHILDREN;
+      ActiveMenu->firstEnter = 0;
+      return;
+   }
+   
+   if( *input != KP_BACK && !SelectedSubMenu->firstEnter )
+   {
+      stateMachine(SelectedSubMenu, SelectedSubMenu->currentState);
+      switch( *input )
+      {
+         case KP_ENTER:
+            MenuUpdate(SelectedSubMenu, !RESET_MENU);
+            SelectedSubMenu->firstEnter = 1;
+            return;
+            //executeState(&analogueMenu, analogueMenu.currentState);
+         break;
+      }  
+   }
+   
+   SelectedSubMenu->firstEnter = 0;
 }
 
 
@@ -577,7 +815,6 @@ void SetThreshold(void* data)
 {
 	uint8_t* input;
    uint8_t outputString[21];
-   uint8_t SelectedChannel = GetState() - ST_THRESHOLD_1;
    
    static uint16_t lastPotValue = 0;
 	static uint8_t firstEnter = 1;
@@ -614,12 +851,8 @@ void SetThreshold(void* data)
 			       
          case KP_BACK:
 				SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
-         	MenuSetInput(KP_BACK);
-            stateMachine(currentState);
-            MenuSetInput(0);
+         	UF_MenuUpOneLevel(&analogueMenu); 
             firstEnter = 1;
-            executeState(currentState);
-
          return;
 	}
 		
@@ -629,13 +862,13 @@ void SetThreshold(void* data)
 	lastPotValue = PotValue;
 
 	uint8toa((GetChannelThresh(SelectedChannel) >> THRESHOLD_LEVELS), outputString);
-	MenuPrint_P(PSTR("Threshold Level: "));
-	MenuPrint(outputString);    
+	UF_MenuPrint_P(PSTR("Threshold Level: "));
+	UF_MenuPrint(outputString);    
 	
-	MenuNewLine(); 
-	MenuPrint_P(PSTR("Fine Tune:")); 
+	UF_MenuNewLine(); 
+	UF_MenuPrint_P(PSTR("Fine Tune:")); 
 	
-	UI_LCD_Pos(1, 10);         
+	UI_LCD_Pos(&PrimaryDisplay, 1, 10);         
    lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);	  
 }
 
@@ -646,7 +879,6 @@ void SetRetrigger(void* data)
 {
 	uint8_t* input;
    uint8_t outputString[5];
-   uint8_t SelectedChannel = GetState() - ST_RETRIGGER_1;
    
    static uint8_t adjustStyle = DIGITAL_ADJUST;
 	static uint8_t firstEnter = 1;
@@ -696,11 +928,15 @@ void SetRetrigger(void* data)
 				SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
 				adjustStyle = DIGITAL_ADJUST;
 				//SoftTimerStop(SC_AutoMenuUpdate);
-         	MenuSetInput(KP_BACK);
-            stateMachine(currentState);
-            MenuSetInput(0);
+				if( SelectedChannel >= ANALOGUE_INPUTS )
+				{ 
+         	   UF_MenuUpOneLevel(&digitalMenu); 
+            }
+            else
+            {
+               UF_MenuUpOneLevel(&analogueMenu); 
+            }
             firstEnter = 1;
-            executeState(currentState);
          return;
 	}
 		
@@ -715,23 +951,23 @@ void SetRetrigger(void* data)
 	/*SetChannelThresh(SelectedChannel, GetChannelThresh(SelectedChannel) - lastPotValue + PotValue - MIN_THRESHOLD );
 	lastPotValue = PotValue;*/   
 
-	MenuPrint_P(PSTR("Use # to change adj."));
-	MenuNewLine();	
+	UF_MenuPrint_P(PSTR("Use # to change adj."));
+	UF_MenuNewLine();	
 	
-	MenuPrint_P(PSTR("Retrigger Level: "));
-	MenuNewLine();	
+	UF_MenuPrint_P(PSTR("Retrigger Level: "));
+	UF_MenuNewLine();	
 	uint8toa(GetChannelReTrig(SelectedChannel), outputString);
 	
-	MenuPrint(outputString);
-	MenuPrint_P(PSTR("0 ms "));	
+	UF_MenuPrint(outputString);
+	UF_MenuPrint_P(PSTR("0 ms "));	
    
-	UI_LCD_Pos(2, 9);
+	UI_LCD_Pos(&PrimaryDisplay, 2, 9);
 	 
    lcdProgressBar(GetChannelReTrig(SelectedChannel), MAX_RETRIGGER, 11);   	
 	    
-	MenuNewLine(); 
+	UF_MenuNewLine(); 
 
-	MenuPrint_P(PSTR("Default Retrig: 10ms"));	
+	UF_MenuPrint_P(PSTR("Default Retrig: 10ms"));	
 	
    UpdateChannelRetriggers();
    	
@@ -783,20 +1019,20 @@ void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length)
 		}
 		
 		// write character to display
-		UI_LCD_Char(c);
+		UI_LCD_Char(&PrimaryDisplay, c);
 	}
 }
 
 void LCD_Load_ProgressBar(void)
 {
 	// load the progress bar Chars
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[0], 1);
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[1], 2);
-   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[2], 3);
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[3], 4);
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[4], 5);
-	UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[5], 6);
-   UI_LCD_LoadCustomChar((uint8_t*)LcdCustomChar[6], 7);  
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[0], 1);
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[1], 2);
+   UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[2], 3);
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[3], 4);
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[4], 5);
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[5], 6);
+   UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[6], 7);  
 }
 
 
@@ -805,8 +1041,7 @@ void SetGainCurves(void* data)
 
    uint8_t* input = 0;
    uint8_t outputString[10];
-   uint8_t SelectedChannel = GetState() - ST_SETGAIN_1;
-   static uint8_t firstEnter = 1;
+   
    static int8_t presetSetting = CUSTOM;
 	input = data;
 
@@ -875,19 +1110,13 @@ void SetGainCurves(void* data)
       
       case KB_BACK:
       case KP_BACK:      
-      	MenuSetInput(KP_BACK);
-         stateMachine(currentState);
-         MenuSetInput(0);
-         firstEnter = 1;
-         executeState(currentState);         
+      	UF_MenuUpOneLevel(&analogueMenu);     
          return;
          
       default:
          break;
    }
 	
-   
-   firstEnter = 0;
 
 	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
 	{
@@ -902,49 +1131,49 @@ void SetGainCurves(void* data)
 	}
 	
 	
-	MenuReset();
+	UF_MenuReset();
 		
 	/* Indicate the channel selected */
- 	MenuPrint_P(PSTR("Gain Type:"));
+ 	UF_MenuPrint_P(PSTR("Gain Type:"));
 	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
 	{
-		MenuPrint_P( PSTR("Linear") );
-		MenuNewLine(); 		
+		UF_MenuPrint_P( PSTR("Linear") );
+		UF_MenuNewLine(); 		
 		/* Display the first slope channel 'gain' */
-		itoa(GetChannelGain(SelectedChannel), outputString, 10);
-		MenuPrint_P(PSTR("Gain1:"));
-		MenuPrint(outputString);
-	   MenuNewLine();
-		MenuNewLine();		
+		itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
+		UF_MenuPrint_P(PSTR("Gain1:"));
+		UF_MenuPrint(outputString);
+	   UF_MenuNewLine();
+		UF_MenuNewLine();		
 	}
 	else
 	{
-		MenuPrint_P( PSTR("Non-Linear") );
-		MenuNewLine(); 
+		UF_MenuPrint_P( PSTR("Non-Linear") );
+		UF_MenuNewLine(); 
 		/* Display the first slope channel 'gain' */
-		itoa(GetChannelGain(SelectedChannel), outputString, 10);
-		MenuPrint_P(PSTR("Gain1:"));
-		MenuPrint(outputString);
+		itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET) , outputString, 10);
+		UF_MenuPrint_P(PSTR("Gain1:"));
+		UF_MenuPrint(outputString);
 		
 		/* Display the channel slope 2 'gain' */
-		itoa(GetSlope2Gain(SelectedChannel), outputString, 10);
-		MenuPrint_P(PSTR(" Gain2:"));
-		MenuPrint(outputString);
-	   MenuNewLine();   
+		itoa( (int8_t)(GetSlope2Gain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
+		UF_MenuPrint_P(PSTR(" Gain2:"));
+		UF_MenuPrint(outputString);
+	   UF_MenuNewLine();   
 		
 		/* Display the gain crossover point */
 		itoa(GetCrossover(SelectedChannel), outputString, 10);
-		MenuPrint_P(PSTR("Gain Crossover:"));
-		MenuPrint(outputString);
-	   MenuNewLine();			
+		UF_MenuPrint_P(PSTR("Gain Crossover:"));
+		UF_MenuPrint(outputString);
+	   UF_MenuNewLine();			
 		
-		MenuPrint_P(PSTR("Preset:"));
-		MenuPrint_P(PresetGainStrings[presetSetting]);			
+		UF_MenuPrint_P(PSTR("Preset:"));
+		UF_MenuPrint_P(PresetGainStrings[presetSetting]);			
 	}   
 	
 	   
 
-   MenuNewLine();   		
+   UF_MenuNewLine();   		
 			
 	
 }	
@@ -956,8 +1185,6 @@ void SetDualInput(void* data)
 {
    uint8_t* input = 0;
    uint8_t outputString[10];
-   uint8_t SelectedChannel = GetState() - ST_DUALINPUT_1;
-   static uint8_t firstEnter = 1;
 	input = data;
 
 
@@ -1007,73 +1234,67 @@ void SetDualInput(void* data)
       
       case KB_BACK:
       case KP_BACK:      
-      	MenuSetInput(KP_BACK);
-         stateMachine(currentState);
-         MenuSetInput(0);
-         firstEnter = 1;
-         executeState(currentState);         
+      	UF_MenuUpOneLevel(&analogueMenu);      
          return;
          
       default:
          break;
    }
 	
-   
-   firstEnter = 0;
-	MenuReset();
+	UF_MenuReset();
 		
 	/* Indicate the channel selected */
-	MenuPrint_P(PSTR("CH"));
+	UF_MenuPrint_P(PSTR("CH"));
 	uint8toa(SelectedChannel + 1, outputString);	
-	MenuPrint(outputString);          
+	UF_MenuPrint(outputString);          
    
- 	MenuPrint_P(PSTR(" Dual Input: "));
+ 	UF_MenuPrint_P(PSTR(" Dual Input: "));
 	if( GetDualMode(SelectedChannel) == HAS_DUAL_INPUT )
 	{
-		MenuPrint_P( PSTR("On") );
+		UF_MenuPrint_P( PSTR("On") );
 	}
 	else
 	{
-		MenuPrint_P( PSTR("Off") );		
+		UF_MenuPrint_P( PSTR("Off") );		
 	}   
-   MenuNewLine();
+   UF_MenuNewLine();
    
 
-	MenuPrint_P(PSTR("Open Note:"));
+	UF_MenuPrint_P(PSTR("Open Note:"));
 	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
-   MenuPrint(outputString);
+   UF_MenuPrint(outputString);
 	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
 	{
-      MenuPrint_P( PSTR("0"));  
+      UF_MenuPrint_P( PSTR("0"));  
    }
    else
    {  
    	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
- 		MenuPrint(outputString); 	
+ 		UF_MenuPrint(outputString); 	
    }   
 
-	MenuNewLine();
-	MenuPrint_P(PSTR("Closed Note:"));
+	UF_MenuNewLine();
+	UF_MenuPrint_P(PSTR("Closed Note:"));
 	MIDI_NoteString(GetChannelKeyClosed(SelectedChannel), outputString);	
-   MenuPrint(outputString);
+   UF_MenuPrint(outputString);
 	if( MIDI_Octave(GetChannelKeyClosed(SelectedChannel)) == 0 )
 	{
-      MenuPrint_P( PSTR("0"));  
+      UF_MenuPrint_P( PSTR("0"));  
    }
    else
    {  
    	uint8toa( MIDI_Octave(GetChannelKeyClosed(SelectedChannel)), outputString);
- 		MenuPrint(outputString); 	
+ 		UF_MenuPrint(outputString); 	
    }   
 
    
-	MenuNewLine();	   
+	UF_MenuNewLine();	   
 	
 	/* Display the channel velocity */
 	uint8toa(GetDigitalTrigger(SelectedChannel)+1, outputString);
-	MenuPrint_P(PSTR("Activated by: D"));
-	MenuPrint(outputString);
-   MenuNewLine();   
+	UF_MenuPrint_P(PSTR("Activated by: D"));
+	UF_MenuPrint(outputString);
+   UF_MenuNewLine();   
 }
 
 
@@ -1084,16 +1305,22 @@ void DigitalChannelSettings(void* data)
 {
    uint8_t* input = 0;
    uint8_t outputString[21];
-   uint8_t SelectedChannel = GetState() - ST_CHANNEL_1;
-	uint8_t SelectedDigitalChannel = GetState() - ST_DIGITAL_1;
+   
+   SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
+	uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
 
 	input = data;
 
- 	if( firstEnter != 1 )
+ 	if( primaryMenu.firstEnter != 1 )
  	{
-		stateMachine( currentState ); 
+		UF_stateMachine( primaryMenu.currentState ); 
 	   switch( *input )
 	   {
+         case KP_UP:
+         case KP_DOWN:
+            MenuSetInput( &digitalMenu, *input );
+         break;
+         
 	      /* Up and down a Key */
 	      case KP_1:
 				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+1);
@@ -1107,6 +1334,11 @@ void DigitalChannelSettings(void* data)
 	      case KP_STAR:
 				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+NOTE_COUNT);
 	      break;
+	      
+	      case KP_D:
+            SetChannelCommand(SelectedChannel, GetChannelCommand(SelectedChannel) + 1 );
+         break;
+	      
 	      
 	      /*
 	      case KP_7:
@@ -1132,15 +1364,19 @@ void DigitalChannelSettings(void* data)
 	      
 			case KB_BACK:
 			case KP_BACK:
-				firstEnter = 1;
+				primaryMenu.firstEnter = 1;
 				return;
 			break;
 				
 			case KB_ENTER:
 			case KP_ENTER:
-				MenuReset();
-		   	executeState(currentState);
-				firstEnter = 1;
+            
+            UF_MenuReset();
+				ActiveMenu = &digitalMenu;
+				MenuSetInput( &digitalMenu, *input );
+				executeState(&digitalMenu, digitalMenu.currentState);
+				primaryMenu.firstEnter = 1;
+            
 				return;	
 			break;
 	         
@@ -1150,55 +1386,73 @@ void DigitalChannelSettings(void* data)
 	   }
 	}
    
-   firstEnter = 0;
-	MenuReset();
+   primaryMenu.firstEnter = 0;
+	UF_MenuReset();
 		
 	/* Indicate the channel selected */
 	
 	if( SelectedDigitalChannel >= DIGITAL_INPUTS )
 	{
-   	MenuPrint_P(PSTR("Metronome Ch "));
+   	UF_MenuPrint_P(PSTR("Metronome Ch "));
    	uint8toa(SelectedDigitalChannel - 7, outputString);
    }
    else
    {
-   	MenuPrint_P(PSTR("Digital Ch "));
+   	UF_MenuPrint_P(PSTR("Digital Ch "));
    	uint8toa(SelectedDigitalChannel + 1, outputString);      
    }
-	MenuPrint(outputString);          
+	UF_MenuPrint(outputString);          
    
- 	MenuPrint_P(PSTR(": "));
+ 	UF_MenuPrint_P(PSTR(": "));
 	if( GetChannelStatus(SelectedChannel) == CHANNEL_ON )
 	{
-		MenuPrint_P( PSTR("On") );
+		UF_MenuPrint_P( PSTR("On") );
 	}
 	else
 	{
-		MenuPrint_P( PSTR("Off") );		
+		UF_MenuPrint_P( PSTR("Off") );		
 	}   
-   MenuNewLine();
+   UF_MenuNewLine();
    
 
-	MenuPrint_P(PSTR("Note: "));
-	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
-   MenuPrint(outputString);
-	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
+	UF_MenuPrint_P(PSTR("Note: "));
+	
+	if( GetChannelCommand(SelectedChannel) == MIDI_NOTE_ON )
 	{
-      MenuPrint_P( PSTR("0"));  
-   }
+   	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
+      UF_MenuPrint(outputString);
+   	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
+   	{
+         UF_MenuPrint_P( PSTR("0"));  
+      }
+      else
+      {  
+      	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+    		UF_MenuPrint(outputString); 	
+      } 
+   }  
    else
-   {  
-   	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
- 		MenuPrint(outputString); 	
-   }   
+   {
+      uint8toa( GetChannelCommand(SelectedChannel), outputString);
+      UF_MenuPrint(outputString);
+      UF_MenuPrint_P( PSTR(" | ") );
+   	uint8toa( GetChannelKey(SelectedChannel), outputString);
+ 		UF_MenuPrint(outputString);         
+   }
    
-	MenuNewLine();	   
+   
+   
+	UF_MenuNewLine();	   
 	
 	/* Display the channel velocity */
 	uint8toa(GetDigitalVelocity(SelectedDigitalChannel), outputString);
-	MenuPrint_P(PSTR("Velocity: "));
-	MenuPrint(outputString);
-   MenuNewLine();   
+	UF_MenuPrint_P(PSTR("Velocity: "));
+	UF_MenuPrint(outputString);
+   UF_MenuNewLine();  
+   
+   digitalMenu.updateOptions = 0;
+   SelectedSubMenu = &digitalMenu;
+   MenuUpdate(&digitalMenu, !RESET_MENU);    
 }
 
 
@@ -1206,58 +1460,71 @@ void DigitalChannelSettings(void* data)
 void SetSwitchType(void* data)
 {
 	uint8_t* input;
-   uint8_t SelectedChannel = GetState() - ST_TRIGGER_TYPE_D1;
+   uint8_t i;
+   uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
    
-	static uint8_t firstEnter = 1;
-	
    input = data;
+
+   
+
+   if( SelectedDigitalChannel >= DIGITAL_INPUTS )
+   {
+      UF_MenuPrint_P(PSTR("Metronome inputs are"));
+      UF_MenuNewLine();
+      UF_MenuPrint_P(PSTR("fixed at:"));
+      UF_MenuNewLine();
+      UF_MenuPrint_P(PSTR("Active Low & "));
+      UF_MenuNewLine();
+      UF_MenuPrint_P(PSTR("Continuous"));
+
+      for( i = 0; i < 15; i++ )
+      {
+         _delay_ms(200);   
+      }
+
+      UF_MenuUpOneLevel(&digitalMenu);
+      return;
+   }
 
 	switch( *input )
 	{
 			/* Active High/Low toggle */
          case KP_A:
-				ActiveStateToggle(SelectedChannel);
+				ActiveStateToggle(SelectedDigitalChannel);
          break;
          
          case KP_B:
-				TriggerModeToggle(SelectedChannel);         
+				TriggerModeToggle(SelectedDigitalChannel);         
 			break;
 	
          case KP_BACK:
-         	MenuSetInput(KP_BACK);
-            stateMachine(currentState);
-            MenuSetInput(0);
-            firstEnter = 1;
-            executeState(currentState);
+         	UF_MenuUpOneLevel(&digitalMenu);
          return;
 	}
-		
-	firstEnter = 0;
-
 	/* Switch Type */
-	MenuPrint_P(PSTR("Type: Active "));
+	UF_MenuPrint_P(PSTR("Type: Active "));
 
-	if( GetActiveState(SelectedChannel) == ACTIVE_HIGH )
+	if( GetActiveState(SelectedDigitalChannel) == ACTIVE_HIGH )
 	{
-		MenuPrint_P(PSTR("High"));
+		UF_MenuPrint_P(PSTR("High"));
 	}
 	else
 	{
-		MenuPrint_P(PSTR("Low"));
+		UF_MenuPrint_P(PSTR("Low"));
 	}
-   MenuNewLine();
+   UF_MenuNewLine();
 
 
 	/* Trigger Mode */
-	MenuPrint_P(PSTR("Mode: "));
+	UF_MenuPrint_P(PSTR("Mode: "));
 
-	if( GetTriggerMode(SelectedChannel) == SINGLE_SHOT )
+	if( GetTriggerMode(SelectedDigitalChannel) == SINGLE_SHOT )
 	{
-		MenuPrint_P(PSTR("Single Shot"));
+		UF_MenuPrint_P(PSTR("Single Shot"));
 	}
 	else
 	{
-		MenuPrint_P(PSTR("Continuous"));
+		UF_MenuPrint_P(PSTR("Continuous"));
 	}
 }
 
@@ -1268,7 +1535,7 @@ void VUMeterSetup(void* data)
 
 	uint8_t* input = data;
 	static uint8_t firstEnter = 1;
-   uint8_t VUMeterIndex = GetState() - ST_VUMETER;
+   uint8_t VUMeterIndex = GetState(&primaryMenu) - ST_VUMETER;
 
 	if( firstEnter == 1)
 	{
@@ -1297,11 +1564,8 @@ void VUMeterSetup(void* data)
               SoftTimerStop(SoftTimer2[SC_DigitalVUUpdate]);   
             }
 				//SoftTimerStart(SoftTimer1[SC_MIDIOutput]);				
-				MenuSetInput(KP_BACK);
-            stateMachine(currentState);
-            MenuSetInput(0);
+				UF_MenuUpOneLevel(&primaryMenu);
             firstEnter = 1;
-            executeState(currentState);
             /* Reset the VU Height */
             VUSetRows(1);
          return;
@@ -1309,8 +1573,8 @@ void VUMeterSetup(void* data)
 	firstEnter = 0;
 		
 	/* Start the VU Meter */
-	MenuReset();
-	MenuPrint_P(PSTR("123456789ABCDEFG"));
+	UF_MenuReset();
+	UF_MenuPrint_P(PSTR("123456789ABCDEFG"));
 
 	if( GetVURows() == MAX_ROWS )
 	{
@@ -1339,9 +1603,9 @@ void DigitalVUMeterSetup(void* data)
 {
 
 	uint8_t* input = data;
-	static uint8_t firstEnter = 1;
+	static uint8_t primaryMenu.firstEnter = 1;
 
-	if( firstEnter == 1)
+	if( primaryMenu.firstEnter == 1)
 	{
 		UI_LCD_LoadDefaultChars();
 	}
@@ -1359,20 +1623,20 @@ void DigitalVUMeterSetup(void* data)
 				SoftTimerStop(SoftTimer2[SC_VUDecay]);				
 				SoftTimerStop(SoftTimer2[SC_DigitalVUUpdate]);
 			
-				MenuSetInput(KP_BACK);
-            stateMachine(currentState);
-            MenuSetInput(0);
-            firstEnter = 1;
-            executeState(currentState);
+				UF_MenuSetInput(KP_BACK);
+            UF_stateMachine(primaryMenu.currentState);
+            UF_MenuSetInput(0);
+            primaryMenu.firstEnter = 1;
+            UF_executeState( primaryMenu.currentState);
 
             VUSetRows(1);            
          return;
 	}
-	firstEnter = 0;
+	primaryMenu.firstEnter = 0;
 		
 	
-	MenuReset();
-	MenuPrint_P(PSTR("123456789ABCDEFG"));
+	UF_MenuReset();
+	UF_MenuPrint_P(PSTR("123456789ABCDEFG"));
 
 	if( GetVURows() == MAX_ROWS )
 	{
@@ -1393,20 +1657,20 @@ void AmpInputSelect(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
 	
-	if( firstEnter != 1 )
+	if( primaryMenu.firstEnter != 1 )
    {     
-		stateMachine( currentState );
+		UF_stateMachine( primaryMenu.currentState );
       switch( *input )
       {
 			case KB_BACK:
 			case KP_BACK:
-				firstEnter = 1;
+				primaryMenu.firstEnter = 1;
 				return;
 			break;
 				
 			case KB_ENTER:
 			case KP_ENTER:
-			   executeState(currentState);
+			   UF_executeState( primaryMenu.currentState);
 			break;
 
 			default:
@@ -1414,22 +1678,22 @@ void AmpInputSelect(void* data)
 		}	
 	}
 	
-	MenuReset();
-	firstEnter = 0;
-	MenuPrint_P( PSTR("Trigger Using:") );
+	UF_MenuReset();
+	primaryMenu.firstEnter = 0;
+	UF_MenuPrint_P( PSTR("Trigger Using:") );
 	
-	MenuNewLine();
+	UF_MenuNewLine();
 	
 	if( GetSensorInput() == SENSOR_OUTPUT )
 	{
-		MenuPrint_P( PSTR("Fixed Gain (1x)") );		
+		UF_MenuPrint_P( PSTR("Fixed Gain (1x)") );		
 	}
 	else
 	{
-		MenuPrint_P( PSTR("Variable Gain (POTx)") );	
+		UF_MenuPrint_P( PSTR("Variable Gain (POTx)") );	
 	}
 	
-   MenuNewLine(); 		
+   UF_MenuNewLine(); 		
 }
 
 
@@ -1438,15 +1702,15 @@ void AmpInputSelect(void* data)
 void SensorInputChange(void* data)
 {
 	/* Corresponding to either SENSOR_OUT or SENSOR_OUT2 */
-	uint8_t SelectedState = ST_VARIABLE_GAIN - GetState();
+	uint8_t SelectedState = ST_VARIABLE_GAIN - GetState(&primaryMenu);
 	
    SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
 	SensorInputSelect( (SelectedState == SENSOR_OUTPUT2) ? SENSOR_OUTPUT2 : SENSOR_OUTPUT );
 	SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
 
-   MenuSetInput(KP_BACK);
-   stateMachine(currentState);
-   MenuSetInput(0);	
+   UF_MenuSetInput(KP_BACK);
+   UF_stateMachine(primaryMenu.currentState);
+   UF_MenuSetInput(0);	
 	
 }
 
@@ -1464,7 +1728,7 @@ void ShowProfile(void* data)
 		
 	if( firstEnter != 1 )
    {     
-		stateMachine( currentState );
+		UF_stateMachine( primaryMenu.currentState );
       switch( *input )
       {
 			case KB_BACK:
@@ -1475,8 +1739,8 @@ void ShowProfile(void* data)
 				
 			case KB_ENTER:
 			case KP_ENTER:
-				MenuReset();
-		   	executeState(currentState);
+				UF_MenuReset();
+		   	UF_executeState( primaryMenu.currentState);
 				firstEnter = 1;
 				return;	
 			break;
@@ -1488,20 +1752,20 @@ void ShowProfile(void* data)
 
 	firstEnter = 0;
 
-	MenuPrint_P( PSTR("Current Profile: ") );
-   MenuNewLine();
+	UF_MenuPrint_P( PSTR("Current Profile: ") );
+   UF_MenuNewLine();
    
    if( SelectedProfile == DEFAULT_PROFILE )
    {
-		MenuPrint_P( PSTR("Default Profile") );	
+		UF_MenuPrint_P( PSTR("Default Profile") );	
 	}
 	else
 	{
-		MenuPrint_P( PSTR("Profile ") );
+		UF_MenuPrint_P( PSTR("Profile ") );
 		uint8toa(SelectedProfile + 1, outputString );
-		MenuPrint(outputString);
+		UF_MenuPrint(outputString);
 	}
-   MenuNewLine();	
+   UF_MenuNewLine();	
 }
 
 /* Save the CurrentProfile into the passed profileIndex */
@@ -1509,64 +1773,62 @@ void SaveProfile(void* data)
 {
    uint8_t* input = 0;
    uint8_t  outputString[3];
-   uint8_t   ProfileSlot = GetState() - ST_SAVE_PROFILE_1;
+   uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_SAVE_PROFILE_1;
  	uint8_t i;
 	  
    input = data;
 
-	MenuPrint_P( PSTR("Saving Data") );	
-   MenuNewLine();		
-	MenuPrint_P( PSTR("Please Wait...") );	
+	UF_MenuPrint_P( PSTR("Saving Data") );	
+   UF_MenuNewLine();		
+	UF_MenuPrint_P( PSTR("Please Wait...") );	
 
 	for( i = 0; i < 4; i++ )
 	{
-		MenuPrint_P( PSTR(".") );		
+		UF_MenuPrint_P( PSTR(".") );		
 		_delay_ms(200);
 	}
 	
-   MenuNewLine();
+   UF_MenuNewLine();
 	Profile_Write(&CurrentProfile, ProfileSlot);
-	MenuPrint_P( PSTR("Profile successfully") );
-   MenuNewLine();		
-	MenuPrint_P( PSTR("saved to: ") );				
-	MenuPrint_P( PSTR("Profile ") );	
+	UF_MenuPrint_P( PSTR("Profile successfully") );
+   UF_MenuNewLine();		
+	UF_MenuPrint_P( PSTR("saved to: ") );				
+	UF_MenuPrint_P( PSTR("Profile ") );	
 	uint8toa( ProfileSlot + 1, outputString );
-	MenuPrint(outputString);
+	UF_MenuPrint(outputString);
 
 	for( i = 0; i < 4; i++ )
 	{	
 		_delay_ms(200);
 	}	
 	
-	MenuReset();
-   MenuSetInput(KP_BACK);
-   stateMachine(currentState);
-   MenuSetInput(0);
+	UF_MenuUpOneLevel(&primaryMenu);
+	UF_MenuReset();
 }
 
 void LoadProfile(void* data)
 {
    uint8_t* input = 0;
    uint8_t  outputString[3];
-   uint8_t   ProfileSlot = GetState() - ST_LOAD_PROFILE_1;
+   uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_LOAD_PROFILE_1;
 	uint8_t i;
 	
 	   
    input = data;
 
-	MenuPrint_P( PSTR("Retrieving Data") );	
-   MenuNewLine();		
-	MenuPrint_P( PSTR("Please Wait") );	
+	UF_MenuPrint_P( PSTR("Retrieving Data") );	
+   UF_MenuNewLine();		
+	UF_MenuPrint_P( PSTR("Please Wait") );	
 
 	
 
 	for( i = 0; i < 4; i++ )
 	{
-		MenuPrint_P( PSTR(".") );		
+		UF_MenuPrint_P( PSTR(".") );		
 		_delay_ms(100);
 	}
 	
-   MenuNewLine();		
+   UF_MenuNewLine();		
 
    /* Loading the default profile resets the device */
 	if( ProfileSlot == DEFAULT_PROFILE)
@@ -1589,11 +1851,11 @@ void LoadProfile(void* data)
    UpdateChannelRetriggers();
 
 
-	MenuPrint_P( PSTR("Profile "));
+	UF_MenuPrint_P( PSTR("Profile "));
 	uint8toa( ProfileSlot + 1, outputString );
-	MenuPrint(outputString);				
-   MenuNewLine();		
-	MenuPrint_P( PSTR("successfully loaded!") );
+	UF_MenuPrint(outputString);				
+   UF_MenuNewLine();		
+	UF_MenuPrint_P( PSTR("successfully loaded!") );
 
 	SelectedProfile = ProfileSlot;
 	for( i = 0; i < 4; i++ )
@@ -1601,10 +1863,8 @@ void LoadProfile(void* data)
 		_delay_ms(200);
 	}	
 	
-	MenuReset();	
-   MenuSetInput(KP_BACK);
-   stateMachine(currentState);
-   MenuSetInput(0);
+	UF_MenuUpOneLevel(&primaryMenu);
+	UF_MenuReset();
 }
 
 
@@ -1619,7 +1879,7 @@ void AdjustCrosstalk(void* data)
 	crosstalk = GetCrossTalkDelay();
 	
 	
-   if( firstEnter == 0 )
+   if( primaryMenu.firstEnter == 0 )
    {     
       switch( *input )
       {
@@ -1656,9 +1916,9 @@ void AdjustCrosstalk(void* data)
          case KB_BACK:
          case KP_BACK:
 				/* Go back up one menu */   
-   			MenuSetInput(KB_BACK);
-  				stateMachine(currentState);
-  				MenuSetInput(0);
+   			UF_MenuSetInput(KB_BACK);
+  				UF_stateMachine(primaryMenu.currentState);
+  				UF_MenuSetInput(0);
   				return;
   				
          break;
@@ -1668,15 +1928,15 @@ void AdjustCrosstalk(void* data)
       }
    }
    
-   firstEnter = 0;
+   primaryMenu.firstEnter = 0;
    
    SetCrossTalkDelay(crosstalk);
    
-   MenuPrint_P( PSTR("Crosstalk Delay:"));
-   MenuNewLine();
+   UF_MenuPrint_P( PSTR("Crosstalk Delay:"));
+   UF_MenuNewLine();
 	utoa(crosstalk, outputString, 10);
-	MenuPrint(outputString);		
-   MenuPrint_P( PSTR(" us"));
+	UF_MenuPrint(outputString);		
+   UF_MenuPrint_P( PSTR(" us"));
 	
 }
 
@@ -1691,13 +1951,13 @@ void ChangeChannelCode(void* data)
 	static int8_t	code;
 	uint8_t outputString[4];
 	
-	if( firstEnter == 1)
+	if( primaryMenu.firstEnter == 1)
 	{
 		code = MIDI_GetChannelCode();
 	}
 	
 	
-   if( firstEnter == 0 )
+   if( primaryMenu.firstEnter == 0 )
    {     
       switch( *input )
       {
@@ -1723,9 +1983,9 @@ void ChangeChannelCode(void* data)
          case KB_BACK:
          case KP_BACK:
 				/* Go back up one menu */   
-   			MenuSetInput(KB_BACK);
-  				stateMachine(currentState);
-  				MenuSetInput(0);
+   			UF_MenuSetInput(KB_BACK);
+  				UF_stateMachine(primaryMenu.currentState);
+  				UF_MenuSetInput(0);
   				return;
   				
          break;
@@ -1735,12 +1995,12 @@ void ChangeChannelCode(void* data)
       }
    }
    
-   firstEnter = 0;
+   primaryMenu.firstEnter = 0;
    
    MIDI_SetChannelCode(code);
    
-   MenuPrint_P( PSTR("eDrum MIDI Code: "));
+   UF_MenuPrint_P( PSTR("eDrum MIDI Code: "));
 	uint8toa( code + 1, outputString);
-	MenuPrint(outputString);		
+	UF_MenuPrint(outputString);		
 }
 

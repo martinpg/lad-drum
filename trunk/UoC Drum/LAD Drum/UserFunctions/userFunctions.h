@@ -1,9 +1,14 @@
 #ifndef USERFUNCTIONS_H
 #define USERFUNCTIONS_H
 
+
+#include "Profiles/profiles.h"
+
 #define GET (0xFF)
 #define ANALOGUE_ADJUST (0)
 #define DIGITAL_ADJUST (1)
+
+
 
 enum {
 	MAIN_SCREEN = 0,
@@ -19,8 +24,17 @@ enum {
 	SIZEOFTHANKS
 };
 
-#include "Profiles/profiles.h"
 
+
+void UF_MenuSetInput(uint8_t NewInput);
+void UF_stateMachine(uint8_t CurrentState);
+void UF_executeState(uint8_t state);
+void UF_MenuReset(void);
+void UF_MenuNewLine(void);
+void UF_MenuChar(uint8_t data);
+void UF_MenuPrint_P(const char* string);
+void UF_MenuPrint(char* string);
+void UF_MenuUpOneLevel(Menu_t* menu);
 
 void reset(void* data);
 void about(void* data);
@@ -28,6 +42,11 @@ void aboutScroll(uint8_t nameIndex);
 /* Pass GET to obtain the index, otherwise the index is set to the passed
  * parameter */
 uint8_t ThanksIndex(uint8_t mode);
+
+void SysExDisplay(void* data);
+void DumpSysEx(void* data);
+void GetSysEx(void* data);
+uint8_t IsReceivingSysExData(uint8_t state);
 
 /* Play mode disables TimerB2 */
 void PlayMode(void* data);
@@ -45,6 +64,7 @@ void PrintMIDIRate(void);
 
 
 void ChannelSetup(void* data);
+void HandleSubMenu(void* data);
 
 void SetThreshold(void* data);
 void SetRetrigger(void* data);
