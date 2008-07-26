@@ -127,6 +127,7 @@
 #define KP_INVALID   (0xFF)
 #define KP_UPDATE    (0x0A)
 
+
 void UI_KP_Init(void);
 
 /** Returns the KP button pressed */
