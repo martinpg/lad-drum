@@ -4,8 +4,8 @@
 
 #include "UI_LCD/UI_LCD.h"
 
-#define VUPrint(char) UI_LCD_Char(char)
-#define VUPosition(row, col) UI_LCD_Pos(row, col)
+#define VUPrint(char) UI_LCD_Char(&PrimaryDisplay, char)
+#define VUPosition(row, col) UI_LCD_Pos(&PrimaryDisplay, row, col)
 
 
 /* To print all columns */

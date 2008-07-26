@@ -25,6 +25,9 @@ static uint8_t* UxTXBUF = (uint8_t*)U0TXBUF_;
 static char txbuffer[TXBUFFER_SIZE];
 static RINGBUFFER_T TransmitBuffer = {txbuffer, sizeof(txbuffer)};
 
+static char rxbuffer[RXBUFFER_SIZE];
+RINGBUFFER_T ReceiveBuffer = {rxbuffer, sizeof(rxbuffer)};
+
 void UART_Select(uint8_t module)
 {
    UxCTL   =  (uint8_t*)( &U0CTL + module*8 );

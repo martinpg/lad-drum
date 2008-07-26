@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "vumeter.h"
-
+#include "LCDSettings.h"
 
 /* VULevel has 8 bytes, the first 5 are the number of pixels for a 4 row 
  * VUMeter, the upper 3 are used to denote how many rows are used */
