@@ -1,15 +1,18 @@
 #ifndef MIDI_H
 #define MIDI_H
 
-
 #include <stdint.h>
 
-#define MIDI_NOTE_OFF		(0x80)
-#define MIDI_NOTE_ON		   (0x90)
+#define MIDI_SYSEX_START    (0xF0)
+#define MIDI_SYSEX_STOP     (0xF7)
 #define OCTAVE_OFFSET      (1)
+
+
+
 
 /* In 100us resolution */
 #define MAX_MIDI_RATE   (5000)
+#define MIDI_MAX_DATA   (127)
 #define MIDI_MAX_KEY    (127)
 #define BAUD_31250      (0x0100)
 #define BAUD_38400      (0x00D0)
@@ -19,10 +22,22 @@
 
 #define DEFAULT_BAUD_RATE	BAUD_31250
 #define MAX_MIDI_CHANNEL (0x0F)
-
+#define MIDI_MANUFACTURER (0x7D) /* Educational Use */
+#define MIDI_DEVICE_CODE       (0x01)  /* LAD Drum */
 
 extern const char MIDI_NOTES[];
 extern const char MIDI_BAUD[][11];
+
+enum {
+   MIDI_NOTE_OFF = 0x8,
+   MIDI_NOTE_ON,
+   MIDI_AFTERTOUCH,
+   MIDI_CONTROL_CHANGE,
+   MIDI_PROGRAM_CHANGE,
+   MIDI_CHANNEL_PRESSURE,
+   MIDI_PITCH_CHANGE,
+   MIDI_COMMAND_COUNT 
+} MIDI_Commands;
 
 enum {
 	B31250 = 0,
@@ -108,7 +123,7 @@ typedef struct {
 } MidiSettings_t;
 
 
-extern MidiSettings_t MIDISettings;
+extern MidiSettings_t* MIDISettings;
 
 void MIDI_Output(void);
 void MIDI_DigitalOutput(void);
