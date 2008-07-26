@@ -18,7 +18,7 @@
 #ifndef	_UI_KP_ROUTINES
 #define	_UI_KP_ROUTINES
 
-#include <version.h>
+#include "version.h"
 
 #if VERSION_CODE == VERSION_WITH_PE	  
 
@@ -125,6 +125,7 @@
 
 #define KP_ButtonCount  (16)
 #define KP_INVALID   (0xFF)
+#define KP_UPDATE    (0x0A)
 
 void UI_KP_Init(void);
 
