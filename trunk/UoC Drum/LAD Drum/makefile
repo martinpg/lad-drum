@@ -73,12 +73,13 @@ endif
 # msp430-Flash Programmer Options 
 
 
-SYSTEM_DIR = J:\Summer\MSPGCC\msp430\include
-PERIPHERALS_DIR = ../FuncLib/Peripherals
-EXTERNALS_DIR = ../FuncLib/External
-APPLICATIONS_DIR = ../FuncLib/Applications
-MISC_DIR = ../FuncLib/Other
-UTIL_DIR = ../FuncLib/Util
+SYSTEM_DIR = D:\MSPGCC\msp430\include
+FUNC_LIB = ../FuncLib
+PERIPHERALS_DIR = $(FUNC_LIB)/Peripherals
+EXTERNALS_DIR = $(FUNC_LIB)/External
+APPLICATIONS_DIR = $(FUNC_LIB)/Applications
+MISC_DIR = $(FUNC_LIB)/Other
+UTIL_DIR = $(FUNC_LIB)/Util
 
 #Source File paths
 #Add the full path name to each source under SOURCE_FILES followed by a '\'#
@@ -92,28 +93,32 @@ SOURCE_FILES = $(PERIPHERALS_DIR)/UART/uart.c \
                $(PERIPHERALS_DIR)/PWM/pwm.c \
                $(EXTERNALS_DIR)/MAX7300/max7300.c \
                $(EXTERNALS_DIR)/VUMeter/vumeter.c \
+               $(EXTERNALS_DIR)/UI/UI.c \
+               $(EXTERNALS_DIR)/UI_LCD/UI_LCD.c \
+               $(EXTERNALS_DIR)/UI_KP/UI_KP.c \
                $(UTIL_DIR)/MSB2LSB/MSB2LSB.c \
                $(UTIL_DIR)/Delay/delay.c \
                $(MISC_DIR)/mmculib/uint16toa.c \
-					$(MISC_DIR)/mmculib/uint8toa.c \
-					$(MISC_DIR)/SoftTimer/Softtimer.c \
-					$(MISC_DIR)/RingBuffer/ringbuffer.c \
-					$(APPLICATIONS_DIR)/Menu/Menu.c \
-					Sensor/sensor.c \
-					Profiles/profiles.c \
-					UserFunctions/userFunctions.c \
-					MIDI/midi.c \
+               $(MISC_DIR)/mmculib/uint8toa.c \
+			   $(MISC_DIR)/RingBuffer/ringbuffer.c \
+			   $(APPLICATIONS_DIR)/Menu/Menu.c \
+			      SoftTimer/Softtimer.c \
+			   Sensor/sensor.c \
+               Profiles/profiles.c \
+			   UserFunctions/userFunctions.c \
+			   MIDI/midi.c \
+               MIDI/SysEx/SysEx.c \
                Sample/sample.c \
-               UI/UI.c \
-               UI_LCD/UI_LCD.c \
-               UI_KP/UI_KP.c
+               LCDSettings.c \
+               MenuSettings.c
+
 					
 #Source File paths
 
 #Header and Object File paths
 HEADER_FILES = $(SOURCE_FILES:.c=.h)
 OBJECTS = $(SOURCE_FILES:.c=.o)
-LIB_FILES = "J:\Summer\MSPGCC\msp430\lib\libmspgcc.a" 
+LIB_FILES = "D:\MSPGCC\msp430\lib\libmspgcc.a" 
 #Header and Object File paths
 
 #Project name:

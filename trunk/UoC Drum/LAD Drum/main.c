@@ -25,19 +25,41 @@
 #include "Softtimer/Softtimer.h"
 #include "Menu/Menu.h"
 #include "MIDI/midi.h"
+#include "MIDI/SysEx/SysEx.h"
 #include "Profiles/profiles.h"
 #include "VUMeter/vumeter.h"
 #include "UserFunctions/userFunctions.h"
 #include "version.h"
+#include "LCDSettings.h"
+#include "MenuSettings.h"
 
 #if VERSION_CODE == VERSION_WITH_PE
 const char VersionId[] = "1.0W 4/1/08";
 #endif
 
 #if VERSION_CODE == VERSION_WITHOUT_PE
-const char VersionId[] = "1.0 4/1/08";
+/* Initial Release: 
+   const char VersionId[] = "1.0 4/1/08";
+*/
+const char VersionId[] = "1.1 26/7/08";
+/* Change Log: 26/07/08
+ * Optimised Menu System for Sub menus. Added SysEx Input & Output Capability 
+ * Added ability to change MIDI output command code 
+ *    Hence support for an Analogue Foot controller in the place of a
+ *    piezo input has been added.
+ * Better mutlitasking support, added the use of 'Processes' 
+ * LCD Device and Menu structures have been optimised 
+ * Smaller code size 
+ *
+ * Next revision: General clean up
+ *                Port to Atmega series (MEGA32)
+ *                Improve Multiplexing of signals to improve sample rates 
+ */
 #endif
 
+uint16_t BenchMarkCount = 0;
+
+uint8_t ActiveProcess = 0;
 
 /**
 Main function with some blinking leds
@@ -104,104 +126,134 @@ int main(void)
 
    /* Enable LCD */
    UI_LCD_HWInit();
-	UI_LCD_Init();
-
+	UI_LCD_Init(&PrimaryDisplay);
+	UI_LCD_LoadDefaultChars();
+	
    LCD_BL_DDR |= (1 << LCD_BL_PIN);
    LCD_BL_PORT &= ~(1 << LCD_BL_PIN);
 
-   MenuSetDisplay(MENU_LCD);
+   MenuSetDisplay(&primaryMenu, MENU_LCD);
+   MenuSetDisplay(&analogueMenu, MENU_LCD);
+   MenuSetDisplay(&digitalMenu, MENU_LCD);      
    /* Menu Setup */
-   MenuSetInput(0); 
-	
+   MenuSetInput(&primaryMenu, 0); 
 	
 	/* Menu must be Initialised first */
-	aboutScroll(MAIN_SCREEN);
 	UI_LCD_BL_On();
+	
+	aboutScroll(MAIN_SCREEN);
 	SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );	
 	_delay_ms(900);	
 	UI_LCD_LoadDefaultChars();					  
-   /* Reprint Menu */   
-   MenuUpdate();   
+   /* Reprint Menu */  
+   MenuUpdate(&primaryMenu, RESET_MENU);   
    
-
-   uint16_t sample;
-   
-
    /* Enable interrupts */
    eint();  
    
    while(1)
    {     
-	   uint8_t i;
-		eint();  
-		for( i = 0; i < NUMBER_OF_INPUTS; i++ )
-	   {
-	      if(GetChannelStatus(i) && (RetriggerPeriod[i].timerEnable == 0) )
-	      {
-	         /* Change the channel */              
-	         SensorChannel(i);
-	         _delay_us(SensorSettings.CrosstalkDelay);
-	         /* Take a sample */
-	         sample = ADC12_Sample();                              
-	         /* Obtain Peak */
-	         ObtainPeak(i, sample);
-	      }
-	   } 
+      switch( ActiveProcess )
+      {
+         case PLAY_MODE:
+            Play();
+            //BenchMarkCount++;
+         break;
+         
+         case RECEIVE_SYSEX:
+            ReceiveSysEx();
+         break;
+         
+      }
    }
    
    return 0;
 
 }
 
+void Play(void)
+{
+   uint8_t i;
+   uint16_t sample;
+	eint();  
+	for( i = 0; i < ANALOGUE_INPUTS; i++ )
+   {
+      if(GetChannelStatus(i) && (RetriggerPeriod[i].timerEnable == 0) )
+      {
+         /* Change the channel */              
+         SensorChannel(i);
+         _delay_us(SensorSettings->CrosstalkDelay);
+         /* Take a sample */
+         sample = ADC12_Sample();                              
+         /* Obtain Peak */
+         ObtainPeak(i, sample);
+         
+      }
+   }    
+}
 
 
 interrupt (USART0RX_VECTOR) usart0_rx(void)
 {
    uint8_t buffer = U0RXBUF;
+
+
    static uint8_t channel = 0;
    
-   if( buffer == '+' )
+   switch( ActiveProcess )
    {
-      SensorChannel(channel++);
-      if(channel == 16)
-      {
-         channel = 0;  
-      }
+      case PLAY_MODE:
+         if( buffer == '+' )
+         {
+            SoftTimer2[SC_AutoMenuUpdate].timeCompare++;
+            UART_Tx(SoftTimer2[SC_AutoMenuUpdate].timeCompare);
+         }
+         
+         if( buffer == '-' )
+         {
+            SoftTimer2[SC_AutoMenuUpdate].timeCompare--;
+            UART_Tx(SoftTimer2[SC_AutoMenuUpdate].timeCompare);
+         }
+        
+        
+         if( buffer == 'D' )
+         {
+            UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS(0), 512 );
+            UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS(1), 512 );
+            UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS(2), 512 );		      
+         }
+      
+      	if( buffer == 'E' )
+         {
+            UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(0), 512 );
+            UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(1), 512 ); 
+            UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(2), 512 );		     
+         }
+      
+         if( buffer == 'b' )
+         {
+      		SoftTimerStart(SoftTimer2[SC_VUMeterUpdate]);
+            //MAX7300_SetRegister(UI_MAX7300_ADDRESS, MAX7300_P27, 0x01);
+         }
+         
+         if( buffer == 'c' )
+         {
+      		UI_LCD_Pos(&PrimaryDisplay, 3, 10);
+      		UI_LCD_Char(&PrimaryDisplay, 0);
+      		UI_LCD_Char(&PrimaryDisplay, 1);
+      		UI_LCD_Char(&PrimaryDisplay, 2);
+      		UI_LCD_Char(&PrimaryDisplay, 3);		
+      		UI_LCD_Char(&PrimaryDisplay, 4);
+      		UI_LCD_Char(&PrimaryDisplay, 5);
+      		UI_LCD_Char(&PrimaryDisplay, 6);
+      		UI_LCD_Char(&PrimaryDisplay, 7);		
+      	}
+      break;
+      
+      case RECEIVE_SYSEX:
+         ringbuffer_put( (RINGBUFFER_T*)&ReceiveBuffer, buffer);
+      break;
    }
-  
-  
-   if( buffer == 'D' )
-   {
-      UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS(0), 512 );
-      UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS(1), 512 );
-      UART_TxDump((uint8_t*)PROFILE_FLASH_ADDRESS(2), 512 );		      
-   }
-
-	if( buffer == 'E' )
-   {
-      UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(0), 512 );
-      UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(1), 512 ); 
-      UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(2), 512 );		     
-   }
-
-   if( buffer == 'b' )
-   {
-		SoftTimerStart(SoftTimer2[SC_VUMeterUpdate]);
-      //MAX7300_SetRegister(UI_MAX7300_ADDRESS, MAX7300_P27, 0x01);
-   }
-   
-   if( buffer == 'c' )
-   {
-		UI_LCD_Pos(3, 10);
-		UI_LCD_Char(0);
-		UI_LCD_Char(1);
-		UI_LCD_Char(2);
-		UI_LCD_Char(3);		
-		UI_LCD_Char(4);
-		UI_LCD_Char(5);
-		UI_LCD_Char(6);
-		UI_LCD_Char(7);		
-	}
    
 }
 
@@ -227,9 +279,21 @@ interrupt (PORT1_VECTOR)   port1_int(void)
 
       if( IntResult != KP_INVALID)
       {
+         switch( ActiveProcess )
+         {
+            case PLAY_MODE:
+               
+            break;
+            
+            /* Any key will cancel SysEx reception */
+            case RECEIVE_SYSEX:
+               ActiveProcess = PLAY_MODE;
+            break;
+         }
+         
 			UI_LCD_BL_On();
-         MenuSetInput(IntResult);   
-         MenuUpdate();  
+         MenuSetInput(ActiveMenu, IntResult);   
+         MenuUpdate(ActiveMenu, RESET_MENU);  
 			
 	      /* Toggles the permanent state of the LCD BL */
 	      if( IntResult == KP_5 )
