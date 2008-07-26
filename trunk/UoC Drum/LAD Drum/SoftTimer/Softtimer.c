@@ -15,6 +15,9 @@
 #include "VUMeter/vumeter.h"
 #include "UART/uart.h"
 #include "UI_LCD/UI_LCD.h"
+#include "UI_KP/UI_KP.h"
+#include "LCDSettings.h"
+#include "MenuSettings.h"
 
 #define NUMBER_OF_TIMERS   (4)
 
@@ -28,8 +31,7 @@ SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},  // Second Delay...
 
 
 
-SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{100, 0, 0},  // Threshold Bar 
-                                           {100, 0, 0},  // Retrigger Bar
+SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{100, 0, 0},  // Threshold Bar
                                            {70, 0, 0},  // VU Meter Update 
                                            {70, 0, 0},  // Digital VU Meter Update
 														 {25, 0, 0},  // VU Decay
@@ -52,7 +54,12 @@ interrupt (TIMERB0_VECTOR) timerb0_int(void)
       MIDI_DigitalOutput();
       MIDI_MetronomeOutput();
 		ResetValues();	
-      SoftTimerReset(SoftTimer1[SC_MIDIOutput]);     
+      SoftTimerReset(SoftTimer1[SC_MIDIOutput]);  
+      
+      //UART_Tx(BenchMarkCount);
+      
+      //BenchMarkCount = 0;
+         
    }	    
 	      
 	if(SoftTimerInterrupt(SoftTimer2[SC_RetriggerReset]))
@@ -87,9 +94,9 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 	
 		if(SoftTimerInterrupt(SoftTimer2[SC_AutoMenuUpdate]))
 		{
-         /* Update the Threshold bar */
-         MenuSetInput(0);
-         MenuUpdate();
+         /* Update the Threshold and Retrigger bar */
+         MenuSetInput(ActiveMenu, KP_UPDATE);
+         MenuUpdate(ActiveMenu, RESET_MENU);
          //ThresholdBar();
          SoftTimerReset(SoftTimer2[SC_AutoMenuUpdate]);     
       }
