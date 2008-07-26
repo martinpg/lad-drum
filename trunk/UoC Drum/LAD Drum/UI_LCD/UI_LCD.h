@@ -22,56 +22,7 @@
 #include <io.h>
 #include <version.h>
 
-#if VERSION_CODE == VERSION_WITH_PE	
 
-#include "MAX7300/max7300.h"
-
-/* LCD Inputs */
-#define UI_LCD_POWER    (MAX7300_P18)
-#define UI_LCD_RS       (MAX7300_P17)
-#define UI_LCD_E        (MAX7300_P16)
-#define UI_LCD_D4       (MAX7300_P15)
-#define UI_LCD_D5       (MAX7300_P14)
-#define UI_LCD_D6       (MAX7300_P13)
-#define UI_LCD_D7       (MAX7300_P12)    
-
-#define UI_LCD_PORT     (0x4C)
-#define UI_LCD_PPOWER   (6)
-#define UI_LCD_PRS      (5)
-#define UI_LCD_PE       (4)
-#define UI_LCD_PD7      (3)
-#define UI_LCD_PD6      (2)
-#define UI_LCD_PD5      (1)
-#define UI_LCD_PD4      (0)
-
-#endif
-
-
-#if VERSION_CODE == VERSION_WITHOUT_PE	
-
-/* Not used in Direct Mode */
-#define UI_LCD_PORT     (0x00)
-
-/* LCD Inputs */
-#define UI_LCD_PRS      (7)
-#define UI_LCD_RS       (1<<7)
-#define UI_LCD_E        (1<<6)
-#define UI_LCD_D4       (1<<3)
-#define UI_LCD_D5       (1<<2)
-#define UI_LCD_D6       (1<<1)
-#define UI_LCD_D7       (1<<0)    
-
-#define UI_LCD_CONTROL_DIR   (P2DIR)
-#define UI_LCD_DATA_DIR      (P3DIR)
-
-#define UI_LCD_DATA	(UI_LCD_D4 | UI_LCD_D5 | UI_LCD_D6 | UI_LCD_D7)
-#define UI_LCD_CONTROL	(UI_LCD_RS | UI_LCD_E)
-
-#define UI_LCD_CONTROL_PORT	(P2OUT)
-#define UI_LCD_DATA_PORT		(P3OUT)
-
-/* END OF VERSION WITHOUT PE Defines */
-#endif
 
 #define UI_LCD_RS_INSTRUCTION (0)
 #define UI_LCD_RS_DATA        (1)
@@ -124,41 +75,65 @@
 #define LCD_ON 1
 #define LCD_OFF 0
 
+
+typedef struct
+{   
+   /* User to specify the dimensions of the LCD */
+   uint8_t MAX_ROW;
+   uint8_t MAX_COL;
+   
+   uint8_t RSStatus;
+   uint8_t RowPos;
+   uint8_t ColPos;
+   
+   /* Set up data direction registers */
+   void (*HWInit)(void);
+   /* Sets the data on the 8/4 bit bus */
+   void (*SetRegister)(uint8_t data);
+   
+   /* Strobes the clock 'E' pin */
+   void (*Strobe)(void);
+   
+   /* Backlight functionality */
+   void (*BL_On)(void);
+   void (*BL_Off)(void);
+   
+        
+} HD44780lcd_t;
+
 extern const uint8_t LcdCustomChar[][8]; 
 
-void UI_LCD_HWInit(void);
-void UI_LCD_Init(void);
-void UI_LCD_Write(char code);
-void UI_LCD_SetInstruction(void);
-void UI_LCD_SetData(void);
 
-void UI_LCD_Char(char data);
+void UI_LCD_Init(HD44780lcd_t* lcd);
+void UI_LCD_Write(HD44780lcd_t* lcd, char code);
+void UI_LCD_SetInstruction(HD44780lcd_t* lcd);
+void UI_LCD_SetData(HD44780lcd_t* lcd);
+
+void UI_LCD_Char(HD44780lcd_t* lcd, char data);
 
 
-void UI_LCD_String(char* string);
-void UI_LCD_String_P(const char* string_P);
+void UI_LCD_String(HD44780lcd_t* lcd, char* string);
+void UI_LCD_String_P(HD44780lcd_t* lcd, const char* string_P);
 
-void UI_LCD_Char(char data);
+void UI_LCD_Char(HD44780lcd_t* lcd, char data);
 
-void UI_LCD_Clear(void);
-void UI_LCD_Home(void);
+void UI_LCD_Clear(HD44780lcd_t* lcd);
+void UI_LCD_Home(HD44780lcd_t* lcd);
 
-void UI_LCD_Pos(uint8_t row, uint8_t col);
-void UI_LCD_Strobe(void);
+void UI_LCD_Pos(HD44780lcd_t* lcd, uint8_t row, uint8_t col);
 
-void UI_LCD_SetCursor(void);
-void UI_LCD_ClearCursor(void);
+
+void UI_LCD_SetCursor(HD44780lcd_t* lcd);
+void UI_LCD_ClearCursor(HD44780lcd_t* lcd);
 
 void UI_LCD_Activate(void);
 void UI_LCD_Shutdown(void);
 
-void UI_LCD_BL_Off(void);
-void UI_LCD_BL_On(void);
-void UI_LCD_BL_Toggle(void);
+
 
 /* Accepts a 7 Byte custom char array */
-void UI_LCD_LoadCustomChar(uint8_t* lcdCustomCharArray, uint8_t lcdCharNum);
-void UI_LCD_LoadDefaultChars(void);
+void UI_LCD_LoadCustomChar(HD44780lcd_t* lcd, uint8_t* lcdCustomCharArray, uint8_t lcdCharNum);
+
 
 
 #endif
