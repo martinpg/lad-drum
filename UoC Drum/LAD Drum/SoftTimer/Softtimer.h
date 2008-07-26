@@ -67,7 +67,6 @@ enum {
 enum {  
 
    SC_AutoMenuUpdate = 0,
-   SC_RetriggerBar,
    SC_VUMeterUpdate,
    SC_DigitalVUUpdate,
    SC_VUDecay,
