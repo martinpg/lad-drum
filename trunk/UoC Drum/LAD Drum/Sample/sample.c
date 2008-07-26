@@ -19,94 +19,11 @@ SoftTimer_8   RetriggerPeriod[NUMBER_OF_INPUTS];
 
 /* The functions below all work on the 'current profile */
 
-ChannelSettings_t ChannelSettings = {
+ChannelSettings_t* ChannelSettings;
 
-	/* Channel Status */
-	0x0000000F,
-	
-	/* Default Open Keys*/
-//Analogue Inputs	
-	{OPEN_HIGH_HAT, ELECTRIC_SNARE, ACOUSTIC_BASS_DRUM, HAND_CLAP,
-    LOW_FLOOR_TOM, HIGH_FLOOR_TOM, LOW_TOM, LOW_MID_TOM,
-    HI_MID_TOM, HIGH_TOM, CRASH_CYMBAL1, RIDE_CYMBAL1,
-    CHINESE_CYMBAL, SPLASH_CYMBAL, HIGH_TIMBALE, CLAVES,
-//Digital inputs     
-    PEDAL_HIGH_HAT, NO_ITEM, BASS_DRUM1, NO_ITEM, 
-    MUTE_HI_CONGA, OPEN_HI_CONGA, LOW_CONGA, LOW_TIMBALE,
+DigitalSettings_t* DigitalSettings;
 
-//Metronome inputs 
-    BASS_DRUM1, CLOSED_HI_HAT, MUTE_TRIANGLE, ELECTRIC_SNARE,
-    RIDE_CYMBAL1, ACOUSTIC_BASS_DRUM, OPEN_TRIANGLE, SIDE_STICK},
-   
-            
-	/* Default Thresholds */
-	{DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, 
-	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD,
-	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD,
-	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD},
-	 
-	{DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
-	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
-	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
-	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
- 	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
-	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
-  	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
-	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER},
-	 
-	 /* Has Dual Input */
-	 0x0000,
-	 
-	 /* The Digital Trigger */
-	 {0x00000000,
-	  0x00000000},
-	  
-	/* Default Closed Keys*/
-	{CLOSED_HI_HAT, SIDE_STICK, NO_ITEM, RIDE_CYMBAL2,
-    HIGH_FLOOR_TOM, LOW_FLOOR_TOM, LOW_MID_TOM, LOW_TOM,
-    NO_ITEM, NO_ITEM, CRASH_CYMBAL2, NO_ITEM,
-    NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM}	  
-};
-
-
-DigitalSettings_t DigitalSettings = {
-
-	/* Hit Velocities */
-	{DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
-    DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
-    DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
-    DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY},
-    
-   /* All swtiches are Active low type */
-   0x00,
-   
-   /* All switches use single shot triggering */
-   0x00
-};
-
-GainSettings_t GainSettings = {
-	/* Default Gains */                                     
-	{DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
-    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
-    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
-    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN},
-    
-	/* Default 2nd Slope Gains */                                     
-	{DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
-    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
-    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
-    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN},
-	 
-	/* Crossover Level */                                     
-	{300,300,300,300,
-    300,300,300,300,
-    300,300,300,300,
-    300,300,300,300},
-	 
-	 /* Gain Type (Linear or Non Linear) */
-	 0x0000
-};
-
+GainSettings_t* GainSettings;
 
 
 const char PresetGainStrings[][20] = {{"Exponential 1"},
@@ -115,14 +32,14 @@ const char PresetGainStrings[][20] = {{"Exponential 1"},
 												  {"Logorithmic 2"},
 												  {"Custom"}};
 
-const int8_t PresetGain1[NUMBER_OF_GAIN_PRESETS] = {-4, 1 ,-6, 2};
-const int8_t PresetGain2[NUMBER_OF_GAIN_PRESETS] = {-2, -1 ,-2, 1};
+const int8_t PresetGain1[NUMBER_OF_GAIN_PRESETS] = {8, 13 ,6, 14};
+const int8_t PresetGain2[NUMBER_OF_GAIN_PRESETS] = {10, 11 ,10, 13};
 const int16_t PresetGainCrossover[NUMBER_OF_GAIN_PRESETS] = {950, 150 ,1300, 50};
 
 
 uint8_t GetChannelStatus(uint8_t channel)
 {
-   return ((ChannelSettings.ChannelStatus & ((uint32_t)1 << channel)) != 0);
+   return ((ChannelSettings->ChannelStatus & ((uint32_t)1 << channel)) != 0);
 }
 
 
@@ -133,14 +50,35 @@ void ChannelToggle(uint8_t channel)
 
 void SetChannelStatus(uint8_t channel, uint8_t status)
 {
-   ChannelSettings.ChannelStatus &=  ~((uint32_t)1 << channel);
-   ChannelSettings.ChannelStatus |=   ((uint32_t)status << channel);
+   ChannelSettings->ChannelStatus &=  ~((uint32_t)1 << channel);
+   ChannelSettings->ChannelStatus |=   ((uint32_t)status << channel);
 }
+
+/* Channel Codes  */
+uint8_t GetChannelCommand(uint8_t channel)
+{
+   return ChannelSettings->ChannelCommand[channel];
+}
+
+void SetChannelCommand(uint8_t channel, int8_t command)
+{
+   if( command > MIDI_COMMAND_COUNT)
+   {
+      command = MIDI_NOTE_OFF;  
+   }
+   if( command < MIDI_NOTE_OFF)
+   {
+      command = MIDI_COMMAND_COUNT;  
+   }   
+
+   ChannelSettings->ChannelCommand[channel] = command;
+}
+
 
 /* General Channel Key Notes, and also the Dual Input Open Notes */
 uint8_t GetChannelKey(uint8_t channel)
 {
-   return ChannelSettings.ChannelKey[channel];
+   return ChannelSettings->ChannelKey[channel];
 }
 
 void SetChannelKey(uint8_t channel, int16_t key)
@@ -154,13 +92,13 @@ void SetChannelKey(uint8_t channel, int16_t key)
       key = MIDI_MAX_KEY;  
    }   
 
-   ChannelSettings.ChannelKey[channel] = key;
+   ChannelSettings->ChannelKey[channel] = key;
 }
 
 /* Close Channel Key Notes for Dual Input*/
 uint8_t GetChannelKeyClosed(uint8_t channel)
 {
-   return ChannelSettings.ClosedChannelKey[channel];
+   return ChannelSettings->ClosedChannelKey[channel];
 }
 
 void SetChannelKeyClosed(uint8_t channel, int16_t key)
@@ -174,7 +112,7 @@ void SetChannelKeyClosed(uint8_t channel, int16_t key)
       key = MIDI_MAX_KEY;  
    }   
 
-   ChannelSettings.ClosedChannelKey[channel] = key;
+   ChannelSettings->ClosedChannelKey[channel] = key;
 }
 
 
@@ -182,7 +120,7 @@ void SetChannelKeyClosed(uint8_t channel, int16_t key)
 /* Channel Threshold */
 uint16_t GetChannelThresh(uint8_t channel)
 {
-   return ChannelSettings.ChannelThreshold[channel];
+   return ChannelSettings->ChannelThreshold[channel];
 }
 
 void SetChannelThresh(uint8_t channel, int16_t thresh)
@@ -195,13 +133,13 @@ void SetChannelThresh(uint8_t channel, int16_t thresh)
    {
 		thresh = MAX_THRESHOLD;	
 	}
-   ChannelSettings.ChannelThreshold[channel] = thresh + MIN_THRESHOLD;
+   ChannelSettings->ChannelThreshold[channel] = thresh + MIN_THRESHOLD;
 }
 
 /* Setup Channel Retrigger times */
 uint8_t GetChannelReTrig(uint8_t channel)
 {
-   return ChannelSettings.ChannelRetrigger[channel];
+   return ChannelSettings->ChannelRetrigger[channel];
 }
 
 void SetChannelReTrig(uint8_t channel, int16_t retrig)
@@ -214,13 +152,13 @@ void SetChannelReTrig(uint8_t channel, int16_t retrig)
    {
 		retrig = MAX_RETRIGGER;	
 	}   
-   ChannelSettings.ChannelRetrigger[channel] = retrig + MIN_RETRIGGER;
+   ChannelSettings->ChannelRetrigger[channel] = retrig + MIN_RETRIGGER;
 }
 
 /* Setup Analogue Dual Inputs */
 uint8_t GetDualMode(uint8_t channel)
 {
-   return ((ChannelSettings.HasDualInput & (1 << channel)) != 0);
+   return ((ChannelSettings->HasDualInput & (1 << channel)) != 0);
 }
 
 
@@ -231,8 +169,8 @@ void DualModeToggle(uint8_t channel)
 
 void SetDualMode(uint8_t channel, uint8_t dualInputMode)
 {
-   ChannelSettings.HasDualInput &=  ~(1 << channel);
-   ChannelSettings.HasDualInput |=   (dualInputMode << channel);
+   ChannelSettings->HasDualInput &=  ~(1 << channel);
+   ChannelSettings->HasDualInput |=   (dualInputMode << channel);
 }
 
 /* Dual Input digital triggering map */
@@ -241,12 +179,12 @@ uint8_t GetDigitalTrigger(uint8_t AnalogueChannel)
 {
 	if( AnalogueChannel < 8 )
 	{
-   	return (ChannelSettings.AnalogueTrigger[0] & 
+   	return (ChannelSettings->AnalogueTrigger[0] & 
 				 (0x0F << (AnalogueChannel << 2)  )) >> (AnalogueChannel << 2);		
 	}
 	else
 	{
-		return (ChannelSettings.AnalogueTrigger[1] & 
+		return (ChannelSettings->AnalogueTrigger[1] & 
 		 		 (0x0F << ((AnalogueChannel-8) << 2))) >> (AnalogueChannel << 2);
 	}
 }
@@ -268,13 +206,13 @@ void SetDigitalTrigger(uint8_t AnalogueChannel, int8_t DigitalChannel)
 	{
 		if( AnalogueChannel < 8 )
 		{
-	   	ChannelSettings.AnalogueTrigger[0] &=  ~(0x0F << (AnalogueChannel << 2));
-			ChannelSettings.AnalogueTrigger[0] |=  (DigitalChannel << (AnalogueChannel << 2));			
+	   	ChannelSettings->AnalogueTrigger[0] &=  ~(0x0F << (AnalogueChannel << 2));
+			ChannelSettings->AnalogueTrigger[0] |=  (DigitalChannel << (AnalogueChannel << 2));			
 		}
 		else
 		{
-	   	ChannelSettings.AnalogueTrigger[1] &=  ~(0x0F << ((AnalogueChannel-8) << 2));
-			ChannelSettings.AnalogueTrigger[1] |=  (DigitalChannel << ((AnalogueChannel-8) << 2));
+	   	ChannelSettings->AnalogueTrigger[1] &=  ~(0x0F << ((AnalogueChannel-8) << 2));
+			ChannelSettings->AnalogueTrigger[1] |=  (DigitalChannel << ((AnalogueChannel-8) << 2));
 		}
 		
 	}
@@ -286,7 +224,7 @@ void SetDigitalTrigger(uint8_t AnalogueChannel, int8_t DigitalChannel)
 /* Digital Channel Velocity Outputs */
 uint8_t GetDigitalVelocity(uint8_t DigitalChannel)
 {
-   return DigitalSettings.DigitalVelocity[DigitalChannel];
+   return DigitalSettings->DigitalVelocity[DigitalChannel];
 }
 
 void SetDigitalVelocity(uint8_t DigitalChannel, int16_t velocity)
@@ -299,13 +237,13 @@ void SetDigitalVelocity(uint8_t DigitalChannel, int16_t velocity)
    {
 		velocity = MAX_VELOCITY;	
 	}
-   DigitalSettings.DigitalVelocity[DigitalChannel] = velocity;
+   DigitalSettings->DigitalVelocity[DigitalChannel] = velocity;
 }
 
 /* To alter the switch type from Active Low/High */
 uint8_t GetActiveState(uint8_t DigitalChannel)
 {
-   return ((DigitalSettings.DigitalActiveState & (1 << DigitalChannel)) != 0);
+   return ((DigitalSettings->DigitalActiveState & (1 << DigitalChannel)) != 0);
 }
 
 void ActiveStateToggle(uint8_t DigitalChannel)
@@ -315,8 +253,8 @@ void ActiveStateToggle(uint8_t DigitalChannel)
 
 void SetActiveState(uint8_t DigitalChannel, uint8_t activeState)
 {
-   DigitalSettings.DigitalActiveState &=  ~(1 << DigitalChannel);
-   DigitalSettings.DigitalActiveState |=   (activeState << DigitalChannel);
+   DigitalSettings->DigitalActiveState &=  ~(1 << DigitalChannel);
+   DigitalSettings->DigitalActiveState |=   (activeState << DigitalChannel);
 }
 
 
@@ -324,7 +262,7 @@ void SetActiveState(uint8_t DigitalChannel, uint8_t activeState)
  * or continuous is triggering while switch is in active state. */
 uint8_t GetTriggerMode(uint8_t DigitalChannel)
 {
-   return ((DigitalSettings.DigitalTriggerMode & (1 << DigitalChannel)) != 0);
+   return ((DigitalSettings->DigitalTriggerMode & (1 << DigitalChannel)) != 0);
 }
 
 void TriggerModeToggle(uint8_t DigitalChannel)
@@ -334,8 +272,8 @@ void TriggerModeToggle(uint8_t DigitalChannel)
 
 void SetTriggerMode(uint8_t DigitalChannel, uint8_t triggerMode)
 {
-   DigitalSettings.DigitalTriggerMode &=  ~(1 << DigitalChannel);
-   DigitalSettings.DigitalTriggerMode |=   (triggerMode << DigitalChannel);
+   DigitalSettings->DigitalTriggerMode &=  ~(1 << DigitalChannel);
+   DigitalSettings->DigitalTriggerMode |=   (triggerMode << DigitalChannel);
 }
 
 
@@ -359,7 +297,7 @@ void UpdateChannelRetriggers(void)
 /* Channel Gain 1st Slope*/
 int8_t GetChannelGain(uint8_t channel)
 {
-   return GainSettings.ChannelGain[channel];
+   return GainSettings->ChannelGain[channel];
 }
 
 void SetChannelGain(uint8_t channel, int8_t Gain)
@@ -373,14 +311,14 @@ void SetChannelGain(uint8_t channel, int8_t Gain)
       Gain = MAX_GAIN;  
    }   
 
-   GainSettings.ChannelGain[channel] = Gain;
+   GainSettings->ChannelGain[channel] = Gain;
 }
 
 
 /* Channel Gain 2nd Slope*/
 int8_t GetSlope2Gain(uint8_t channel)
 {
-   return GainSettings.ChannelGain2[channel];
+   return GainSettings->ChannelGain2[channel];
 }
 
 void SetSlope2Gain(uint8_t channel, int8_t Gain)
@@ -394,7 +332,7 @@ void SetSlope2Gain(uint8_t channel, int8_t Gain)
       Gain = MAX_GAIN;  
    }   
 
-   GainSettings.ChannelGain2[channel] = Gain;
+   GainSettings->ChannelGain2[channel] = Gain;
 }
 
 
@@ -402,7 +340,7 @@ void SetSlope2Gain(uint8_t channel, int8_t Gain)
 /* Gain Type setup */
 uint8_t GetGainType(uint8_t channel)
 {
-   return ((GainSettings.GainType & ((uint16_t)(1) << channel)) != 0);
+   return ((GainSettings->GainType & ((uint16_t)(1) << channel)) != 0);
 }
 
 
@@ -413,15 +351,15 @@ void GainTypeToggle(uint8_t channel)
 
 void SetGainType(uint8_t channel, uint8_t status)
 {
-   GainSettings.GainType &=  ~((uint16_t)1 << channel);
-   GainSettings.GainType |=   ((uint16_t)status << channel);
+   GainSettings->GainType &=  ~((uint16_t)1 << channel);
+   GainSettings->GainType |=   ((uint16_t)status << channel);
 }
 
 
 /* Gain Crossover Levels */
 uint16_t GetCrossover(uint8_t channel)
 {
-   return GainSettings.Crossover[channel];
+   return GainSettings->Crossover[channel];
 }
 
 void SetCrossover(uint8_t channel, int16_t crossover)
@@ -435,7 +373,7 @@ void SetCrossover(uint8_t channel, int16_t crossover)
 		crossover = MAX_CROSSOVER;	
 	}
    
-   GainSettings.Crossover[channel] = crossover;
+   GainSettings->Crossover[channel] = crossover;
 }
 
 /* Returns the conditioned signal after being passed through the
@@ -457,16 +395,18 @@ uint16_t GainFunction(uint8_t channel, uint16_t signalValue)
 	return ApplyGain(signalValue, GetChannelGain(channel));		
 }
 
-/* The signal is multiplied by 2^ (gain) */
+/* The signal is multiplied by 2^ (gain - 12) */
 uint16_t ApplyGain(uint16_t signalValue, int8_t gain)
 {
-	if( gain > 0 )
+   int8_t gainToApply = gain - GAIN_OFFSET;
+   
+	if( (gainToApply) > 0 )
 	{
-		signalValue = signalValue << gain;
+		signalValue = signalValue << gainToApply;
 	}
 	else
 	{
-		signalValue = signalValue >> (-gain);	
+		signalValue = signalValue >> (-gainToApply);	
 	}
 	
 	return signalValue;
@@ -560,7 +500,7 @@ void ResetValues(void)
  
 void ObtainPeak(uint8_t channel, uint16_t sample)
 {
-   if( sample < ChannelSettings.ChannelThreshold[channel] || 
+   if( sample < ChannelSettings->ChannelThreshold[channel] || 
 		 sample < SignalPeak[channel] )
    {
       return;  
@@ -588,7 +528,6 @@ void TimerInit(void)
    TBCCTL0 |= (CCIE);
    TBCCR0 = (SAMPLE_1MS);
 }
-
 
 
 

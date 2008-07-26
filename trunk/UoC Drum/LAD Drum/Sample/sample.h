@@ -25,11 +25,11 @@
 #define DEFAULT_RETRIGGER	(1)
 #define MIN_RETRIGGER         (0)
 
-#define CHANNEL_ON   (1)
-#define CHANNEL_OFF  (0)
-
 #define ACTIVE_HIGH	(1)
 #define ACTIVE_LOW	(0)
+
+#define CHANNEL_ON 	1
+#define CHANNEL_OFF 	0
 
 #define SINGLE_SHOT	(0)
 #define CONTINUOUS	(1)
@@ -43,11 +43,12 @@
 #define NON_LINEAR_GAIN	(1)
 
 /* Amplification */
-#define MAX_GAIN           (7)
+#define MAX_GAIN           (19)
 /* Most significant seven bits */
-#define DEFAULT_GAIN		(-5)
+#define DEFAULT_GAIN		(7)
 /* Attenuation */
-#define MIN_GAIN				(-12)
+#define MIN_GAIN				(0)
+#define GAIN_OFFSET        (12)
 #define MAX_CROSSOVER	(4095)
 #define MIN_CROSSOVER	(0)
 
@@ -92,6 +93,8 @@ typedef struct {
 
 	/* For both Analogue and Digital Channels */
    uint32_t  ChannelStatus;
+
+   uint8_t   ChannelCommand[NUMBER_OF_INPUTS];
    
    /* For Open notes, Digital Inputs have only Open notes */
    uint8_t   ChannelKey[NUMBER_OF_INPUTS];
@@ -152,9 +155,9 @@ extern uint16_t SignalPeak[];
 extern SoftTimer_8   RetriggerPeriod[];
 extern uint8_t DigitalCycle[];
 
-extern ChannelSettings_t ChannelSettings;
-extern DigitalSettings_t DigitalSettings;
-extern GainSettings_t	 GainSettings;
+extern ChannelSettings_t* ChannelSettings;
+extern DigitalSettings_t* DigitalSettings;
+extern GainSettings_t*	 GainSettings;
 
 
 extern const char PresetGainStrings[][20];
@@ -171,6 +174,10 @@ void ObtainPeak(uint8_t channel, uint16_t sample);
 void ChannelToggle(uint8_t channel);
 uint8_t GetChannelStatus(uint8_t channel);
 void SetChannelStatus(uint8_t channel, uint8_t status);
+
+/* Channel Commands */
+uint8_t GetChannelCommand(uint8_t channel);
+void SetChannelCommand(uint8_t channel, int8_t command);
 
 /* Channel Key */
 uint8_t GetChannelKey(uint8_t channel);
