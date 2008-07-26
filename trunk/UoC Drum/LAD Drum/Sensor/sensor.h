@@ -18,7 +18,7 @@ typedef struct {
 	uint16_t CrosstalkDelay;
 } SensorSettings_t;
 
-extern SensorSettings_t SensorSettings;
+extern SensorSettings_t* SensorSettings;
 
 void SensorInit(void);
 /* Changes the sampling channel to channel, CH0 -> CH15 */
