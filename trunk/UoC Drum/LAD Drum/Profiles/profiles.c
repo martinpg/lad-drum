@@ -5,7 +5,126 @@
 #include "profiles.h"
 
 
-ProfilePtr_t CurrentProfile;
+Profile_t CurrentProfile = { 
+/* MIDISettings_t */
+{	
+	/* 15ms output rate */
+	15,
+	DEFAULT_BAUD_RATE,
+	/* MIDI Channel Instrument # */
+	(0x09 | MIDI_NOTE_ON)
+},
+
+/* Channel Settings */
+{
+	/* Channel Status */
+	0x0000000F,
+	
+	/* Analogue Channel MIDI output Codes */
+	{MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON,
+	 MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON,
+	 MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON,
+	 MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON,
+	 
+	 /* Digital Channel MIDI output Codes */
+	 MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON,
+	 MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON,
+	 
+	 /* Metronome Channel MIDI output Codes */
+	 MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON,
+	 MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON, MIDI_NOTE_ON},
+	 
+	
+	/* Default Open Keys*/
+//Analogue Inputs	
+	{OPEN_HIGH_HAT, ELECTRIC_SNARE, ACOUSTIC_BASS_DRUM, HAND_CLAP,
+    LOW_FLOOR_TOM, HIGH_FLOOR_TOM, LOW_TOM, LOW_MID_TOM,
+    HI_MID_TOM, HIGH_TOM, CRASH_CYMBAL1, RIDE_CYMBAL1,
+    CHINESE_CYMBAL, SPLASH_CYMBAL, HIGH_TIMBALE, CLAVES,
+//Digital inputs     
+    PEDAL_HIGH_HAT, NO_ITEM, BASS_DRUM1, NO_ITEM, 
+    MUTE_HI_CONGA, OPEN_HI_CONGA, LOW_CONGA, LOW_TIMBALE,
+
+//Metronome inputs 
+    BASS_DRUM1, CLOSED_HI_HAT, MUTE_TRIANGLE, ELECTRIC_SNARE,
+    RIDE_CYMBAL1, ACOUSTIC_BASS_DRUM, OPEN_TRIANGLE, SIDE_STICK},
+   
+            
+	/* Default Thresholds */
+	{DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, 
+	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD,
+	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD,
+	 DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD, DEFAULT_THRESHOLD},
+	 
+	{DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+ 	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+  	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER,
+	 DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER, DEFAULT_RETRIGGER},
+	 
+	 /* Has Dual Input */
+	 0x0000,
+	 
+	 /* The Digital Trigger */
+	 {0x00000000,
+	  0x00000000},
+	  
+	/* Default Closed Keys*/
+	{CLOSED_HI_HAT, SIDE_STICK, NO_ITEM, RIDE_CYMBAL2,
+    HIGH_FLOOR_TOM, LOW_FLOOR_TOM, LOW_MID_TOM, LOW_TOM,
+    NO_ITEM, NO_ITEM, CRASH_CYMBAL2, NO_ITEM,
+    NO_ITEM, NO_ITEM, NO_ITEM, NO_ITEM}
+},
+
+/* Gain Settings */
+{
+	/* Default Gains */                                     
+	{DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN},
+    
+	/* Default 2nd Slope Gains */                                     
+	{DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,
+    DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN,DEFAULT_GAIN},
+	 
+	/* Crossover Level */                                     
+	{300,300,300,300,
+    300,300,300,300,
+    300,300,300,300,
+    300,300,300,300},
+	 
+	 /* Gain Type (Linear or Non Linear) */
+	 0x0000
+},
+
+/* Digital Channel Settings */
+{
+
+	/* Hit Velocities */
+	{DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
+    DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
+    DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY,
+    DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY, DEFAULT_VELOCITY},
+    
+   /* All swtiches are Active low type */
+   0x00,
+   
+   /* All switches use single shot triggering */
+   0x00
+},
+
+
+
+/* Sensor Settings */
+{ SENSOR_OUTPUT2, DEFAULT_CROSSTALK }
+
+};
 
 
 /* Sets up the clock with MCLK*/
@@ -14,12 +133,17 @@ void ProfileInit(void)
    /* Divide 8MHZ by 20 as clk range must be within 257 -> 457kHz*/
    FCTL2 = FWKEY | FSSEL_MCLK | 0x1F;
    
+   MIDISettings = &CurrentProfile.midiSettings;
+   ChannelSettings = &CurrentProfile.channelSettings;
+   DigitalSettings = &CurrentProfile.digitalSettings;
+   GainSettings = &CurrentProfile.gainSettings;
+   SensorSettings = &CurrentProfile.sensorSettings;
    /* Setup profile pointer */
-   CurrentProfile.channelSettings = &ChannelSettings;
+   /*CurrentProfile.channelSettings = &ChannelSettings;
    CurrentProfile.midiSettings = &MIDISettings;
    CurrentProfile.digitalSettings = &DigitalSettings;	
    CurrentProfile.sensorSettings = &SensorSettings;
-   CurrentProfile.gainSettings = &GainSettings;
+   CurrentProfile.gainSettings = &GainSettings;*/
    
 }
 
@@ -40,7 +164,7 @@ void Profile_Copy(void)
 
 /* Writes profile data to the profile Index,
    Profile Index (0 -> 3) */
-void Profile_Write(ProfilePtr_t* profile, uint8_t profileIndex)
+void Profile_Write(Profile_t* profile, uint8_t profileIndex)
 {
    uint16_t i;
    
@@ -55,48 +179,17 @@ void Profile_Write(ProfilePtr_t* profile, uint8_t profileIndex)
       if( i == profileIndex )
       {
 			
-         flash_write((uint16_t*)(MIDI_SETTINGS(i)), 
-                     profile->midiSettings, 
-                     sizeof(MidiSettings_t));
-
-         flash_write((uint16_t*)(CHANNEL_SETTINGS(i)), 
-                     profile->channelSettings, 
-                     sizeof(ChannelSettings_t));   
-
-         flash_write((uint16_t*)(GAIN_SETTINGS(i)), 
-                     profile->gainSettings, 
-                     sizeof(GainSettings_t)); 			
-							
-         flash_write((uint16_t*)(DIGITAL_SETTINGS(i)), 
-                     profile->digitalSettings, 
-                     sizeof(DigitalSettings_t)); 
-							
-         flash_write((uint16_t*)(SENSOR_SETTINGS(i)), 
-                     profile->sensorSettings, 
-                     sizeof(SensorSettings_t)); 							  														
-							      
+         flash_write((uint16_t*)(PROFILE(i)), 
+                     profile, 
+                     sizeof(Profile_t));
+				      
       }
       else
       {
-         flash_write((uint16_t*)(MIDI_SETTINGS(i)), 
-                     (uint16_t*)(IMAGE_MIDI_SETTINGS(i)), 
-                     sizeof(MidiSettings_t));
-
-         flash_write((uint16_t*)(CHANNEL_SETTINGS(i)), 
-                     (uint16_t*)(IMAGE_CHANNEL_SETTINGS(i)), 
-                     sizeof(ChannelSettings_t));   
-
-         flash_write((uint16_t*)(GAIN_SETTINGS(i)), 
-                     (uint16_t*)(IMAGE_GAIN_SETTINGS(i)), 
-                     sizeof(GainSettings_t));   
-							
-         flash_write((uint16_t*)(DIGITAL_SETTINGS(i)), 
-                     (uint16_t*)(IMAGE_DIGITAL_SETTINGS(i)), 
-                     sizeof(DigitalSettings_t));               
-                     
-         flash_write((uint16_t*)(SENSOR_SETTINGS(i)), 
-                     (uint16_t*)(IMAGE_SENSOR_SETTINGS(i)), 
-                     sizeof(SensorSettings_t));                      
+         flash_write((uint16_t*)(PROFILE(i)), 
+                     (uint16_t*)(IMAGE_PROFILE(i)), 
+                     sizeof(Profile_t));
+                   
       }
    }
 }
@@ -104,18 +197,7 @@ void Profile_Write(ProfilePtr_t* profile, uint8_t profileIndex)
 /* Reads the passed profileIndex into the settings */
 void Profile_Read(uint8_t profileIndex)
 {
-	memcpy((uint16_t*)&MIDISettings,
-		    (uint16_t*)MIDI_SETTINGS(profileIndex), sizeof(MidiSettings_t));
-			 
-	memcpy((uint16_t*)&ChannelSettings,
-			 (uint16_t*)CHANNEL_SETTINGS(profileIndex), sizeof(ChannelSettings_t));
-
-	memcpy((uint16_t*)&GainSettings,
-			 (uint16_t*)GAIN_SETTINGS(profileIndex), sizeof(GainSettings_t));
-	       
-	memcpy((uint16_t*)&DigitalSettings,
-	  		 (uint16_t*)DIGITAL_SETTINGS(profileIndex), sizeof(DigitalSettings_t));	
-	  		 
-	memcpy((uint16_t*)&SensorSettings,
-	  		 (uint16_t*)SENSOR_SETTINGS(profileIndex), sizeof(SensorSettings_t));		  		 
+	memcpy((uint16_t*)&CurrentProfile,
+		    (uint16_t*)PROFILE(profileIndex), sizeof(Profile_t));
+			 	  		 
 }
