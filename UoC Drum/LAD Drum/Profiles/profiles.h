@@ -65,14 +65,14 @@ typedef struct {
 	 
 } ProfilePtr_t;
 
-extern ProfilePtr_t CurrentProfile;
+extern Profile_t CurrentProfile;
 
 void ProfileInit(void);
 
 void Profile_Erase(uint8_t profileIndex);
 
 /* Writes profile data to the profile Index */
-void Profile_Write(ProfilePtr_t* profile, uint8_t profileIndex);
+void Profile_Write(Profile_t* profile, uint8_t profileIndex);
 
 void Profile_Copy(void);
 
