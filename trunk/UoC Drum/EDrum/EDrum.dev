@@ -1,7 +1,7 @@
 [Project]
 FileName=EDrum.dev
 Name=EDrum
-UnitCount=38
+UnitCount=40
 Type=1
 Ver=1
 ObjFiles=
@@ -20,7 +20,7 @@ ObjectOutput=
 OverrideOutput=0
 OverrideOutputName=
 HostApplication=
-Folders=ADC12,Menu,MIDI,Profiles,"Ring Buffer",Sample,Sensor,SoftTimer,SysEx,UART,UI,UI/KP,UI/LCD,"User Functions",Util,"VU Meter"
+Folders=ADC12,Delay,Menu,MIDI,Profiles,"Ring Buffer",Sample,Sensor,SoftTimer,SysEx,UART,UI,UI/KP,UI/LCD,"User Functions",Util,"VU Meter"
 CommandLine=
 UseCustomMakefile=0
 CustomMakefile=
@@ -421,6 +421,26 @@ BuildCmd=
 FileName=..\FuncLib\External\UI_KP\UI_KP.h
 CompileCpp=0
 Folder=UI/KP
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit39]
+FileName=..\FuncLib\Util\Delay\delay.c
+CompileCpp=0
+Folder=Delay
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit40]
+FileName=..\FuncLib\Util\Delay\delay.h
+CompileCpp=0
+Folder=Delay
 Compile=1
 Link=1
 Priority=1000

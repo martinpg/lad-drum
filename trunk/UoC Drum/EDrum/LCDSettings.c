@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include "UI_LCD/UI_LCD.h"
 
+
+#include "Delay/delay.h"
 #include "MSB2LSB/MSB2LSB.h"
 #include "LCDSettings.h"
 
@@ -68,7 +70,8 @@ HD44780lcd_t   PrimaryDisplay =
 };
 
 
-
+static uint8_t BL_State = !LCD_BL_ON;
+static uint8_t Min_BL_State = 0;
 
 const uint8_t LcdCustomChar[][8] =
 {
@@ -174,6 +177,7 @@ void UI_LCD_HWInit(void)
 	UI_LCD_CONTROL_PORT &= ~(UI_LCD_CONTROL);
 
 	/* LCD BL as an output */
+	LCD_BL_SEL |= (1 << LCD_BL_PIN);
 	LCD_BL_DDR |= (1 << LCD_BL_PIN);
 #endif
 	
@@ -187,15 +191,66 @@ void UI_LCD_HWInit(void)
  */
 void UI_LCD_BL_On(void)
 {
-   LCD_BL_PORT |= (1 << LCD_BL_PIN);   
+   uint8_t i;
+   
+   
+   if( BL_State == LCD_BL_ON)
+   {
+      return;  
+   }
+   
+   for( i = Min_BL_State ; i < LCD_BL_MAX_BRIGHTNESS >> 2; i ++ )
+   {
+      _delay_ms(10);
+      TACCR1 = i << 2;
+   }
+   
+   TACCR1 = LCD_BL_MAX_BRIGHTNESS;
+   BL_State = LCD_BL_ON;
+   
+   //LCD_BL_PORT |= (1 << LCD_BL_PIN);   
 }
 
 void UI_LCD_BL_Off(void)
 {
-   LCD_BL_PORT &= ~(1 << LCD_BL_PIN);  
+   
+   uint8_t i;
+   
+   for( i = LCD_BL_MAX_BRIGHTNESS >> 2 ; i >= Min_BL_State; i -- )
+   {
+      _delay_ms(10);
+      TACCR1 = i << 2;
+   }
+   
+   TACCR1 = Min_BL_State;
+   BL_State = !LCD_BL_ON;   
+   //LCD_BL_PORT &= ~(1 << LCD_BL_PIN);  
 }
 
 void UI_LCD_BL_Toggle(void)
 {
    LCD_BL_PORT ^= (1 << LCD_BL_PIN);   
 }
+
+
+void UI_LCD_BLInit(uint16_t MinBrightness)
+{
+   
+   Min_BL_State = MinBrightness;
+   
+   /* Sets up the PWM frequency =  (fclk / LCD_BL_MAX_BRIGHTNESS) */
+   TACCR0 = LCD_BL_MAX_BRIGHTNESS;
+   
+   TACTL |= (TASSEL_SMCLK | MC_UPTO_CCR0);
+   TACCTL1 |= (OUTMOD_RESET_SET);
+   
+}
+
+
+
+
+
+
+
+
+
