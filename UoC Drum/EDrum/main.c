@@ -139,10 +139,15 @@ int main(void)
    MenuSetInput(&primaryMenu, 0); 
 	
 	/* Menu must be Initialised first */
+	/* Backlight 'off' is at 5% */
+   UI_LCD_BLInit(5);
 	UI_LCD_BL_On();
 	
 	aboutScroll(MAIN_SCREEN);
 	SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );	
+	
+
+	
 	_delay_ms(900);	
 	UI_LCD_LoadDefaultChars();					  
    /* Reprint Menu */  
