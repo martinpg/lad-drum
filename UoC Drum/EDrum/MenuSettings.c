@@ -12,7 +12,7 @@
 #endif
 
 
-const MENU_TEXT  MT_PLAYMODE[] = "Optimise for Play!";
+const MENU_TEXT  MT_CONTROLLER_MODE[] = "Controller Mode";
 
 
 const MENU_TEXT  MT_PROFILES[] = "Profiles";
@@ -98,7 +98,7 @@ const MENU_TEXT  MT_VARIABLE_GAIN[] = "Variable Gain";
  * */
 const menu_list MenuState[] = {
 
-	{ST_MAIN,	ST_PLAYMODE,  0},
+	{ST_MAIN,	ST_CONTROLLER_MODE,  0},
    {ST_MAIN,   ST_OPTIONS,   1},
    {ST_MAIN,	ST_VUMETER,	  2},
    {ST_MAIN,   ST_DIGITAL_VUMETER, 3},
@@ -183,7 +183,7 @@ const menu_list MenuState[] = {
 
 const menu_data MenuData[] = {
    {ST_MAIN, 0, 0},
-   {ST_PLAYMODE, MT_PLAYMODE, PlayMode},
+   {ST_CONTROLLER_MODE, MT_CONTROLLER_MODE, ControllerMode},
    {ST_PROFILES, MT_PROFILES, ShowProfile},   
    {ST_OPTIONS, MT_OPTIONS, 0},
 	{ST_VUMETER, MT_VUMETER, VUMeterSetup},

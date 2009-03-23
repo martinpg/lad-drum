@@ -6,7 +6,7 @@
 /* Menu Texts */
 enum {  
    ST_MAIN = 10,
-   ST_PLAYMODE,
+   ST_CONTROLLER_MODE,
    ST_PROFILES,
    ST_OPTIONS,
    ST_MIDI_OUTPUT_RATE,

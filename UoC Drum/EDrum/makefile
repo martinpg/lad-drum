@@ -89,10 +89,8 @@ MAIN_OBJECT = $(MAIN_FILE:.c=.o)
 
 SOURCE_FILES = $(PERIPHERALS_DIR)/UART/uart.c \
                $(PERIPHERALS_DIR)/ADC/adc12.c \
-               $(PERIPHERALS_DIR)/SoftI2C/softi2c.c \
-               $(PERIPHERALS_DIR)/PWM/pwm.c \
-               $(EXTERNALS_DIR)/MAX7300/max7300.c \
-               $(EXTERNALS_DIR)/VUMeter/vumeter.c \
+					$(PERIPHERALS_DIR)/PWM/pwm.c \
+					$(EXTERNALS_DIR)/VUMeter/vumeter.c \
                $(EXTERNALS_DIR)/UI/UI.c \
                $(EXTERNALS_DIR)/UI_LCD/UI_LCD.c \
                $(EXTERNALS_DIR)/UI_KP/UI_KP.c \

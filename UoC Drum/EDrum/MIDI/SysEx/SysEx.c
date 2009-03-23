@@ -138,10 +138,11 @@ void ParseSysExData(uint8_t nextByte)
          	/* Update the sensor select */
          	SensorInputSelect(GetSensorInput());
          	
-         
+         	/* Update Activated Analogue Channels */
+            UpdateActiveChannels();
             /* Update the Retrigger periods */
             UpdateChannelRetriggers();
-      
+            
       
             for( i = 0; i < 5; i++ )
          	{	
@@ -167,7 +168,7 @@ void ParseSysExData(uint8_t nextByte)
          return;
       }
       
-      /* For the first byte of the 2 byte SysEx data */    
+      /* Check if Datacount is odd */    
       if( !((DataCount - 3) & 0x01) )
       {
          if( nextByte )
@@ -181,7 +182,6 @@ void ParseSysExData(uint8_t nextByte)
          profilePtr[(DataCount - 3) >> 1] = data;
          data = 0;
       }
-            
    }   
    DataCount++;
 }

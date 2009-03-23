@@ -27,7 +27,7 @@
    
 SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},  // Second Delay...
 														 {15, 0, 1},   // MIDI Output
-														 {10000, 0, 0}	 }; 
+														 {10, 0, 1}};  // Retrigger Reset	 }; 
 
 
 
@@ -35,7 +35,6 @@ SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{100, 0, 0},  // Threshold Bar
                                            {70, 0, 0},  // VU Meter Update 
                                            {70, 0, 0},  // Digital VU Meter Update
 														 {25, 0, 0},  // VU Decay
-														 {10, 0, 1},  // Retrigger Reset
 														 {2500,2500,0}, // AboutUpdate
 														 {10000, 10000, 0}}; //LCD Backlight
 
@@ -56,15 +55,16 @@ interrupt (TIMERB0_VECTOR) timerb0_int(void)
 		ResetValues();	
       SoftTimerReset(SoftTimer1[SC_MIDIOutput]);  
       
-      //UART_Tx(BenchMarkCount);
+      //UART_Tx( (uint8_t)(BenchMarkCount>>8) );
+      //UART_Tx( (uint8_t)(BenchMarkCount) );
       
       //BenchMarkCount = 0;
          
    }	    
 	      
-	if(SoftTimerInterrupt(SoftTimer2[SC_RetriggerReset]))
+	if(SoftTimerInterrupt(SoftTimer1[SC_RetriggerReset]))
 	{   
-		SoftTimerReset(SoftTimer2[SC_RetriggerReset]);
+		SoftTimerReset(SoftTimer1[SC_RetriggerReset]);
 		uint8_t i;      
       /* Each increment of Retrigger increases the time by 1ms */
       for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
@@ -105,7 +105,10 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 		{
 			SoftTimerReset(SoftTimer2[SC_VUDecay]); 
 			/* Decay the VU Meters here */
-   	   VULevelDecay(ALL_METERS);    				
+			if( ActiveProcess == PLAY_MODE )
+			{
+   	   	VULevelDecay(ALL_METERS);
+			}
 		}
 		
 		if( SoftTimerInterrupt(SoftTimer2[SC_LCD_BL_Period]) )
@@ -113,6 +116,14 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 			SoftTimerReset( SoftTimer2[SC_LCD_BL_Period] );
 			SoftTimerStop( SoftTimer2[SC_LCD_BL_Period] );
 			UI_LCD_BL_Off();
+			
+			/* If no SoftTimer2's are enabled, then turn off the Timer2 module */
+			if( !SoftTimer_IsTimer2Active() )
+			{
+            /* Stop the Auxuliary Timer */
+            TBCCTL2 &= ~(CCIE);
+         }
+			
 		}
          
 		if(SoftTimerInterrupt(SoftTimer2[SC_VUMeterUpdate]))
@@ -138,7 +149,7 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 					}
 	         }
 			}
-         VUMeterPrint(ALL_METERS, VURows);
+         VUMeterPrint(SEQUENTIAL_METERS | 0x0F, VURows);
          ResetVUValues();
       }         
       
@@ -163,7 +174,7 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 					}
 				}
 			}
-         VUMeterPrint(ALL_METERS, VURows);
+         VUMeterPrint(SEQUENTIAL_METERS | 0x0F, VURows);
          ResetVUValues();
       }          
       
@@ -183,4 +194,20 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 	}
 	
 	eint();
+}
+
+
+uint8_t SoftTimer_IsTimer2Active(void)
+{
+   uint8_t i;
+   
+   for( i = 0; i < TIMER2B_COUNT; i++)
+   {
+      if( SoftTimer2[i].timerEnable )
+      {
+         return 1;  
+      }
+   }
+   
+   return 0;
 }

@@ -14,6 +14,7 @@ const char MIDI_BAUD[][11] = {"31.25k",
 									  "115.2kUSB",
 									  "1.0M USB"};
 
+static uint16_t MIDI_LastMIDIValue[ANALOGUE_INPUTS];
 
 MidiSettings_t* MIDISettings;
 
@@ -24,7 +25,7 @@ void MIDI_Output(void)
    for( i = 0; i < ANALOGUE_INPUTS; i++)
    {      
       if( GetChannelStatus(i) && 
-          (RetriggerPeriod[i].timerEnable == 0) && 
+          (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED) && 
           (SignalPeak[i] > GetChannelThresh(i)) )
       {
 			uint16_t conditionedSignal = (SignalPeak[i] - GetChannelThresh(i));
@@ -47,16 +48,21 @@ void MIDI_Output(void)
 					MIDI_Tx(GetChannelKey(i));
 				}
 	         
-				if( conditionedSignal > 127 )
+				if( conditionedSignal > MIDI_MAX_DATA )
 	         {
-	            MIDI_Tx( 127 );   
+					conditionedSignal = MIDI_MAX_DATA;
+	            MIDI_Tx( MIDI_MAX_DATA );   
 	         }
 	         else
 	         {
 	            MIDI_Tx( conditionedSignal );
 	         } 
+	         
+	         MIDI_LastMIDIValue[i] = conditionedSignal;
+	         
 	         SoftTimerStart(RetriggerPeriod[i]); 
-	         if( SoftTimer2[SC_VUMeterUpdate].timerEnable )
+	         
+				if( SoftTimer2[SC_VUMeterUpdate].timerEnable )
 	         {
 	         	VUValues[i] = SignalPeak[i];
 				}
@@ -72,7 +78,7 @@ void MIDI_DigitalOutput(void)
    for( i = ANALOGUE_INPUTS; i < NUMBER_OF_REAL_INPUTS; i++)
    {      
       if( GetChannelStatus(i) && 
-          (RetriggerPeriod[i].timerEnable == 0))
+          (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED))
       {
    		if( SignalPeak[i] )
    		{	
@@ -98,10 +104,10 @@ void MIDI_DigitalOutput(void)
 void MIDI_MetronomeOutput(void)
 {
    uint8_t i;
-   for( i = NUMBER_OF_REAL_INPUTS; i < NUMBER_OF_INPUTS; i++)
+   for( i = (ANALOGUE_INPUTS + DIGITAL_INPUTS); i < (ANALOGUE_INPUTS + DIGITAL_INPUTS + METRONOME_INPUTS); i++)
    {      
       if( GetChannelStatus(i) && 
-          (RetriggerPeriod[i].timerEnable == 0))
+          (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED))
       {
 	      /* Send a NOTE ON (default) | Channel */
 	      MIDI_Tx((GetChannelCommand(i) << 4) | MIDISettings->MIDI_ChannelCode);
@@ -174,5 +180,15 @@ uint8_t MIDI_Octave(uint8_t note)
 
 
 
+void SetLastMIDIValue(uint8_t channel, uint8_t value)
+{
+	/* Update the last sample */
+   MIDI_LastMIDIValue[channel] = value;
+}
+
+uint8_t GetLastMIDIValue(uint8_t channel)
+{
+   return MIDI_LastMIDIValue[channel];
+}
 
 

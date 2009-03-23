@@ -49,7 +49,7 @@ void GetSysEx(void* data);
 uint8_t IsReceivingSysExData(uint8_t state);
 
 /* Play mode disables TimerB2 */
-void PlayMode(void* data);
+void ControllerMode(void* data);
 
 /* Saves the passed profile into the profileIndex */
 void SaveProfile(void* data);
