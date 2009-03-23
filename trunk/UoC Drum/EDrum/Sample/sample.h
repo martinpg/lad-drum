@@ -136,7 +136,7 @@ typedef struct {
 typedef struct {
 
    /* The velocity of the digital outputs is constant */
-   uint8_t	 DigitalVelocity[DIGITAL_INPUTS+METRONOME_INPUTS];
+   uint8_t	 DigitalVelocity[DIGITAL_INPUTS+METRONOME_INPUTS+KEYPAD_INPUTS];
    
    /* Sets the input to either active high/low */
    uint8_t 	 DigitalActiveState;
@@ -144,13 +144,6 @@ typedef struct {
    uint8_t	 DigitalTriggerMode;
 	
 } DigitalSettings_t;
-
-
-typedef struct {
-	
-	uint8_t	KeyPadVelocity[KEYPAD_INPUTS];
-	
-} KeyPadSettings_t;
 
 
 enum {
@@ -223,7 +216,7 @@ void SetDigitalTrigger(uint8_t AnalogueChannel, int8_t DigitalChannel);
 
 
 uint8_t GetDigitalVelocity(uint8_t DigitalChannel);
-void SetDigitalVelocity(uint8_t DigitalChannel, int16_t velocity);
+void SetDigitalVelocity(uint8_t DigitalChannel, int8_t velocity);
 
 
 /* Switch Type */

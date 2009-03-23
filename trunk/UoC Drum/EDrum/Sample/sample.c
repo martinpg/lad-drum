@@ -248,16 +248,18 @@ uint8_t GetDigitalVelocity(uint8_t DigitalChannel)
    return DigitalSettings->DigitalVelocity[DigitalChannel];
 }
 
-void SetDigitalVelocity(uint8_t DigitalChannel, int16_t velocity)
+void SetDigitalVelocity(uint8_t DigitalChannel, int8_t velocity)
 {
-   if( velocity > MAX_VELOCITY)
-   {
-      velocity = 0;  
-   }
+	
+	if( velocity < -50)
+	{
+		velocity = 0;	
+	}
    if( velocity < 0)
    {
 		velocity = MAX_VELOCITY;	
 	}
+
    DigitalSettings->DigitalVelocity[DigitalChannel] = velocity;
 }
 

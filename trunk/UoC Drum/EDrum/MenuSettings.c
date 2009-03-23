@@ -47,6 +47,7 @@ const MENU_TEXT  MT_CROSSTALK[] = "Adjust Crosstalk";
 const MENU_TEXT  MT_ANALOGUE_INPUTS[] = "Analogue Inputs";
 const MENU_TEXT  MT_DIGITAL_INPUTS[] = "Digital Inputs";
 const MENU_TEXT  MT_METRONOME_INPUTS[] = "Metronome Inputs";
+const MENU_TEXT  MT_KEYPAD_INPUTS[] = "Keypad Buttons";
 
 const MENU_TEXT  MT_CHANNEL_1[] = "Channel 1";
 const MENU_TEXT  MT_CHANNEL_2[] = "Channel 2";
@@ -83,6 +84,23 @@ const MENU_TEXT  MT_METRONOME_6[] = "Metronome Input 6";
 const MENU_TEXT  MT_METRONOME_7[] = "Metronome Input 7";
 const MENU_TEXT  MT_METRONOME_8[] = "Metronome Input 8";
 
+const MENU_TEXT  MT_KEYPAD_1[] = "Key 0";
+const MENU_TEXT  MT_KEYPAD_2[] = "Key 1";
+const MENU_TEXT  MT_KEYPAD_3[] = "Key 2";
+const MENU_TEXT  MT_KEYPAD_4[] = "Key 3";
+const MENU_TEXT  MT_KEYPAD_5[] = "Key 4";
+const MENU_TEXT  MT_KEYPAD_6[] = "Key 5";
+const MENU_TEXT  MT_KEYPAD_7[] = "Key 6";
+const MENU_TEXT  MT_KEYPAD_8[] = "Key 7";
+const MENU_TEXT  MT_KEYPAD_9[] = "Key 8";
+const MENU_TEXT  MT_KEYPAD_10[] = "Key 9";
+const MENU_TEXT  MT_KEYPAD_11[] = "Key A";
+const MENU_TEXT  MT_KEYPAD_12[] = "Key B";
+const MENU_TEXT  MT_KEYPAD_13[] = "Key C";
+const MENU_TEXT  MT_KEYPAD_14[] = "Key D";
+const MENU_TEXT  MT_KEYPAD_15[] = "Key *";
+const MENU_TEXT  MT_KEYPAD_16[] = "Key #";
+
 const MENU_TEXT  MT_THRESHOLD[] = "Set Threshold";
 const MENU_TEXT  MT_TRIGGER_TYPE[] = "Switch Settings";
 const MENU_TEXT  MT_RETRIGGER[] = "Set Retrigger";
@@ -118,7 +136,8 @@ const menu_list MenuState[] = {
 
    {ST_CHANNEL_SETUP, ST_ANALOGUE_INPUTS,  0},
    {ST_CHANNEL_SETUP, ST_DIGITAL_INPUTS,  1}, 
-   {ST_CHANNEL_SETUP, ST_METRONOME_INPUTS, 2},  
+   {ST_CHANNEL_SETUP, ST_METRONOME_INPUTS, 2},
+	{ST_CHANNEL_SETUP, ST_KEYPAD_INPUTS,  3},  
 
    {ST_ANALOGUE_INPUTS, ST_CHANNEL_1,  0},
    {ST_ANALOGUE_INPUTS, ST_CHANNEL_2,  1},
@@ -155,6 +174,23 @@ const menu_list MenuState[] = {
    {ST_METRONOME_INPUTS, ST_METRONOME_6, 5},
    {ST_METRONOME_INPUTS, ST_METRONOME_7, 6},                  
    {ST_METRONOME_INPUTS, ST_METRONOME_8, 7},
+
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_1,  0},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_2,  1},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_3,  2},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_4,  3},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_5,  4},            
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_6,  5},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_7,  6},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_8,  7},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_9,  8},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_10, 9},    
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_11, 10},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_12, 11},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_13, 12},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_14, 13},
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_15, 14}, 
+   {ST_KEYPAD_INPUTS, ST_KEYPAD_16, 15},   
    
    {ST_PROFILES, ST_LOAD_PROFILE, 2},
    {ST_PROFILES, ST_SAVE_PROFILE, 3},
@@ -204,6 +240,7 @@ const menu_data MenuData[] = {
    {ST_ANALOGUE_INPUTS, MT_ANALOGUE_INPUTS,  0},
    {ST_DIGITAL_INPUTS, MT_DIGITAL_INPUTS,  0},    	
    {ST_METRONOME_INPUTS, MT_METRONOME_INPUTS,  0},
+ 	{ST_KEYPAD_INPUTS, MT_KEYPAD_INPUTS,  0},
  	
  	/* Analogue Menus */
    {ST_CHANNEL_1, MT_CHANNEL_1,   ChannelSetup},
@@ -242,7 +279,24 @@ const menu_data MenuData[] = {
    {ST_METRONOME_6, MT_METRONOME_6,   DigitalChannelSettings},
    {ST_METRONOME_7, MT_METRONOME_7,   DigitalChannelSettings},
    {ST_METRONOME_8, MT_METRONOME_8,   DigitalChannelSettings},
-
+ 	/* Keypad Menus */
+   {ST_KEYPAD_1, MT_KEYPAD_1,   KeypadButtonSettings},
+   {ST_KEYPAD_2, MT_KEYPAD_2,   KeypadButtonSettings},
+   {ST_KEYPAD_3, MT_KEYPAD_3,   KeypadButtonSettings},
+   {ST_KEYPAD_4, MT_KEYPAD_4,   KeypadButtonSettings},
+   {ST_KEYPAD_5, MT_KEYPAD_5,   KeypadButtonSettings},            
+   {ST_KEYPAD_6, MT_KEYPAD_6,   KeypadButtonSettings},
+   {ST_KEYPAD_7, MT_KEYPAD_7,   KeypadButtonSettings},
+   {ST_KEYPAD_8, MT_KEYPAD_8,   KeypadButtonSettings},
+   {ST_KEYPAD_9, MT_KEYPAD_9,   KeypadButtonSettings},
+   {ST_KEYPAD_10, MT_KEYPAD_10, KeypadButtonSettings},    
+   {ST_KEYPAD_11, MT_KEYPAD_11, KeypadButtonSettings},
+   {ST_KEYPAD_12, MT_KEYPAD_12, KeypadButtonSettings},
+   {ST_KEYPAD_13, MT_KEYPAD_13, KeypadButtonSettings},
+   {ST_KEYPAD_14, MT_KEYPAD_14, KeypadButtonSettings},
+   {ST_KEYPAD_15, MT_KEYPAD_15, KeypadButtonSettings}, 
+   {ST_KEYPAD_16, MT_KEYPAD_16, KeypadButtonSettings},
+	 
 	{ST_FIXED_GAIN, MT_FIXED_GAIN, SensorInputChange},
 	{ST_VARIABLE_GAIN, MT_VARIABLE_GAIN, SensorInputChange},
 		

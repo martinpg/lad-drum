@@ -27,12 +27,12 @@
 #define DIGITAL_SETTINGS(profile)	(GAIN_SETTINGS(profile)+sizeof(GainSettings_t))
 #define SENSOR_SETTINGS(profile) 	(DIGITAL_SETTINGS(profile) + sizeof(DigitalSettings_t))
 
-
 #define IMAGE_MIDI_SETTINGS(profile)		IMAGE_PROFILE(profile)
 #define IMAGE_CHANNEL_SETTINGS(profile)	(IMAGE_MIDI_SETTINGS(profile)+sizeof(MidiSettings_t))
 #define IMAGE_GAIN_SETTINGS(profile)		(IMAGE_CHANNEL_SETTINGS(profile)+sizeof(ChannelSettings_t))
 #define IMAGE_DIGITAL_SETTINGS(profile)	(IMAGE_GAIN_SETTINGS(profile)+sizeof(GainSettings_t))
 #define IMAGE_SENSOR_SETTINGS(profile) 	(IMAGE_DIGITAL_SETTINGS(profile) + sizeof(DigitalSettings_t))
+
 
 
 
@@ -62,7 +62,7 @@ typedef struct {
    GainSettings_t* gainSettings;	
 	DigitalSettings_t* digitalSettings;
    SensorSettings_t* sensorSettings;  
-	 
+	
 } ProfilePtr_t;
 
 extern Profile_t CurrentProfile;

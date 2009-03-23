@@ -405,7 +405,8 @@ void ControllerMode(void* data)
          
          break;
          
-	      default:      
+	      default:
+			ActiveProcess = DEFAULT_PROCESS;      
 	   	UF_MenuSetInput(KP_BACK);
 	      UF_stateMachine(primaryMenu.currentState);
 	      UF_MenuSetInput(0);
@@ -419,7 +420,7 @@ void ControllerMode(void* data)
 	UF_MenuReset();		
 	UF_MenuPrint_P( PSTR("Controller Mode"));
 	UF_MenuNewLine();	
-	UF_MenuPrint_P( PSTR("Press any key to"));
+	UF_MenuPrint_P( PSTR("Press A,B,C to"));
 	UF_MenuNewLine();
 	UF_MenuPrint_P( PSTR("return to Main Menu!"));
 	UF_MenuNewLine();			
@@ -768,7 +769,7 @@ void ChannelSetup(void* data)
    UF_MenuNewLine();   
    
 //	Don't hide sub children.
-   analogueMenu.updateOptions = 0;
+   analogueMenu.updateOptions = SHOW_CHILDREN;
    SelectedSubMenu = &analogueMenu;
    MenuUpdate(&analogueMenu, !RESET_MENU);
 }
@@ -1342,22 +1343,21 @@ void DigitalChannelSettings(void* data)
          break;
 	      
 	      
-	      /*
-	      case KP_7:
-				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)-NOTE_COUNT);  
-	      break;*/
-	      
 	      /* Up and down output levels */
-	      case KP_B:
+	      case KP_3:
 				SetDigitalVelocity(SelectedDigitalChannel, 
-										(int16_t)GetDigitalVelocity(SelectedDigitalChannel)+10);
+										 GetDigitalVelocity(SelectedDigitalChannel)+1);
 	      break;
 	      
-	      case KP_C:
+	      case KP_9:
 				SetDigitalVelocity(SelectedDigitalChannel, 
-										(int16_t)GetDigitalVelocity(SelectedDigitalChannel)-10);  
+										 GetDigitalVelocity(SelectedDigitalChannel)-1);  
 	      break;
 	      
+	      case KP_HASH:
+				SetDigitalVelocity(SelectedDigitalChannel, 
+										 GetDigitalVelocity(SelectedDigitalChannel)+10);  
+	      break;	
 	      /* Setting Modifiers */
 	      case KP_A:
 				ChannelToggle(SelectedChannel);
@@ -1452,10 +1452,12 @@ void DigitalChannelSettings(void* data)
 	UF_MenuPrint(outputString);
    UF_MenuNewLine();  
    
-   digitalMenu.updateOptions = 0;
+   digitalMenu.updateOptions = SHOW_CHILDREN;
    SelectedSubMenu = &digitalMenu;
    MenuUpdate(&digitalMenu, !RESET_MENU);    
 }
+
+
 
 
 
@@ -1528,6 +1530,133 @@ void SetSwitchType(void* data)
 	{
 		UF_MenuPrint_P(PSTR("Continuous"));
 	}
+}
+
+
+
+
+
+/** Function to setup each individual keypad button */
+void KeypadButtonSettings(void* data)
+{
+   uint8_t* input = 0;
+   uint8_t outputString[21];
+   
+   SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
+	uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
+	uint8_t SelectedKeypadChannel = SelectedDigitalChannel - (DIGITAL_INPUTS + METRONOME_INPUTS);
+	input = data;
+
+ 	if( primaryMenu.firstEnter != 1 )
+ 	{
+	   switch( *input )
+	   {
+	      /* Up and down a Key */
+	      case KP_1:
+				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+1);
+	      break;
+	      
+	      case KP_7:
+				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)-1);  
+	      break;
+	      
+	      /* Up  an octave */
+	      case KP_STAR:
+				SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+NOTE_COUNT);
+	      break;
+	      
+	      case KP_D:
+            SetChannelCommand(SelectedChannel, GetChannelCommand(SelectedChannel) + 1 );
+         break;
+	      
+	      /* Up and down output levels */
+	      case KP_3:
+				SetDigitalVelocity(SelectedDigitalChannel, 
+										 GetDigitalVelocity(SelectedDigitalChannel)+1);
+	      break;
+	      
+	      case KP_9:
+				SetDigitalVelocity(SelectedDigitalChannel, 
+										 GetDigitalVelocity(SelectedDigitalChannel)-1);  
+	      break;
+	      
+	      case KP_HASH:
+				SetDigitalVelocity(SelectedDigitalChannel, 
+										 GetDigitalVelocity(SelectedDigitalChannel)+10);  
+	      break;	      
+	      
+         case KP_BACK:
+				/* Go back up one menu */   
+   			UF_MenuSetInput(KB_BACK);
+  				UF_stateMachine(primaryMenu.currentState);
+  				UF_MenuSetInput(0);
+  			return;
+				
+
+	      default:
+	         break;
+	   }
+	}
+	
+   primaryMenu.firstEnter = 0;
+   /* Indicate the Keypad selected */
+	
+	UF_MenuPrint_P(PSTR("Keypad Button "));
+	
+	if( SelectedKeypadChannel > 0x0A )
+	{
+		outputString[0] = (SelectedKeypadChannel - 0x09) + 'A';		
+		
+		if( SelectedKeypadChannel == 14 )
+		{
+		outputString[0] = '*';	
+		}
+	
+   	if( SelectedKeypadChannel == 15 )
+		{
+			outputString[0] = '#';	
+		}	
+		outputString[1] = '\0';	
+	}
+	else
+	{
+		uint8toa( SelectedKeypadChannel, outputString );
+	}
+	
+	UF_MenuPrint(outputString);          
+	UF_MenuNewLine();	 
+	
+	UF_MenuPrint_P(PSTR("Note: "));
+	
+	if( GetChannelCommand(SelectedChannel) == MIDI_NOTE_ON )
+	{
+   	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
+      UF_MenuPrint(outputString);
+   	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
+   	{
+         UF_MenuPrint_P( PSTR("0"));  
+      }
+      else
+      {  
+      	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+    		UF_MenuPrint(outputString); 	
+      } 
+   }  
+   else
+   {
+      uint8toa( GetChannelCommand(SelectedChannel), outputString);
+      UF_MenuPrint(outputString);
+      UF_MenuPrint_P( PSTR(" | ") );
+   	uint8toa( GetChannelKey(SelectedChannel), outputString);
+ 		UF_MenuPrint(outputString);         
+   }
+   
+	UF_MenuNewLine();	   
+	
+	/* Display the channel velocity */
+	uint8toa(GetDigitalVelocity(SelectedDigitalChannel), outputString);
+	UF_MenuPrint_P(PSTR("Velocity: "));
+	UF_MenuPrint(outputString);   
 }
 
 

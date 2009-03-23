@@ -123,6 +123,31 @@ void MIDI_MetronomeOutput(void)
    }
 }
 
+
+
+
+void MIDI_KeypadOutput(uint8_t kpButton)
+{
+   uint8_t i;
+   if( kpButton < KEYPAD_INPUTS )
+   {
+	   i = kpButton + ANALOGUE_INPUTS + DIGITAL_INPUTS + METRONOME_INPUTS;
+	   
+		/* Send a NOTE ON (default) | Channel */
+	   MIDI_Tx((GetChannelCommand(i) << 4) | MIDISettings->MIDI_ChannelCode);
+	   MIDI_Tx(GetChannelKey(i));
+	   MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
+			
+				/*if( SoftTimer2[SC_DigitalVUUpdate].timerEnable )
+		      {
+		         VUValues[i-ANALOGUE_INPUTS] = GetDigitalVelocity(i - ANALOGUE_INPUTS);
+				}*/
+	}
+}
+
+
+
+
 uint16_t MIDI_GetRate(void)
 {
    return MIDISettings->MIDI_OutputRate;
