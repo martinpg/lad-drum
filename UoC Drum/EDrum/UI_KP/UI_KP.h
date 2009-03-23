@@ -133,5 +133,9 @@ void UI_KP_Init(void);
 /** Returns the KP button pressed */
 uint8_t UI_KP_GetPress(void);
 
+/* Returns 0->15 depending on input keypad input*/
+uint8_t UI_KP_ReturnID(uint8_t KP_Button);
+
+
 
 #endif

@@ -41,7 +41,17 @@ const char VersionId[] = "1.0W 4/1/08";
 /* Initial Release: 
    const char VersionId[] = "1.0 4/1/08";
 */
-const char VersionId[] = "1.1 26/7/08";
+const char VersionId[] = "1.2 23/3/09";
+/* Change Log 23/03/09
+ * Note: Benchmarks performed and speed has been increase 10 fold.
+ * Added Controller Mode process and Keypad inputs as extra digital channels.
+ * Controller mode allows analogue channels have have potentiometer and
+ * variable voltage input. MIDI is only output if the value detected is different.
+ *
+ * Hardware Change: USB Powered.
+ *
+ */
+
 /* Change Log: 26/07/08
  * Optimised Menu System for Sub menus. Added SysEx Input & Output Capability 
  * Added ability to change MIDI output command code 
@@ -574,6 +584,22 @@ interrupt (PORT1_VECTOR)   port1_int(void)
             case PLAY_MODE:
                
             break;
+            
+            case CONTROLLER_MODE:
+					/* If keys A,B,C are simultaneously pressed */
+					if( IntResult == 0x78 )
+					{
+						IntResult = KP_BACK;
+						break;
+					}
+					
+					
+					MIDI_KeypadOutput(UI_KP_ReturnID(IntResult));
+					/* Reset Button States */
+					UI_INT_IFG &= ~(UI_COLS);
+      			UI_Activate();
+					eint();
+				return;
             
             /* Any key will cancel SysEx reception */
             case RECEIVE_SYSEX:

@@ -82,6 +82,11 @@ void ChangeChannelCode(void* data);
 void DigitalChannelSettings(void* data);
 void SetSwitchType(void* data);
 
+
+/** Keypad setups */
+void KeypadButtonSettings(void* data);
+
+
 /* Amplifer Input Select */
 void AmpInputSelect(void* data);
 void SensorInputChange(void* data);
