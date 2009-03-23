@@ -9,13 +9,13 @@
 #define POT_INPUT			(INCH_A3)
 
 #define MAX_CROSSTALK	(1000)
-#define DEFAULT_CROSSTALK (150)
-#define MIN_CROSSTALK	(10)
+#define DEFAULT_CROSSTALK (12)
+#define MIN_CROSSTALK	(0)
 
 typedef struct {
 
    uint16_t	SensorInputPort;
-	uint16_t CrosstalkDelay;
+	int16_t CrosstalkDelay;
 } SensorSettings_t;
 
 extern SensorSettings_t* SensorSettings;
@@ -30,8 +30,8 @@ void SensorInputSelect(uint8_t newPort);
 uint8_t GetSensorInput(void);
 
 /* Crosstalk controls the delay between changing the channel */
-uint16_t GetCrossTalkDelay(void);
-void SetCrossTalkDelay(uint16_t newCrosstalk);
+int16_t GetCrossTalkDelay(void);
+void SetCrossTalkDelay(int16_t newCrosstalk);
 
 uint16_t SensorPotValue(void);
 

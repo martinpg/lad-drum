@@ -10,10 +10,13 @@
 #define DIGITAL_INPUTS	(8)
 #define NUMBER_OF_REAL_INPUTS (ANALOGUE_INPUTS + DIGITAL_INPUTS)
 #define NUMBER_OF_INPUTS   (ANALOGUE_INPUTS + DIGITAL_INPUTS + METRONOME_INPUTS)
+#define KEYPAD_INPUTS (16)
+
+#define LAST_CHANNEL_INDEX (0xFF)
 
 /* The number of bits in the ADC Reading */
 #define MAX_THRESHOLD      (4095)
-#define DEFAULT_THRESHOLD	(15)
+#define DEFAULT_THRESHOLD	(100)
 #define MIN_THRESHOLD      (0)
 #define THRESHOLD_LEVELS	(6)
 
@@ -22,7 +25,7 @@
 
 /* Retrigger Defines */
 #define MAX_RETRIGGER      (255)
-#define DEFAULT_RETRIGGER	(1)
+#define DEFAULT_RETRIGGER	(3)
 #define MIN_RETRIGGER         (0)
 
 #define ACTIVE_HIGH	(1)
@@ -45,7 +48,7 @@
 /* Amplification */
 #define MAX_GAIN           (19)
 /* Most significant seven bits */
-#define DEFAULT_GAIN		(7)
+#define DEFAULT_GAIN		(8)
 /* Attenuation */
 #define MIN_GAIN				(0)
 #define GAIN_OFFSET        (12)
@@ -94,10 +97,10 @@ typedef struct {
 	/* For both Analogue and Digital Channels */
    uint32_t  ChannelStatus;
 
-   uint8_t   ChannelCommand[NUMBER_OF_INPUTS];
+   uint8_t   ChannelCommand[NUMBER_OF_INPUTS+KEYPAD_INPUTS];
    
    /* For Open notes, Digital Inputs have only Open notes */
-   uint8_t   ChannelKey[NUMBER_OF_INPUTS];
+   uint8_t   ChannelKey[NUMBER_OF_INPUTS+KEYPAD_INPUTS];
 
    uint16_t  ChannelThreshold[ANALOGUE_INPUTS];
    
@@ -142,6 +145,14 @@ typedef struct {
 	
 } DigitalSettings_t;
 
+
+typedef struct {
+	
+	uint8_t	KeyPadVelocity[KEYPAD_INPUTS];
+	
+} KeyPadSettings_t;
+
+
 enum {
 	EXPONENTIAL_1 = 0,
 	LOGORITHMIC_1,
@@ -154,6 +165,7 @@ enum {
 extern uint16_t SignalPeak[];
 extern SoftTimer_8   RetriggerPeriod[];
 extern uint8_t DigitalCycle[];
+extern uint8_t ActiveChannels[];
 
 extern ChannelSettings_t* ChannelSettings;
 extern DigitalSettings_t* DigitalSettings;
@@ -167,9 +179,12 @@ extern const int16_t PresetGainCrossover[];
 
 void ResetValues(void);
 
+void UpdateActiveChannels(void);
 
 void TimerInit(void);
 void ObtainPeak(uint8_t channel, uint16_t sample);
+
+
 
 void ChannelToggle(uint8_t channel);
 uint8_t GetChannelStatus(uint8_t channel);
@@ -251,6 +266,9 @@ uint16_t ApplyGain(uint16_t signalValue, int8_t gain);
 void DigitalInputInit(void);
 uint8_t GetDigitalState(uint8_t DigitalChannel);
 void ScanDigitalInputs(void);
+
+void SetLastSampleValue(uint8_t channel, uint16_t value);
+uint16_t GetLastSampleValue(uint8_t channel);
 
 
 #endif

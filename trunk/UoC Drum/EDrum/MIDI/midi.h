@@ -20,7 +20,7 @@
 #define BAUD_1M			(0x0008)
 
 
-#define DEFAULT_BAUD_RATE	BAUD_31250
+#define DEFAULT_BAUD_RATE	BAUD_38400
 #define MAX_MIDI_CHANNEL (0x0F)
 #define MIDI_MANUFACTURER (0x7D) /* Educational Use */
 #define MIDI_DEVICE_CODE       (0x01)  /* LAD Drum */
@@ -143,5 +143,8 @@ void MIDI_NoteString(uint8_t note, char* buffer);
 
 uint8_t MIDI_Octave(uint8_t note);
 
+
+void SetLastMIDIValue(uint8_t channel, uint8_t value);
+uint8_t GetLastMIDIValue(uint8_t channel);
 
 #endif

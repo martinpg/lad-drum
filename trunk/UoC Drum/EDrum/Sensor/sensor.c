@@ -4,8 +4,8 @@
 #include <io.h>
 #include <stdint.h>
 #include "ADC/adc12.h"
-#include "MSB2LSB/MSB2LSB.h"
 #include "sensor.h"
+#include "MSB2LSB/MSB2LSB.h"
 
 #define CH0        (0)
 #define CH1        (1)
@@ -56,13 +56,20 @@ void SensorInit(void)
 /* Changes the sampling channel to channel, CH0 -> CH15 */
 void SensorChannel(uint8_t channel)
 {
+	
+	uint8_t channelState;
+	
    if( channel > CH15 )
    {
       return;    
    }
    
-   channel = MSB2LSB(~channel) >> 4;
-   CHSELOUT = (CHSELOUT & ~(CHSELPINS)) | channel;
+   
+   
+   channel = ~channel;
+   
+   channelState = ((channel & (0x08)) >> 3) | ((channel & (0x04)) >> 1) | ((channel & (0x02)) << 1) | ((channel & (0x01)) << 3);
+	CHSELOUT = (CHSELOUT & ~(CHSELPINS)) | channelState;
    return;
 }
 
@@ -81,13 +88,13 @@ uint8_t GetSensorInput(void)
 
 
 /* Crosstalk controls the delay between changing the channel */
-uint16_t GetCrossTalkDelay(void)
+int16_t GetCrossTalkDelay(void)
 {
 	return SensorSettings->CrosstalkDelay;
 }
 
 
-void SetCrossTalkDelay(uint16_t newCrosstalk)
+void SetCrossTalkDelay(int16_t newCrosstalk)
 {
 	SensorSettings->CrosstalkDelay = newCrosstalk;
 }

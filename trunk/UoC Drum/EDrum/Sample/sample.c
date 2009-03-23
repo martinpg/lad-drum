@@ -16,6 +16,8 @@ uint8_t DigitalCycle[DIGITAL_INPUTS];
 /* For Retrigger Timers */
 SoftTimer_8   RetriggerPeriod[NUMBER_OF_INPUTS];
 
+/* This stores which analogue channels are active, this streamlines the polling process */
+uint8_t ActiveChannels[NUMBER_OF_INPUTS+1];
 
 /* The functions below all work on the 'current profile */
 
@@ -25,6 +27,7 @@ DigitalSettings_t* DigitalSettings;
 
 GainSettings_t* GainSettings;
 
+static uint16_t LastSampleValue[ANALOGUE_INPUTS];
 
 const char PresetGainStrings[][20] = {{"Exponential 1"},
 												  {"Logorithmic 1"},
@@ -35,6 +38,23 @@ const char PresetGainStrings[][20] = {{"Exponential 1"},
 const int8_t PresetGain1[NUMBER_OF_GAIN_PRESETS] = {8, 13 ,6, 14};
 const int8_t PresetGain2[NUMBER_OF_GAIN_PRESETS] = {10, 11 ,10, 13};
 const int16_t PresetGainCrossover[NUMBER_OF_GAIN_PRESETS] = {950, 150 ,1300, 50};
+
+
+void UpdateActiveChannels(void)
+{
+   uint8_t i;
+   uint8_t ChannelIndex = 0;
+   
+   for( i = 0; i < ANALOGUE_INPUTS; i++)
+   {
+      if( ((ChannelSettings->ChannelStatus) & ((uint32_t)1 << i)) != 0 )
+      {
+         ActiveChannels[ChannelIndex++] = i;
+      }
+   }
+   
+   ActiveChannels[ChannelIndex] = LAST_CHANNEL_INDEX;
+}
 
 
 uint8_t GetChannelStatus(uint8_t channel)
@@ -48,6 +68,7 @@ void ChannelToggle(uint8_t channel)
    SetChannelStatus( channel, !GetChannelStatus(channel) );
 }
 
+/* This is the only place where channel settings can be adjusted */
 void SetChannelStatus(uint8_t channel, uint8_t status)
 {
    ChannelSettings->ChannelStatus &=  ~((uint32_t)1 << channel);
@@ -385,7 +406,7 @@ uint16_t GainFunction(uint8_t channel, uint16_t signalValue)
 		/* Signal > Crossover */
 		uint16_t crossover = GetCrossover(channel);
 		int16_t signalOffset = signalValue - crossover;
-		if( signalOffset )
+		if( (signalOffset > 0) )
 		{
 			return ApplyGain(signalOffset , GetSlope2Gain(channel)) +
 					 ApplyGain(crossover, GetChannelGain(channel));	
@@ -482,8 +503,16 @@ void ScanDigitalInputs(void)
 	
 }
 
+void SetLastSampleValue(uint8_t channel, uint16_t value)
+{
+		/* Update the last sample */
+   LastSampleValue[channel] = value;
+}
 
-
+uint16_t GetLastSampleValue(uint8_t channel)
+{
+	return LastSampleValue[channel];	
+}
 
 void ResetValues(void)
 {
@@ -509,6 +538,9 @@ void ObtainPeak(uint8_t channel, uint16_t sample)
    /* Update the largest sample */
    SignalPeak[channel] = sample;
 }
+
+
+
 
 /* For SMCLK clocked at MCLK = fosc = 8MHz */
 void TimerInit(void)

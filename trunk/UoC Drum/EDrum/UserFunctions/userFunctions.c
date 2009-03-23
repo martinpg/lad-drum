@@ -102,7 +102,7 @@ void about(void* data)
 	
 	primaryMenu.firstEnter = 0;
 	SoftTimerStart(SoftTimer2[SC_AboutUpdate]);
-	aboutScroll(MAIN_SCREEN);	
+	aboutScroll(ThanksIndex(GET));	
 }
 
 
@@ -392,10 +392,10 @@ void GetSysEx(void* data)
 
 
 /* Play mode disables TimerB2 */
-void PlayMode(void* data)
+void ControllerMode(void* data)
 {
 	uint8_t* input = data;
-	
+	uint8_t  i = 0;
 	if( primaryMenu.firstEnter != 1 )
 	{
 		switch( *input )
@@ -417,14 +417,22 @@ void PlayMode(void* data)
 		
 	primaryMenu.firstEnter = 0;	
 	UF_MenuReset();		
-	UF_MenuPrint_P( PSTR("Optimised for Play!"));
+	UF_MenuPrint_P( PSTR("Controller Mode"));
 	UF_MenuNewLine();	
 	UF_MenuPrint_P( PSTR("Press any key to"));
 	UF_MenuNewLine();
 	UF_MenuPrint_P( PSTR("return to Main Menu!"));
 	UF_MenuNewLine();			
-	/* Stop the Auxuliary Timer */
-	TBCCTL2 &= ~(CCIE);
+	
+	for( i = 0; i < ANALOGUE_INPUTS; i++)
+	{
+		SetLastMIDIValue(i, MIDI_MAX_DATA);	
+		SetLastSampleValue(i, MAX_THRESHOLD);	
+	}
+	
+	
+	/* Don't stop the Auxuliary Timer */
+	ActiveProcess = CONTROLLER_MODE;
 }
 
 
@@ -672,6 +680,7 @@ void ChannelSetup(void* data)
 	      
 			case KB_BACK:
 			case KP_BACK:
+            UpdateActiveChannels();
             MenuSetInput( &analogueMenu, 0 );
 				primaryMenu.firstEnter = 1;
 				return;
@@ -1556,7 +1565,7 @@ void VUMeterSetup(void* data)
             {
               SoftTimerStop(SoftTimer2[SC_DigitalVUUpdate]);   
             }
-				//SoftTimerStart(SoftTimer1[SC_MIDIOutput]);				
+							
 				UF_MenuUpOneLevel(&primaryMenu);
             firstEnter = 1;
             /* Reset the VU Height */
@@ -1567,8 +1576,16 @@ void VUMeterSetup(void* data)
 		
 	/* Start the VU Meter */
 	UF_MenuReset();
-	UF_MenuPrint_P(PSTR("123456789ABCDEFG"));
-
+	UF_MenuPrint_P(PSTR("123456789ABCDEFG MAX"));
+	
+	
+	VUSetPosition(1,18);
+	UF_MenuPrint_P(PSTR("96"));
+	VUSetPosition(2,18);
+	UF_MenuPrint_P(PSTR("64"));	
+	VUSetPosition(3,18);
+	UF_MenuPrint_P(PSTR("32"));	
+	
 	if( GetVURows() == MAX_ROWS )
 	{
 		VUSetPosition(0,0);
@@ -1866,7 +1883,7 @@ void LoadProfile(void* data)
 void AdjustCrosstalk(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
-	uint16_t crosstalk;
+	int16_t crosstalk;
 	uint8_t outputString[5];
 	
 	crosstalk = GetCrossTalkDelay();
@@ -1876,7 +1893,7 @@ void AdjustCrosstalk(void* data)
    {     
       switch( *input )
       {
-         /* Increment crosstalk delay */
+         /* Increment crosstalk delay by 10 */
          case 'q':
          case KP_A:
 				crosstalk += 10;
@@ -1886,24 +1903,33 @@ void AdjustCrosstalk(void* data)
             }   
          break;
             
-         /* Deccrement crosstalk delay */  
+         /* Increment crosstalk delay by 1*/  
          case 'a':                   
          case KP_B:
+				crosstalk += 1;
+            if( crosstalk > MAX_CROSSTALK)
+            {
+               crosstalk = MIN_CROSSTALK;   
+            }   
+         break;
+
+         /* decrement crosstalk delay by 1*/  
+        case KP_C:
+				crosstalk -= 1;
+            if(crosstalk < MIN_CROSSTALK)
+            {
+               crosstalk = MAX_CROSSTALK;   
+            }
+         break;     
+         
+         /* Decrement crosstalk delay by 10 */  
+        case KP_D:
 				crosstalk -= 10;
             if(crosstalk < MIN_CROSSTALK)
             {
                crosstalk = MAX_CROSSTALK;   
             }
-         break;
-
-         /* Increment crosstalk delay by 100 */  
-        case KP_C:
-				crosstalk += 100;
-            if(crosstalk > MAX_CROSSTALK)
-            {
-               crosstalk = MIN_CROSSTALK;   
-            }
-         break;           
+         break;       
            
          /* Time Component increment function */
          case KB_BACK:

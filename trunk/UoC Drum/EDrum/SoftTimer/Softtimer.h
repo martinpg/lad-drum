@@ -1,6 +1,10 @@
 #ifndef _SOFTTIMERS_H
 #define _SOFTTIMERS_H
 
+
+#define SOFTTIMER_ENABLED (1)
+#define SOFTTIMER_DISABLED (0)
+
 typedef struct _softTimer8
 {
 	uint8_t timeCompare;
@@ -40,25 +44,25 @@ typedef struct _softTimer32
 
 
 
-#define SoftTimerStart(x)        x.timerEnable = 1; SoftTimerReset(x)
-#define SoftTimerStop(x)         x.timerEnable = 0
+#define SoftTimerStart(x)        x.timerEnable = SOFTTIMER_ENABLED; SoftTimerReset(x)
+#define SoftTimerStop(x)         x.timerEnable = SOFTTIMER_DISABLED
 
 
 /* 10us Resolution */
 #define SAMPLE_10US    (F_CPU / 100000)
 
 /* 100us Resolution */
-#define SAMPLE_100US (800)
+#define SAMPLE_100US (F_CPU / 10000)
 
-/* 1ms Resoultion */
-#define SAMPLE_1MS   (8000)
+/* 1ms Resoultion @ 8MHz*/
+#define SAMPLE_1MS   (F_CPU / 1000)
 
 /* CCR1B associated timers */
 enum {  
 
    SC_SecondDelay = 0,
    SC_MIDIOutput,
-   SC_MIDIFastOutput,
+   SC_RetriggerReset,
    TIMER1B_COUNT 
    
 } timer1BIds;
@@ -70,8 +74,8 @@ enum {
    SC_VUMeterUpdate,
    SC_DigitalVUUpdate,
    SC_VUDecay,
-   SC_RetriggerReset,
    SC_AboutUpdate,
+   /* LCD_BL_Period should be the last T2 SoftTimer */
    SC_LCD_BL_Period,
    TIMER2B_COUNT 
    
@@ -79,5 +83,7 @@ enum {
 
 extern SoftTimer_16  SoftTimer1[];
 extern SoftTimer_16  SoftTimer2[];
+
+uint8_t SoftTimer_IsTimer2Active(void);
 
 #endif

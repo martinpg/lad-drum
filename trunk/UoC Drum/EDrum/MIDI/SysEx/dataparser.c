@@ -300,7 +300,7 @@ int main(int argc, char *argv[])
       	/* Sensor Settings */
       	SysExData.sensorSettings.SensorInputPort = (uint16_t)GetData(dataFile);  
       
-      	SysExData.sensorSettings.CrosstalkDelay = (uint16_t)GetData(dataFile);     
+      	SysExData.sensorSettings.CrosstalkDelay = (int16_t)GetData(dataFile);     
 
          SysexWrite(&SysExData, outputFile);
          //}
