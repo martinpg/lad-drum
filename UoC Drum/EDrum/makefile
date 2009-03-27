@@ -105,6 +105,7 @@ SOURCE_FILES = $(PERIPHERALS_DIR)/UART/uart.c \
                Profiles/profiles.c \
 			   UserFunctions/userFunctions.c \
 			   MIDI/midi.c \
+				ControllerMode/ControllerMode.c \
                MIDI/SysEx/SysEx.c \
                Sample/sample.c \
                LCDSettings.c \

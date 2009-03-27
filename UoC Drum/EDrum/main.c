@@ -29,6 +29,7 @@
 #include "Profiles/profiles.h"
 #include "VUMeter/vumeter.h"
 #include "UserFunctions/userFunctions.h"
+#include "ControllerMode/ControllerMode.h"
 #include "version.h"
 #include "LCDSettings.h"
 #include "MenuSettings.h"
@@ -586,21 +587,35 @@ interrupt (PORT1_VECTOR)   port1_int(void)
             break;
             
             case CONTROLLER_MODE:
-					/* If keys A,B,C are simultaneously pressed */
+					/* KEY ABC to return to the main menu 
+					 * and exit Controller Mode */
 					if( IntResult == 0x78 )
 					{
+						IntResult = KP_BACK;
+						ActiveProcess = PLAY_MODE;
+						break;
+					}
+					/* KEY* to return to the main menu 
+					 * but stay in Controller Mode */
+					if( IntResult == KP_STAR && (CM_GetMenuMode() == CM_SETTINGS_MODE) )
+					{
+						CM_SetMenuMode(CM_MENU_MODE);
 						IntResult = KP_BACK;
 						break;
 					}
 					
-					
-					MIDI_KeypadOutput(UI_KP_ReturnID(IntResult));
-					/* Reset Button States */
-					UI_INT_IFG &= ~(UI_COLS);
-      			UI_Activate();
-					eint();
-				return;
-            
+					if( CM_GetMenuMode() == CM_SETTINGS_MODE )
+					{
+						CM_ReceiveInput(UI_KP_ReturnID(IntResult));
+	
+						/* Reset Button States */
+						UI_INT_IFG &= ~(UI_COLS);
+	      			UI_Activate();
+						eint();
+						return;
+					}
+				break;
+				
             /* Any key will cancel SysEx reception */
             case RECEIVE_SYSEX:
                ActiveProcess = PLAY_MODE;

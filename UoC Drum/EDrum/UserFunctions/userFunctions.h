@@ -1,7 +1,7 @@
 #ifndef USERFUNCTIONS_H
 #define USERFUNCTIONS_H
 
-
+#include "Menu/menu.h"
 #include "Profiles/profiles.h"
 
 #define GET (0xFF)
