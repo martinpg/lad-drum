@@ -189,11 +189,11 @@ void SetChannelCommand(uint8_t channel, int8_t command);
 
 /* Channel Key */
 uint8_t GetChannelKey(uint8_t channel);
-void SetChannelKey(uint8_t channel, int16_t key);
+void SetChannelKey(uint8_t channel, int8_t key);
 
 /* Closed Channel Keys */
 uint8_t GetChannelKeyClosed(uint8_t channel);
-void SetChannelKeyClosed(uint8_t channel, int16_t key);
+void SetChannelKeyClosed(uint8_t channel, int8_t key);
 
 /* Channel Thresholds */
 uint16_t GetChannelThresh(uint8_t channel);

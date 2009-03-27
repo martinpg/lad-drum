@@ -102,12 +102,14 @@ uint8_t GetChannelKey(uint8_t channel)
    return ChannelSettings->ChannelKey[channel];
 }
 
-void SetChannelKey(uint8_t channel, int16_t key)
+void SetChannelKey(uint8_t channel, int8_t key)
 {
-   if( key > MIDI_MAX_KEY)
+	/* Coming from 127 + 10 will be less than -50 */
+   if( key < -50)
    {
       key = 0;  
    }
+   /* zero - 15 will be less than 0, but not less than -50 */
    if( key < 0)
    {
       key = MIDI_MAX_KEY;  
@@ -122,9 +124,9 @@ uint8_t GetChannelKeyClosed(uint8_t channel)
    return ChannelSettings->ClosedChannelKey[channel];
 }
 
-void SetChannelKeyClosed(uint8_t channel, int16_t key)
+void SetChannelKeyClosed(uint8_t channel, int8_t key)
 {
-   if( key > MIDI_MAX_KEY)
+   if( key < -50)
    {
       key = 0;  
    }

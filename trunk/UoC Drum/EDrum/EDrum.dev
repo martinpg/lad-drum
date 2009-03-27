@@ -1,7 +1,7 @@
 [Project]
 FileName=EDrum.dev
 Name=EDrum
-UnitCount=40
+UnitCount=42
 Type=1
 Ver=1
 ObjFiles=
@@ -20,7 +20,7 @@ ObjectOutput=
 OverrideOutput=0
 OverrideOutputName=
 HostApplication=
-Folders=ADC12,Delay,Menu,MIDI,Profiles,"Ring Buffer",Sample,Sensor,SoftTimer,SysEx,UART,UI,UI/KP,UI/LCD,"User Functions",Util,"VU Meter"
+Folders=ADC12,"Controller Mode",Delay,Menu,MIDI,Profiles,"Ring Buffer",Sample,Sensor,SoftTimer,SysEx,UART,UI,UI/KP,UI/LCD,"User Functions",Util,"VU Meter"
 CommandLine=
 UseCustomMakefile=0
 CustomMakefile=
@@ -441,6 +441,26 @@ BuildCmd=
 FileName=..\FuncLib\Util\Delay\delay.c
 CompileCpp=0
 Folder=Delay
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit41]
+FileName=ControllerMode\ControllerMode.c
+CompileCpp=0
+Folder=Controller Mode
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit42]
+FileName=ControllerMode\ControllerMode.h
+CompileCpp=0
+Folder=Controller Mode
 Compile=1
 Link=1
 Priority=1000

@@ -23,6 +23,7 @@
 #include "VUMeter/vumeter.h"
 #include "MenuSettings.h"
 #include "LCDSettings.h"
+#include "ControllerMode/ControllerMode.h"
 
 static uint8_t SelectedProfile = DEFAULT_PROFILE;
 static uint8_t SelectedChannel = 0;
@@ -304,9 +305,7 @@ void SysExDisplay(void* data)
 void DumpSysEx(void* data)
 {
    uint8_t* input = 0;
-   uint8_t  outputString[3];
 	uint16_t i;
-	uint8_t j;
 	   
    input = data;
 
@@ -342,7 +341,6 @@ void GetSysEx(void* data)
 {
    uint8_t* input = 0;
 	uint16_t i;
-	uint8_t j;
 	   
    input = data;
 
@@ -395,7 +393,7 @@ void GetSysEx(void* data)
 void ControllerMode(void* data)
 {
 	uint8_t* input = data;
-	uint8_t  i = 0;
+
 	if( primaryMenu.firstEnter != 1 )
 	{
 		switch( *input )
@@ -405,31 +403,28 @@ void ControllerMode(void* data)
          
          break;
          
-	      default:
-			ActiveProcess = DEFAULT_PROCESS;      
+	      default:     
 	   	UF_MenuSetInput(KP_BACK);
 	      UF_stateMachine(primaryMenu.currentState);
 	      UF_MenuSetInput(0);
 	      /* Start the Aux Timer again */
-			TBCCTL2 |= (CCIE);    
+			TBCCTL2 |= (CCIE);
 	      return;	
 		}	
 	}
 		
 	primaryMenu.firstEnter = 0;	
-	UF_MenuReset();		
-	UF_MenuPrint_P( PSTR("Controller Mode"));
-	UF_MenuNewLine();	
-	UF_MenuPrint_P( PSTR("Press A,B,C to"));
-	UF_MenuNewLine();
-	UF_MenuPrint_P( PSTR("return to Main Menu!"));
-	UF_MenuNewLine();			
 	
+	CM_SetMenuMode(CM_SETTINGS_MODE);
+	
+	CM_printEnteredData();		
+	
+	/* Only used when KP inputs are buttons 
 	for( i = 0; i < ANALOGUE_INPUTS; i++)
 	{
 		SetLastMIDIValue(i, MIDI_MAX_DATA);	
 		SetLastSampleValue(i, MAX_THRESHOLD);	
-	}
+	}*/
 	
 	
 	/* Don't stop the Auxuliary Timer */
@@ -731,15 +726,8 @@ void ChannelSetup(void* data)
 	{
    	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
       UF_MenuPrint(outputString);
-   	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
-   	{
-         UF_MenuPrint_P( PSTR("0"));  
-      }
-      else
-      {  
-      	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
-    		UF_MenuPrint(outputString); 	
-      }   
+      uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+    	UF_MenuPrint(outputString); 	
    }
    else
    {
@@ -1423,15 +1411,8 @@ void DigitalChannelSettings(void* data)
 	{
    	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
       UF_MenuPrint(outputString);
-   	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
-   	{
-         UF_MenuPrint_P( PSTR("0"));  
-      }
-      else
-      {  
-      	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
-    		UF_MenuPrint(outputString); 	
-      } 
+      uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+    	UF_MenuPrint(outputString); 	
    }  
    else
    {
