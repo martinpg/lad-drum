@@ -18,6 +18,12 @@ static const uint8_t KP_COLS2OUTPUTS[] = {MAX7300_DDRB2, 0x56, 0x7D};
 
 #endif
 
+static const uint8_t KP_ButtonIndex[] = {KP_0, KP_1, KP_2, KP_3, 
+                                  KP_4, KP_5, KP_6, KP_7, 
+                                  KP_8, KP_9, KP_A, KP_B,
+                                  KP_C, KP_D, KP_STAR, KP_HASH};
+
+
 void UI_KP_Init(void)
 {
 #if VERSION_CODE == VERSION_WITH_PE	
@@ -86,3 +92,37 @@ uint8_t UI_KP_GetPress(void)
    return KPResult;
    
 }
+
+
+uint8_t UI_KP_ReturnID(uint8_t KP_Button)
+{
+	uint8_t i;
+	
+	for( i = 0; i < KP_ButtonCount; i++)
+	{
+		if( KP_Button == KP_ButtonIndex[i] )
+		{
+			return i;	
+		}
+	}
+	
+	return KP_INVALID;
+	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

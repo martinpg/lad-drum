@@ -32,6 +32,7 @@
 #define MENU_LCD  0
 #define MENU_UART    (1)
 #define RESET_MENU     (1)
+#define SHOW_CHILDREN (0x00)
 #define HIDE_CHILDREN (0x02)
 #define SCROLL_BAR   (1)
 

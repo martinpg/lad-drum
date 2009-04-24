@@ -105,8 +105,9 @@ void VUMeterPrint(uint8_t meterIndex, uint8_t rows )
       rows = FULL_RANGE;  
    }
    
-   if( meterIndex == ALL_METERS )
+   if( meterIndex & SEQUENTIAL_METERS )
    {
+		uint8_t printLimit = (meterIndex & 0x0F);
 	   VUPosition(VURowStart, VUColStart);
 	   VURow = VURowStart;
    	VUCol = VUColStart;
@@ -118,7 +119,7 @@ void VUMeterPrint(uint8_t meterIndex, uint8_t rows )
          
          
 		   /* Print out all the required VUMeters */
-		   for( col = 0; col < MAX_METERS; col++ )
+		   for( col = 0; col <= printLimit; col++ )
 		   {
 	         temp = (VULevel[col]) - (row << 3);
 	         /* Limit the pixels to each row to 0 -> 8 */
@@ -138,38 +139,30 @@ void VUMeterPrint(uint8_t meterIndex, uint8_t rows )
 	}
    
    
-   /* Print out all the required VUMeters */
-   for( col = 0; col < MAX_METERS; col++ )
+
+	VURow = VURowStart;
+	/* Move across to the VUMeter and reset position */
+	VUPosition(VURowStart, meterIndex);
+	
+   /* For each VUMeter, print out the pixels */
+   for( row = rows - 1; row >= stop; row-- )
    {
-		VURow = VURowStart;
-		VUCol = col;
-		/* Move across one VUMeter and reset position */;
-      VUPosition(VURowStart, col);
-		
-		
-      if( col == meterIndex )
+      int8_t temp;
+      temp = (VULevel[meterIndex]) - (row << 3);
+      
+      /* Limit the pixels to each row to 0 -> 8 */
+      if( temp <= 0 )
       {
-         /* For each VUMeter, print out the pixels */
-         for( row = rows - 1; row >= stop; row-- )
-         {
-            int8_t temp;
-            temp = (VULevel[col]) - (row << 3);
-            
-            /* Limit the pixels to each row to 0 -> 8 */
-            if( temp <= 0 )
-            {
-               temp = ' ';  
-            }
-            else if( temp >= PIXELS_PER_ROW )
-            {
-               temp = FULL_BLOCK;  
-            }
-            VUPrint(temp);
-            VUNewLine();
-         }
+         temp = ' ';  
       }
+      else if( temp >= PIXELS_PER_ROW )
+      {
+         temp = FULL_BLOCK;  
+      }
+      VUPrint(temp);
+      VUNewLine();
    }
-  
+
 }
 
 
