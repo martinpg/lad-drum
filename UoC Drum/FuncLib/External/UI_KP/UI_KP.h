@@ -18,6 +18,7 @@
 #ifndef	_UI_KP_ROUTINES
 #define	_UI_KP_ROUTINES
 
+#include <stdint.h>
 #include "version.h"
 
 #if VERSION_CODE == VERSION_WITH_PE	  
@@ -65,11 +66,8 @@
 #define KP_INVALID   (0xFF)
 
 
-/*static const uint8_t KP_Button[] = {KP_2, KP_8, KP_5, KP_HASH, 
-                                  KP_4, KP_6, KP_A, KP_B, 
-                                  KP_C, KP_D, KP_1, KP_3,
-                                  KP_7, KP_9, KP_0, KP_STAR};
-*/
+
+
 
 #endif
 
@@ -132,6 +130,10 @@ void UI_KP_Init(void);
 
 /** Returns the KP button pressed */
 uint8_t UI_KP_GetPress(void);
+
+/* Returns 0->15 depending on input keypad input*/
+uint8_t UI_KP_ReturnID(uint8_t KP_Button);
+
 
 
 #endif

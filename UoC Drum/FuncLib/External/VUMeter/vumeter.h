@@ -9,7 +9,8 @@
 
 
 /* To print all columns */
-#define ALL_METERS   (0xFF)
+#define SEQUENTIAL_METERS   (0xE0)
+#define ALL_METERS (0xFF)
 #define FULL_RANGE   (4)
 #define PIXELS_PER_ROW  (8)
 /* For a 20x4 LCD Module */

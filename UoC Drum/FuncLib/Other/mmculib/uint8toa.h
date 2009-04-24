@@ -8,6 +8,7 @@
 #define UINT8TOA_H
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #define uint8toa(num,str)	utoa(num, str, 10)
 
