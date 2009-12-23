@@ -55,10 +55,18 @@
 #endif
 
 
-HD44780lcd_t   PrimaryDisplay;
+HD44780lcd_t   PrimaryDisplay = 
+{
+   3, 19, 0, 0, 0, 
+   UI_LCD_HWInit, 
+   UI_LCD_SetRegister, 
+   UI_LCD_Strobe, 
+   UI_LCD_BL_On, 
+   UI_LCD_BL_Off
+};
 
-
-
+static uint8_t BL_State = !LCD_BL_ON;
+static uint8_t Min_BL_State = 0;
 
 const uint8_t LcdCustomChar[][8] =
 {

@@ -152,6 +152,14 @@ uint8_t CardReadByte(cardReader_t* cr)
    return inByte;
 }
 
+void Card_reset(cardInfo_t* card)
+{
+
+	card->number[0] = 0;
+	card->name[0] = 0;
+	card->expiry[0] = 0;
+	
+}
 
 uint8_t Card_ParseData(cardReader_t* cr, uint8_t data)
 {

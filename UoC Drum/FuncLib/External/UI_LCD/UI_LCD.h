@@ -65,9 +65,12 @@
 #define LCD_BL_PORT  P1OUT
 #define LCD_BL_PIN   2
 #define LCD_BL_DDR   P1DIR
+#define LCD_BL_SEL   P1SEL
 
-
+#define LCD_BL_MAX_BRIGHTNESS   (100)
+#define LCD_BL_MIN_BRIGHTNESS   (20)
 #define LCD_BL_TIMED   0
+#define LCD_BL_ON    1
 
 #define LCD_RAM_END  (0x67)
 

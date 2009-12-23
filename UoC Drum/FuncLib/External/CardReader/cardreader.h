@@ -43,7 +43,7 @@ typedef struct cardInformation
 } cardInfo_t;
 
 void Card_Populate(cardInfo_t* card, uint8_t dataIn);
-
+void Card_reset(cardInfo_t* card);
 
 void Card_Init(cardReader_t* cr, uint8_t newTrack);
 
