@@ -24,14 +24,15 @@
 /* Holds functions for the timers and is an example of implementation*/
 
 
-   
+/* These are the critical timers */
 SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},  // Second Delay...
 														 {15, 0, 1},   // MIDI Output
 														 {10, 0, 1}};  // Retrigger Reset	 }; 
 
 
 
-SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{100, 0, 0},  // Threshold Bar
+/* These are non-critical timers */
+SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{110, 0, 0},  // Threshold Bar
                                            {70, 0, 0},  // VU Meter Update 
                                            {70, 0, 0},  // Digital VU Meter Update
 														 {25, 0, 0},  // VU Decay
@@ -55,10 +56,11 @@ interrupt (TIMERB0_VECTOR) timerb0_int(void)
 		ResetValues();	
       SoftTimerReset(SoftTimer1[SC_MIDIOutput]);  
       
-      //UART_Tx( (uint8_t)(BenchMarkCount>>8) );
-      //UART_Tx( (uint8_t)(BenchMarkCount) );
+      /* Benchmark reporting */
+      /*UART_Tx( (uint8_t)(BenchMarkCount>>8) );
+      UART_Tx( (uint8_t)(BenchMarkCount) );
+      BenchMarkCount = 0;*/
       
-      //BenchMarkCount = 0;
          
    }	    
 	      

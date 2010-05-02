@@ -11,6 +11,14 @@
 
 static int8_t selectedModule = -1;
 
+static char txbuffer[TXBUFFER_SIZE];
+static RINGBUFFER_T TransmitBuffer = {txbuffer, sizeof(txbuffer)};
+
+static char rxbuffer[RXBUFFER_SIZE];
+RINGBUFFER_T ReceiveBuffer = {rxbuffer, sizeof(rxbuffer)};
+
+/* For those MSPs with a USART not a USI (MSP430F1x)*/
+#ifdef __MSP430_HAS_UART0__
 static uint8_t* UxCTL = (uint8_t*)U0CTL_;
 static uint8_t* UxTCTL = (uint8_t*)U0TCTL_;
 static uint8_t* UxRCTL = (uint8_t*)U0RCTL_;
@@ -19,14 +27,6 @@ static uint8_t* UxBR0 = (uint8_t*)U0BR0_;
 static uint8_t* UxBR1 = (uint8_t*)U0BR1_;
 static uint8_t* UxRXBUF = (uint8_t*)U0RXBUF_;
 static uint8_t* UxTXBUF = (uint8_t*)U0TXBUF_; 
-
-
-
-static char txbuffer[TXBUFFER_SIZE];
-static RINGBUFFER_T TransmitBuffer = {txbuffer, sizeof(txbuffer)};
-
-static char rxbuffer[RXBUFFER_SIZE];
-RINGBUFFER_T ReceiveBuffer = {rxbuffer, sizeof(rxbuffer)};
 
 void UART_Select(uint8_t module)
 {
@@ -41,6 +41,30 @@ void UART_Select(uint8_t module)
    
    selectedModule = module;
 }
+
+
+/* Once a tx has completed, this is called */
+interrupt (USART0TX_VECTOR) usart0_tx()
+{
+   IFG2 &= ~(UCA0TXIFG);
+   /* Tx the next byte if there are still bytes in the buffer */
+   if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
+   {
+      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
+   }
+}
+
+/* Once a tx has completed, this is called */
+interrupt (USART1TX_VECTOR) usart1_tx()
+{
+   /* Tx the next byte if there are still bytes in the buffer */
+   if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
+   {
+      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
+   }
+}
+
+
 
 void UART_Init(void)
 {  
@@ -102,6 +126,130 @@ void UART_Init(void)
 
    
 }
+#endif
+
+
+
+/* For those MSPs with a USI (MSP430F2x)*/
+#ifdef __MSP430_HAS_USCI__
+static uint8_t* UxCTL0 = (uint8_t*)UCA0CTL0_;
+static uint8_t* UxCTL1 = (uint8_t*)UCA0CTL1_;
+static uint8_t* UxBR0 = (uint8_t*)UCA0BR0_;
+static uint8_t* UxBR1 = (uint8_t*)UCA0BR1_;
+static uint8_t* UxMCTL = (uint8_t*)UCA0MCTL_;
+static uint8_t* UxSTAT = (uint8_t*)UCA0STAT_;
+static uint8_t* UxRXBUF = (uint8_t*)UCA0RXBUF_;
+static uint8_t* UxTXBUF = (uint8_t*)UCA0TXBUF_;
+
+
+void UART_Select(uint8_t module)
+{
+   UxCTL0  =  (uint8_t*)( &UCA0CTL0 + module*0x70 );
+   UxCTL1  =  (uint8_t*)( &UCA0CTL1 + module*0x70 );
+   UxBR0   =  (uint8_t*)( &UCA0BR0 + module*0x70);
+   UxBR1   =  (uint8_t*)( &UCA0BR1 + module*0x70);
+   UxMCTL  =  (uint8_t*)( &UCA0MCTL + module*0x70);
+   UxSTAT  =  (uint8_t*)( &UCA0STAT + module*0x70);
+
+   UxRXBUF =  (uint8_t*)( &UCA0RXBUF + module*0x70);
+   UxTXBUF =  (uint8_t*)( &UCA0TXBUF + module*0x70);
+
+   selectedModule = module;
+}
+
+/* Once a tx has completed, this is called */
+interrupt (USCIAB0TX_VECTOR) usart0_tx()
+{
+
+   IFG2 &= ~(UCA0TXIFG);
+   /* Tx the next byte if there are still bytes in the buffer */
+   if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
+   {
+      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
+   }
+}
+
+/* Once a tx has completed, this is called */
+interrupt (USCIAB1TX_VECTOR) usart1_tx()
+{
+   UC1IFG &= ~(UCB1TXIFG);
+   /* Tx the next byte if there are still bytes in the buffer */
+   if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
+   {
+      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
+   }
+}
+
+
+/* The the MSP430F2X devices */
+void UART_Init(void)
+{
+   /* Setup the clocks */
+  // BCSCTL1 &= ~XT2OFF;
+
+   /* SMCLK is XT2 and so is the MCLK */
+  // BCSCTL2 |= SELM1 | SELS; ;
+
+   UART_ValidateModule();
+
+   /* Disable the USART Module and use SMCLK */
+   *UxCTL1 = (UCSSEL1 | UCSWRST);
+   /* Select UART Mode with 8-bit data and No Parity */
+   *UxCTL0 = 0x00;
+
+   /* Set Baud Rate */
+   /* For a speed of 9600 Baud, asssuming a 8192000 Clk speed */
+   *UxBR1 = 0x03;
+   *UxBR0 = 0x41;
+   *UxMCTL = (UCBRS_2);
+
+   /* Activate the USART Module */
+   *UxCTL1 &= ~(UCSWRST);
+
+   /* Reset Interrupts since they are high from PUC */
+   IFG2 &= ~(UCA0TXIFG);
+   UC1IFG &= ~(UCB1TXIFG);
+
+   ringbuffer_clear((RINGBUFFER_T*)&TransmitBuffer);
+
+   if( selectedModule == 0)
+   {
+      P3DIR &= ~(1 << 5);
+      P3DIR |= (1 << 4);
+
+      P3SEL |= 0x30; // P3.4,5 = USART0 TXD/RXD
+
+      /* Enable Receive Interrupts */
+#if USEBUFF == 1
+      IE2 |= (UCA0RXIE) | (UCA0TXIE);
+#else
+      IE2 |= UCA0RXIE;
+#endif
+   }
+   else
+   {
+      P3DIR &= ~(1 << 6);
+      P3DIR |= (1 << 7);
+
+      P3SEL |= 0xC0;  // P3.6 & 7 = USART1 TXD / RXD
+#if USEBUFF == 1
+      UC1IE |= (UCA1RXIE) | (UCA1TXIE);
+#else
+      UC1IE |= UCA1RXIE;
+#endif
+   }
+
+
+
+}
+
+#endif
+
+
+
+
+
+
 
 
 void UART_SetBaudRate(uint8_t BR_Hi, uint8_t BR_Lo)
@@ -123,13 +271,19 @@ void UART_ValidateModule(void)
 /* UART_Tx: Transfers a byte out UARTx */
 void UART_Tx(char byte)
 {
+
+
    /* Do not validate for speed increase */
    //UART_ValidateModule();
 #if USEBUFF == 1 
    while( ringbuffer_put((RINGBUFFER_T*)&TransmitBuffer, byte) == BUFFER_OVERFLOW )
    {
-		if( (*UxTCTL & TXEPT) )
-   	{
+#ifdef __MSP430_HAS_UART0__
+        if( (*UxTCTL & TXEPT) )
+#else
+        if( !(*UxSTAT & UCBUSY) )
+#endif
+          {
 	      /* This should only cause the first byte of the buffer to be sent */
 	      /* Subsequent bytes should generate interrupts */
 	      if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
@@ -137,21 +291,28 @@ void UART_Tx(char byte)
 	      	*UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
 	   	}	
    	}     
-	}
+   }
+
    /* Begin the transmission, if ready */
    /* USART0/1 TX buffer ready? Both have to be ready... since really,
       only one UART will be used in most cases */
+#ifdef __MSP430_HAS_UART0__
    if( (*UxTCTL & TXEPT) )
+#else
+   if( !(*UxSTAT & UCBUSY))
+#endif
    {
       /* This should only cause the first byte of the buffer to be sent */
       /* Subsequent bytes should generate interrupts */
-      if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
+        if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
    	{
       	*UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
    	}	
    }                  
 
 #else   
+
+#ifdef __MSP430_HAS_UART0__
    *UxTXBUF = byte;  
    if( selectedModule == USART0 )
    {
@@ -160,29 +321,12 @@ void UART_Tx(char byte)
    else
    {
       while (!(IFG2 & UTXIFG1));                // USART1 TX buffer ready? 
-   }    
+   }
+#endif
 #endif   
 }
 
-/* Once a tx has completed, this is called */
-interrupt (USART0TX_VECTOR) usart0_tx()
-{
-   /* Tx the next byte if there are still bytes in the buffer */
-   if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
-   {
-      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
-   }
-}
 
-/* Once a tx has completed, this is called */
-interrupt (USART1TX_VECTOR) usart1_tx()
-{
-   /* Tx the next byte if there are still bytes in the buffer */
-   if( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer) )
-   {
-      *UxTXBUF = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
-   }
-}
 
 
 /** Writes nbytes of buffer to the UART */

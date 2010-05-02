@@ -14,10 +14,18 @@
 #define MAX_MIDI_RATE   (5000)
 #define MIDI_MAX_DATA   (127)
 #define MIDI_MAX_KEY    (127)
+
+/*#if F_CPU == 8000000
 #define BAUD_31250      (0x0100)
 #define BAUD_38400      (0x00D0)
 #define BAUD_115200		(0x0045)
 #define BAUD_1M			(0x0008)
+#else*/
+#define BAUD_31250      (F_CPU / 31250)
+#define BAUD_38400      (F_CPU / 38400)
+#define BAUD_115200		(F_CPU / 115200)
+#define BAUD_1M			(F_CPU / 1000000)
+//#endif
 
 
 #define DEFAULT_BAUD_RATE	BAUD_38400

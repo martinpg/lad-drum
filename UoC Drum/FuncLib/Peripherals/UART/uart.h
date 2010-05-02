@@ -1,4 +1,4 @@
-/* MSP430 UART Routines
+/* MSP430 UART Routines for MSP430F1x devices
  * Adrian Gin
  *
  */

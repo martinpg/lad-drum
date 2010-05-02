@@ -18,7 +18,7 @@ critical int ringbuffer_get(RINGBUFFER_T *buffer) {
         //get byte from buffer, update read position and return
         return buffer->memory[buffer->read_pos++];
     } else {
-        return -1;
+        return BUFFER_OVERFLOW; /* This is really trying to get a nonexistant byte */
     }
 }
 

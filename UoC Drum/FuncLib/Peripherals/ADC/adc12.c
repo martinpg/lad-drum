@@ -20,10 +20,10 @@ void ADC12_Init(void)
    /* Activate on ADC12SC bit, 1x Clock Divider, ADC12MEM0 result start,
     * Based on non-inverting pulses, Single Channel, single conversion
     * and using the MCLK */
-   ADC12CTL1 = ADC12SSEL_MCLK | CONSEQ_SINGLE;
+   ADC12CTL1 = ADC12SSEL_MCLK | CONSEQ_SINGLE | ADC12DIV_1;
    
    /* Activate ADC12 */
-   ADC12CTL0 |= ADC12ON;
+   ADC12CTL0 |= (ADC12ON);
 }
 
 /* Sample and return on selected StartAddress's Pin*/
@@ -79,8 +79,6 @@ void ADC12_SH_Time(uint16_t SampleHold)
 {
    ADC12CTL0 &= ~(0xFF00); 
    ADC12CTL0 |= (SampleHold << 8); 
-   
-   
 }
 
 
