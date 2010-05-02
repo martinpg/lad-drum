@@ -42,11 +42,21 @@ const char VersionId[] = "1.0W 4/1/08";
 /* Initial Release: 
    const char VersionId[] = "1.0 4/1/08";
 */
-const char VersionId[] = "1.2 23/3/09";
+const char VersionId[] = "1.2 2/5/10";
+/* Change Log: 1/05/10
+ * To Do: Set the analogue input port to low to clear the input
+ * signal buffer.
+ * X1 Crystal installed and set to 16MHz.
+ *
+ * We could save each sample so we know what the voltage waveform looks like
+ *
+ */
+
+
 /* Change Log 23/03/09
  * Note: Benchmarks performed and speed has been increase 10 fold.
  * Added Controller Mode process and Keypad inputs as extra digital channels.
- * Controller mode allows analogue channels have have potentiometer and
+ * Controller mode allows analogue channels to have potentiometer and
  * variable voltage input. MIDI is only output if the value detected is different.
  *
  * Hardware Change: USB Powered.
@@ -68,209 +78,7 @@ const char VersionId[] = "1.2 23/3/09";
  */
  
  
-/* Benchmark Results */
-/* 28/02/09: Number of samples per millisecond.
-Function is:
-ADC12_Sample();
-BenchMarkCount++;
 
-50ms = 6300 samples
-20ms = 2540 samples
-10ms = 1280 samples
-8ms = 1030 samples
-5ms = 660 samples
-2ms = 280 samples
-1ms = 150 samples
-
-Note that these samples are the 'maximum' possible. No Drum processing has occured.
-
-==== BENCHMARK 2 ======
-1. Removed retrigger period
-2. Ignored Crosstalk delay.
-3. Note that each 'sample' includes 13 samples (13 activated analogue channels)
-4. Results:
-
-50ms = 71 (923) samples
-20ms = 30 (390) samples
-15ms = 22 (286) samples
-10ms = 15 (195) samples
-8ms = 13 (169) samples
-5ms = 9 (117) samples
-2ms = 4 (52) samples
-1ms = 3 (39) samples
-
-
-void Benchmark(void)
-{
-   uint8_t i = 0;
-   uint8_t SelectedChannel = 0;
-   uint16_t sample;
-   
-	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
-	{
-      SelectedChannel = ActiveChannels[i++];
-      SensorChannel(SelectedChannel);
-      //_delay_us(SensorSettings->CrosstalkDelay);
-      sample = ADC12_Sample();
-      ObtainPeak(SelectedChannel, sample);
-   }   
-}
-
-
-======= BENCHMARK 3 =======
-1. Removed retrigger period
-2. Ignored Crosstalk delay.
-3. Note that each 'sample' includes 13 samples (13 activated analogue channels)
-4. Results:
-
-50ms = 408 (5304) samples
-20ms = 167 (2171) samples
-15ms = 127 (1651) samples
-10ms = 87 (1131) samples
-8ms = 71 (923) samples
-5ms = 47 (611) samples
-2ms = 23 (299) samples
-1ms = 15 (195) samples
-
-Perhaps ObtainPeak or SensorChannel uses many clock cycles
-
-void Benchmark(void)
-{
-   uint8_t i = 0;
-   uint8_t SelectedChannel = 0;
-   uint16_t sample;
-   
-	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
-	{
-      SelectedChannel = ActiveChannels[i++];
-      sample = ADC12_Sample();
-   }   
-}
-
-======= BENCHMARK 4 =======
-1. Removed retrigger period
-2. Ignored Crosstalk delay. Added Channel Select Function.
-3. Note that each 'sample' includes 13 samples (13 activated analogue channels)
-4. Results:
-
-50ms = 75 (975) samples
-20ms = 31 (403) samples
-15ms = 24 (312) samples
-10ms = 16 (208) samples
-8ms = 13 (169) samples
-5ms = 9 (117) samples
-2ms = 5 (65) samples
-1ms = 3 (39) samples
-
-Perhaps SensorChannel uses many clock cycles!! We must optimise this!
-
-==== POST OPTIMISATION ======
-
-50ms = 232 (3016) samples
-20ms = 97 (1261) samples
-15ms = 74 (962) samples
-10ms = 51 (663) samples
-8ms = 42 (546) samples
-5ms = 27 (351) samples
-2ms = 13 (169) samples
-1ms = 9 (117) samples
-
-HUGE 3x improvement!!!
-
-
-void Benchmark(void)
-{
-   uint8_t i = 0;
-   uint8_t SelectedChannel = 0;
-   uint16_t sample;
-   
-	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
-	{
-      SelectedChannel = ActiveChannels[i++];
-      SensorChannel(SelectedChannel);
-      sample = ADC12_Sample();
-   }   
-}
-
-
-
-======= BENCHMARK 5 =======
-1. Added Obtain Peak
-2. Results
-
-50ms = 194 (2522) samples
-20ms = 80 (1040) samples
-15ms = 61 (793) samples
-10ms = 42 (546) samples
-8ms = 35 (455) samples
-5ms = 23 (299) samples
-2ms = 11 (143) samples
-1ms = 7 (91) samples
-
-
-void Benchmark(void)
-{
-   uint8_t i = 0;
-   uint8_t SelectedChannel = 0;
-   uint16_t sample;
-   
-	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
-	{
-      SelectedChannel = ActiveChannels[i++];      
-		SensorChannel(SelectedChannel);
-      sample = ADC12_Sample();                   
-      ObtainPeak(SelectedChannel, sample);
-   }   
-}
-
-
-======= BENCHMARK 6 =======
-1. Now introducing the 150us delay... Oh dear!
-2. Results
-
-Okay it sux... like real bad! 5 samples for 15ms etc.
-
-In light of this, we shall return back to using the play function, but attempt to increase
-thresholds and reduce crosstalk delay.
-
-Returning to play mode, and reducing Crosstalk delay makes performance much the same as
-benchmark 5.
-
-void Benchmark(void)
-{
-   uint8_t i = 0;
-   uint8_t SelectedChannel = 0;
-   uint16_t sample;
-   
-	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
-	{
-      SelectedChannel = ActiveChannels[i++];      
-		SensorChannel(SelectedChannel);
-		_delay_us(SensorSettings->CrosstalkDelay);
-      sample = ADC12_Sample();                   
-      ObtainPeak(SelectedChannel, sample);
-   }   
-}
-
-======= BENCHMARK 6 =======
-1. Gain's have been adjusted and so have thresholds
-2. Cross talk delay has been reduced from 150us to 12us.
-2. Results
-
-This is about a 50% reduction in speed after introducing delay. And an overall
-reduction in max speed by 
-
-50ms = 108 (1404) samples
-20ms = 44 (572) samples
-15ms = 33 (429) samples
-10ms = 22 (286) samples
-8ms = 18 (234) samples
-5ms = 12 (156) samples
-2ms = 5 (65) samples
-1ms = 3 (39) samples
-
-
-*/
 #endif
 
 uint16_t BenchMarkCount = 0;
@@ -287,7 +95,12 @@ int main(void)
    
    /* Setup the clocks */
    BCSCTL1 &= ~XT2OFF;
-   IFG1 &= ~OFIFG;
+   BCSCTL1 |= XTS;
+   
+   /* 8-16MHz operation */
+   BCSCTL3 = (XT2S_2) | (LFXT1S_2);
+   _BIS_SR(OSCOFF);
+
    while( IFG1 & OFIFG )
    {
       IFG1 &= ~OFIFG;
@@ -295,20 +108,20 @@ int main(void)
    }
 
    /* SMCLK is XT2 and so is the MCLK */
-   BCSCTL2 |= (SELM1 | SELS);   
+   BCSCTL2 |= (SELM_2 | SELS);
 
 
    ProfileInit();    
    SensorInit();
-	DigitalInputInit();
+   DigitalInputInit();
    /* Setup the communications module */   
    UART_Select(0);
    UART_Init();
 
    /* Implement the changes */
-	MIDI_SetRate(MIDI_GetRate());
-	MIDI_SetBaud(MIDI_GetBaud());
-	MIDI_SetChannelCode( MIDI_GetChannelCode() );
+   MIDI_SetRate(MIDI_GetRate());
+   MIDI_SetBaud(MIDI_GetBaud());
+   MIDI_SetChannelCode( MIDI_GetChannelCode() );
 
    /* Update Activated Analogue Channels */
    UpdateActiveChannels();
@@ -319,6 +132,7 @@ int main(void)
    /* Make all ADC inputs as inputs and select as special function */
    P6SEL |= (0xFF);
    P6DIR &= ~(0xFF);
+   P6OUT &= ~(0xFF);
    
    /* ADC Module Init */
    ADC12_Init();
@@ -346,8 +160,8 @@ int main(void)
 
    /* Enable LCD */
    UI_LCD_HWInit();
-	UI_LCD_Init(&PrimaryDisplay);
-	UI_LCD_LoadDefaultChars();
+   UI_LCD_Init(&PrimaryDisplay);
+   UI_LCD_LoadDefaultChars();
 	
    LCD_BL_DDR |= (1 << LCD_BL_PIN);
    LCD_BL_PORT &= ~(1 << LCD_BL_PIN);
@@ -361,15 +175,15 @@ int main(void)
 	/* Menu must be Initialised first */
 	/* Backlight 'off' is at 5% */
    UI_LCD_BLInit(5);
-	UI_LCD_BL_On();
+   UI_LCD_BL_On();
 	
-	aboutScroll(MAIN_SCREEN);
-	SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );	
+   aboutScroll(MAIN_SCREEN);
+   SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );	
 	
 
 	
-	_delay_ms(900);	
-	UI_LCD_LoadDefaultChars();					  
+   _delay_ms(900);	
+   UI_LCD_LoadDefaultChars();					  
    /* Reprint Menu */  
    MenuUpdate(&primaryMenu, RESET_MENU);   
    
@@ -382,8 +196,8 @@ int main(void)
       {
          case PLAY_MODE:
             Play();
-            //Benchmark();
-            //BenchMarkCount++;
+            /*Benchmark();
+            BenchMarkCount++;*/
          break;
          
          case CONTROLLER_MODE:
@@ -416,8 +230,8 @@ void Benchmark(void)
       SensorChannel(SelectedChannel);
    	_delay_us(SensorSettings->CrosstalkDelay);
 
-         /* Take a sample */
-         sample = ADC12_Sample();
+      /* Take a sample */
+      sample = ADC12_Sample();
                            
          /* Obtain Peak */
       ObtainPeak(SelectedChannel, sample);
@@ -480,7 +294,6 @@ void Play(void)
       {
          SensorChannel(SelectedChannel);
          _delay_us(SensorSettings->CrosstalkDelay);
-
          /* Take a sample */
          sample = ADC12_Sample();
                            
@@ -490,17 +303,25 @@ void Play(void)
    }   
 }
 
-
+#ifdef __MSP430_HAS_UART0__
 interrupt (USART0RX_VECTOR) usart0_rx(void)
 {
    uint8_t buffer = U0RXBUF;
 
+#else
+interrupt (USCIAB0RX_VECTOR) usart0_rx(void)
+{
+   uint8_t buffer = UCA0RXBUF;
+#endif
 
    static uint8_t channel = 0;
    
    /* Start the Aux Timer for any key press or UART input */
-	TBCCTL2 |= (CCIE);
+   TBCCTL2 |= (CCIE);
+   IFG2 &= ~(UCA0RXIFG);
    
+   UART_Tx(buffer);
+
    switch( ActiveProcess )
    {
       case PLAY_MODE:
@@ -610,7 +431,7 @@ interrupt (PORT1_VECTOR)   port1_int(void)
 	
 						/* Reset Button States */
 						UI_INT_IFG &= ~(UI_COLS);
-	      			UI_Activate();
+	      			    UI_Activate();
 						eint();
 						return;
 					}

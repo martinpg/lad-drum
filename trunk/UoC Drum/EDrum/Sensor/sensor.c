@@ -38,10 +38,6 @@
 
 
 
-
-
-
-
 SensorSettings_t* SensorSettings;
 
 
@@ -53,7 +49,10 @@ void SensorInit(void)
    CHSELOUT &= ~(CHSELPINS);    
 }
 
-/* Changes the sampling channel to channel, CH0 -> CH15 */
+/* Changes the sampling channel to channel, CH0 -> CH15 
+ * If a valid sample is taken, set the input port to an output and
+ * pull it down.
+ */
 void SensorChannel(uint8_t channel)
 {
 	
@@ -69,14 +68,14 @@ void SensorChannel(uint8_t channel)
    channel = ~channel;
    
    channelState = ((channel & (0x08)) >> 3) | ((channel & (0x04)) >> 1) | ((channel & (0x02)) << 1) | ((channel & (0x01)) << 3);
-	CHSELOUT = (CHSELOUT & ~(CHSELPINS)) | channelState;
+   CHSELOUT = (CHSELOUT & ~(CHSELPINS)) | channelState;
    return;
 }
 
 /* New Port must be within INCH_A0 -> INCH_Ax */
 void SensorInputSelect(uint8_t newPort)
 {
-	SensorSettings->SensorInputPort = newPort;
+   SensorSettings->SensorInputPort = newPort;
    ADC12_SetupAddress(0, newPort);
 }
 

@@ -21,8 +21,8 @@ OPTIMISE = -O2
 
 COMPILE = -c
 OUTPUT = -o
-MMCU = msp430x168
-F_CPU = 8000000
+MMCU = msp430x248
+F_CPU = 16000000
 # Place -D or -U options here for C sources
 CDEFS = -DF_CPU=$(F_CPU)UL
 # End of msp430-GCC Options
