@@ -431,7 +431,7 @@ interrupt (PORT1_VECTOR)   port1_int(void)
 	
 						/* Reset Button States */
 						UI_INT_IFG &= ~(UI_COLS);
-	      			    UI_Activate();
+		            UI_Activate();
 						eint();
 						return;
 					}
