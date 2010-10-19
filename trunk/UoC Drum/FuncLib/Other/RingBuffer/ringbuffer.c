@@ -1,52 +1,55 @@
 /* Ring buffer implementation */
-#include <signal.h>
+
 #include "ringbuffer.h"
 
 
 /* Critical means disable interrupts on entry and restore interrupt 
  * state on exit */
 
-critical int ringbuffer_get(RINGBUFFER_T *buffer) {
+int ringbuffer_get(RINGBUFFER_T *buffer) {
     //buffer not empty?
-    if (buffer->fill) {
+    if (buffer->read_pos != buffer->write_pos) {
         //wrap around read position
-        if(buffer->read_pos >= buffer->size) {
-            buffer->read_pos = 0;
-        }
-        //update size info
-        buffer->fill--;
+        buffer->read_pos &= (buffer->size - 1);
         //get byte from buffer, update read position and return
         return buffer->memory[buffer->read_pos++];
     } else {
         return BUFFER_OVERFLOW; /* This is really trying to get a nonexistant byte */
     }
+
+
 }
 
 
-critical int ringbuffer_put(RINGBUFFER_T *buffer, char character) {
+int ringbuffer_put(RINGBUFFER_T *buffer, char character) {
     //is there space in the buffer?
-    if (buffer->fill < buffer->size) {
+    int bufferMask = (buffer->size - 1);
+
+    if ( ((buffer->write_pos + 1) & bufferMask) != (buffer->read_pos & bufferMask)) {
         //wrap around write position
-        if(buffer->write_pos >= buffer->size) {
-            buffer->write_pos = 0;
-        }
+        buffer->write_pos &= bufferMask;
+
         //write the character
         buffer->memory[buffer->write_pos++] = character;
         //update size info
-        buffer->fill++;
-        return buffer->fill;
+
+        return ringbuffer_len(buffer);
     } else {
         return BUFFER_OVERFLOW;
     }
 }
 
 int ringbuffer_len(RINGBUFFER_T *buffer) {
-    return buffer->fill;
+   
+    if( buffer->read_pos > buffer->write_pos )
+    {
+        return buffer->write_pos + buffer->size - buffer->read_pos;
+    }
+    return buffer->write_pos - buffer->read_pos;
 }
 
 
-critical void ringbuffer_clear(RINGBUFFER_T *buffer) {
-    buffer->fill = 0;
+void ringbuffer_clear(RINGBUFFER_T *buffer) {
     buffer->read_pos = 0;
     buffer->write_pos = 0;
 }

@@ -10,13 +10,13 @@
  * To use a ringbuffer, initialize the first two fields and zero the
  * remaining fields.
  * 
- * E.g. 
+ * E.g. SIZE MUST BE A POWER OF 2!!!!
  *      char ringbuf_memory[40];
  *      RINGBUFFER_T ringbuffer = {ringbuf_memory, sizeof(ringbuf_memory)};
  */
 typedef struct {
     char *memory;                       ///< memory used for the buffer itself
-    unsigned int size;                  ///< bytes used for the buffer
+    unsigned int size;                  ///< bytes used for the buffer (keep this to a power of 2
     volatile unsigned int fill;         ///< number of bytes currently in the buffer
     volatile unsigned int read_pos;     ///< reading position
     volatile unsigned int write_pos;    ///< writing position
