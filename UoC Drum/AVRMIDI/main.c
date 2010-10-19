@@ -24,7 +24,7 @@
  
 
  /* Needs to be a power of 2 */
-#define MIDI_OUT_BUFFER    (4)
+#define MIDI_OUT_BUFFER    (128)
 #define MIDI_OUT_MASK      (MIDI_OUT_BUFFER - 1)
 #define SYS_COMMON_MSG (22)
 
@@ -564,7 +564,20 @@ int main(void)
              usbSetInterrupt( (uint8_t*)&MIDImsgComplete[rMIDImsgCount], 4);
              rMIDImsgCount = (rMIDImsgCount + 1) & MIDI_OUT_MASK;
           }
-       }       
+
+
+                uartTx(255);
+                uartTx(wMIDImsgCount);
+                uartTx(rMIDImsgCount);
+                uartTx(254);
+                uartTx( ringbuffer_len((RINGBUFFER_T*)&ReceiveBuffer));
+                uartTx( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer));
+
+       }
+       
+       
+
+              
    }
    return 0;
 }
