@@ -39,7 +39,7 @@ int ringbuffer_put(RINGBUFFER_T *buffer, char character) {
     }
 }
 
-int ringbuffer_len(RINGBUFFER_T *buffer) {
+unsigned int ringbuffer_len(RINGBUFFER_T *buffer) {
    
     if( buffer->read_pos > buffer->write_pos )
     {

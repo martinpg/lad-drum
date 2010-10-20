@@ -17,7 +17,7 @@ FLAGS = $(WARNINGS) $(DEBUG) $(OPTIMISE) $(CDEFS)
 
 WARNINGS = -Wall
 DEBUG = -gstabs
-OPTIMISE = -O2
+OPTIMISE = -Os
 
 COMPILE = -c
 OUTPUT = -o
@@ -89,7 +89,6 @@ MAIN_OBJECT = $(MAIN_FILE:.c=.o)
 
 SOURCE_FILES = $(PERIPHERALS_DIR)/UART/uart.c \
                $(PERIPHERALS_DIR)/ADC/adc12.c \
-					$(PERIPHERALS_DIR)/PWM/pwm.c \
 					$(EXTERNALS_DIR)/VUMeter/vumeter.c \
                $(EXTERNALS_DIR)/UI/UI.c \
                $(EXTERNALS_DIR)/UI_LCD/UI_LCD.c \

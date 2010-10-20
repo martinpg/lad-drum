@@ -42,7 +42,7 @@ typedef struct {
  * @param buffer        [in] The ringbuffer descriptor
  * @return the number of bytes in the buffer
  */
-int ringbuffer_len(RINGBUFFER_T *buffer);
+unsigned int ringbuffer_len(RINGBUFFER_T *buffer);
 
 /**
  * Clear the ringbuffer (setting its length to zero).

@@ -193,9 +193,9 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	9,			/* bLenght */
 	USBDESCR_ENDPOINT,	/* bDescriptorType = endpoint */
 	0x1,			/* bEndpointAddress OUT endpoint number 1 */
-	3,			/* bmAttributes: 2:Bulk, 3:Interrupt endpoint */
+	3,			/* bmAttributes: 2:Bulk, 3:Interrupt endpoint */ //This should be interrupt so the USB is slower than the UART.
 	8, 0,			/* wMaxPacketSize */
-	10,			/* bIntervall in ms */
+	2,			/* bIntervall in ms */
 	0,			/* bRefresh */
 	0,			/* bSyncAddress */
 
@@ -213,9 +213,9 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	9,			/* bLenght */
 	USBDESCR_ENDPOINT,	/* bDescriptorType = endpoint */
 	0x81,			/* bEndpointAddress IN endpoint number 1 */
-	3,			/* bmAttributes: 2: Bulk, 3: Interrupt endpoint */
+	2,			/* bmAttributes: 2: Bulk, 3: Interrupt endpoint */ // This should be bulk so that it is faster than the UART
 	8, 0,			/* wMaxPacketSize */
-	10,			/* bIntervall in ms */
+	2,			/* bIntervall in ms */
 	0,			/* bRefresh */
 	0,			/* bSyncAddress */
 
@@ -324,6 +324,21 @@ void usbFunctionWriteOut(uchar * data, uchar len)
 
    /* Route it all to the UART port at 31250 baud */
    byteCount = usbMIDI_ParseData(data, len);
+
+   /* Here if the TxBuffer cannot hold the new data, we should disable all 
+    * USB requests and wait for the MIDI TxBuffer to catch up.
+    * Since we need to process the next request, we have to disable BEFORE
+    * the buffer will be full (hence the 16).
+    *
+    * We shall re-enable the request in the main loop, not the interrupt.    
+   /* This is required if our endpoints are interrupt based, note that you can't
+    * DisableAllRequests on a bulk transfer. */*/
+   if( (ringbuffer_len( (RINGBUFFER_T*)&TransmitBuffer ) + 16) >= (TXBUFFER_SIZE-1) )
+   {
+      usbDisableAllRequests();
+   }
+
+
    uartTxDump(data, byteCount);
    
    /* for internal loopback */
@@ -332,6 +347,9 @@ void usbFunctionWriteOut(uchar * data, uchar len)
       ringbuffer_put( (RINGBUFFER_T*)&ReceiveBuffer, data[i]);
    }*/
 
+   /* This shouldn't happen since the USB output is quite fast (bulk) */
+   /* This is required if our endpoints are interrupt based, note that you can't
+    * DisableAllRequests on a bulk transfer. */
    if( ((wMIDImsgCount + 1) & MIDI_OUT_MASK) == ((rMIDImsgCount) & MIDI_OUT_MASK) )
    {
       usbDisableAllRequests();
@@ -513,19 +531,35 @@ int main(void)
    uint8_t outputBuffer[8];
    
    usbInit();
+   uint8_t temp[] = {0x05, 0xF8, 0x00, 0x00, 0x05, 0xF8, 0x00, 0x00};
  
 /* Just use 31250 baud */
 /* Formula = ((Hz / Baud) / 16) - 1 */
    uartInit(39, 0);
  
    sei();
+
+   /*while(1)
+   {
+      usbPoll();
+       if( usbInterruptIsReady() )
+       {
+             usbSetInterrupt( (uint8_t*)temp, 8);
+        }
+   }*/
+
+
    while(1)
    { /* main event loop */
       
        usbPoll();
 
-
-       if( usbAllRequestsAreDisabled() && ((wMIDImsgCount+ 1) & MIDI_OUT_MASK) != ((rMIDImsgCount) & MIDI_OUT_MASK))
+       /* To save the UART output buffer from overflowing, due to a
+        * UART Speed < USB Inspeed (likely under bulk mode, but unlikely under interrupt mode */
+       /* To save the USB output buffer from overflowing, due to a
+        * UART Speed > USB Outspeed (not likely under bulk mode, but likely under interrupt mode */
+       if( usbAllRequestsAreDisabled() && ((wMIDImsgCount+ 1) & MIDI_OUT_MASK) != ((rMIDImsgCount) & MIDI_OUT_MASK)
+            && (ringbuffer_len( (RINGBUFFER_T*)&TransmitBuffer ) + 16) < (TXBUFFER_SIZE-1))
        {
          usbEnableAllRequests();
        }
@@ -564,15 +598,6 @@ int main(void)
              usbSetInterrupt( (uint8_t*)&MIDImsgComplete[rMIDImsgCount], 4);
              rMIDImsgCount = (rMIDImsgCount + 1) & MIDI_OUT_MASK;
           }
-
-
-                uartTx(255);
-                uartTx(wMIDImsgCount);
-                uartTx(rMIDImsgCount);
-                uartTx(254);
-                uartTx( ringbuffer_len((RINGBUFFER_T*)&ReceiveBuffer));
-                uartTx( ringbuffer_len((RINGBUFFER_T*)&TransmitBuffer));
-
        }
        
        
