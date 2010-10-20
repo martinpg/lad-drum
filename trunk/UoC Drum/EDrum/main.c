@@ -111,7 +111,12 @@ int main(void)
    BCSCTL2 |= (SELM_2 | SELS);
 
 
-   ProfileInit();    
+   ProfileInit();
+   
+   /* Make profile 1 the default profile on start up */
+   Profile_Read(0);
+   
+   
    SensorInit();
    DigitalInputInit();
    /* Setup the communications module */   
