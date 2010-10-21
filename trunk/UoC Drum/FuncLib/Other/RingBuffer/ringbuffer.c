@@ -48,6 +48,10 @@ unsigned int ringbuffer_len(RINGBUFFER_T *buffer) {
     return buffer->write_pos - buffer->read_pos;
 }
 
+unsigned int ringbuffer_isEmpty(RINGBUFFER_T *buffer) {
+   return buffer->write_pos == buffer->read_pos;
+}
+
 
 void ringbuffer_clear(RINGBUFFER_T *buffer) {
     buffer->read_pos = 0;
