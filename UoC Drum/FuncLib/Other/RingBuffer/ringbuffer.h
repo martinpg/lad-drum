@@ -69,4 +69,12 @@ int ringbuffer_put(RINGBUFFER_T *buffer, char character);
  */
 int ringbuffer_get(RINGBUFFER_T *buffer);
 
+
+
+/**
+ * Returns 1 if the buffer is empty.
+ *
+ */
+unsigned int ringbuffer_isEmpty(RINGBUFFER_T *buffer);
+
 #endif //MSPGCC_RINGBUFFER_H
