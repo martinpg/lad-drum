@@ -164,10 +164,19 @@ uint8_t MIDIDataReady(uint8_t inByte, usbMIDIMessage_t* MIDIMessage)
    static uint8_t byteCount = 0;
    static uint8_t bytesToReceive = 0;
    static uint8_t receivingSysEx = 0;
-   static uint8_t CIN = 0;
+   
+   /* This stores the last received status byte */
+   static uint8_t runningStatus = 0;
+   
+   /* This stores the data byte 1 which may need to be restored if a RealTime message
+    * is received */
+   static uint8_t lastByte = 0;
+
+   uint8_t CIN = 0;
    uint8_t messageIndex = 0;
- 
-   /* Check for input errors */
+    
+
+   /* Implement running status here */
    if( (byteCount == 0) && (inByte <= MIDI_MAX_DATA) && (!receivingSysEx))
    {
       byteCount = 0;
@@ -176,8 +185,16 @@ uint8_t MIDIDataReady(uint8_t inByte, usbMIDIMessage_t* MIDIMessage)
    /* A new status byte is received, discard the old one */
    if( (byteCount > 0) && (inByte > MIDI_MAX_DATA) && (inByte != MIDI_SYSEX_STOP))
    {
-      byteCount = 0;
-      receivingSysEx = 0;
+      /* Don't discard the runningStatus if we receive a real time message */
+      if( inByte >= MIDI_TIMING_CLOCK )
+      {
+
+      }
+      else
+      {  
+         byteCount = 0;
+         receivingSysEx = 0;
+      }
    }
  
  
@@ -190,7 +207,12 @@ uint8_t MIDIDataReady(uint8_t inByte, usbMIDIMessage_t* MIDIMessage)
     * byte (MIDI_Status Code) */
    if( byteCount == 0 )
    {
- 
+      /* Save the new voice status */
+      if( inByte < MIDI_SYSEX_START && inByte > MIDI_NOTE_OFF )
+      {
+         runningStatus = inByte; 
+      }
+
       /* Clear */
       MIDIMessage->header = 0;
       MIDIMessage->MIDIData[0] = 0;
@@ -206,6 +228,7 @@ uint8_t MIDIDataReady(uint8_t inByte, usbMIDIMessage_t* MIDIMessage)
       }
    }
  
+   lastByte = inByte;
    MIDIMessage->MIDIData[byteCount] = inByte;
    byteCount++;
  

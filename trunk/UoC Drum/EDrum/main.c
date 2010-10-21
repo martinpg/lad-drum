@@ -43,6 +43,16 @@ const char VersionId[] = "1.0W 4/1/08";
    const char VersionId[] = "1.0 4/1/08";
 */
 const char VersionId[] = "1.2 2/5/10";
+
+/* 19/10/2010 
+   Update: USB MIDI to be incorporated using an external ATMEGA chip. 
+   The next version of the LAD drum will be based off an ATMEGA32. 
+   (Maybe single chip, USB->MIDI conversion takes up quite a bit of CPU time.
+   Also going to improve the ROM usage of the profiles as well as make Profile1 
+   start up by default so your changes are kept upon start up.
+
+*/
+
 /* Change Log: 1/05/10
  * To Do: Set the analogue input port to low to clear the input
  * signal buffer.
