@@ -89,7 +89,7 @@ void SetChannelCommand(uint8_t channel, int8_t command)
    }
    if( command < MIDI_NOTE_OFF)
    {
-      command = MIDI_COMMAND_COUNT;  
+      command = MIDI_NOTE_OFF;  
    }   
 
    ChannelSettings->ChannelCommand[channel] = command;

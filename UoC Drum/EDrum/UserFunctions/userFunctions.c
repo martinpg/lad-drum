@@ -651,7 +651,7 @@ void ChannelSetup(void* data)
 	      break;
 	      
 	      case KP_D:
-            SetChannelCommand(SelectedChannel, GetChannelCommand(SelectedChannel) + 1 );
+            SetChannelCommand(SelectedChannel, GetChannelCommand(SelectedChannel) + 0x10 );
          break;
 	      
 	      /*
@@ -732,7 +732,7 @@ void ChannelSetup(void* data)
    else
    {
       
-      uint8toa( GetChannelCommand(SelectedChannel), outputString);
+      uint8toa( GetChannelCommand(SelectedChannel) >> 4, outputString);
       UF_MenuPrint(outputString);
       UF_MenuPrint_P( PSTR(" | ") );
    	uint8toa( GetChannelKey(SelectedChannel), outputString);
@@ -1327,7 +1327,7 @@ void DigitalChannelSettings(void* data)
 	      break;
 	      
 	      case KP_D:
-            SetChannelCommand(SelectedChannel, GetChannelCommand(SelectedChannel) + 1 );
+            SetChannelCommand(SelectedChannel, GetChannelCommand(SelectedChannel) + 0x10 );
          break;
 	      
 	      
@@ -1416,7 +1416,7 @@ void DigitalChannelSettings(void* data)
    }  
    else
    {
-      uint8toa( GetChannelCommand(SelectedChannel), outputString);
+      uint8toa( GetChannelCommand(SelectedChannel) >> 4, outputString);
       UF_MenuPrint(outputString);
       UF_MenuPrint_P( PSTR(" | ") );
    	uint8toa( GetChannelKey(SelectedChannel), outputString);
@@ -1547,7 +1547,7 @@ void KeypadButtonSettings(void* data)
 	      break;
 	      
 	      case KP_D:
-            SetChannelCommand(SelectedChannel, GetChannelCommand(SelectedChannel) + 1 );
+            SetChannelCommand(SelectedChannel, GetChannelCommand(SelectedChannel) + 0x10 );
          break;
 	      
 	      /* Up and down output levels */
@@ -1625,7 +1625,7 @@ void KeypadButtonSettings(void* data)
    }  
    else
    {
-      uint8toa( GetChannelCommand(SelectedChannel), outputString);
+      uint8toa( GetChannelCommand(SelectedChannel) >> 4, outputString);
       UF_MenuPrint(outputString);
       UF_MenuPrint_P( PSTR(" | ") );
    	uint8toa( GetChannelKey(SelectedChannel), outputString);

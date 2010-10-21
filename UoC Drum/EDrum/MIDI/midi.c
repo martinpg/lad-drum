@@ -35,7 +35,7 @@ void MIDI_Output(void)
 			if( conditionedSignal )
 			{
 	         /* Send a NOTE ON (default) | Channel */
-	         MIDI_Tx( (GetChannelCommand(i) << 4) | MIDISettings->MIDI_ChannelCode);
+	         MIDI_Tx( (GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
 	         
 	         /* Output the correct Closed or Open Key */
 	         if( GetDualMode(i) && 
@@ -83,7 +83,7 @@ void MIDI_DigitalOutput(void)
    		if( SignalPeak[i] )
    		{	
 	         /* Send a NOTE ON (default) | Channel */
-	         MIDI_Tx((GetChannelCommand(i) << 4) | MIDISettings->MIDI_ChannelCode);
+	         MIDI_Tx((GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
 	         MIDI_Tx(GetChannelKey(i));
 	         MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
 				SoftTimerStart(RetriggerPeriod[i]);
@@ -110,7 +110,7 @@ void MIDI_MetronomeOutput(void)
           (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED))
       {
 	      /* Send a NOTE ON (default) | Channel */
-	      MIDI_Tx((GetChannelCommand(i) << 4) | MIDISettings->MIDI_ChannelCode);
+	      MIDI_Tx((GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
 	      MIDI_Tx(GetChannelKey(i));
 	      MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
 			SoftTimerStart(RetriggerPeriod[i]);
@@ -134,7 +134,7 @@ void MIDI_KeypadOutput(uint8_t kpButton)
 	   i = kpButton + ANALOGUE_INPUTS + DIGITAL_INPUTS + METRONOME_INPUTS;
 	   
 		/* Send a NOTE ON (default) | Channel */
-	   MIDI_Tx((GetChannelCommand(i) << 4) | MIDISettings->MIDI_ChannelCode);
+	   MIDI_Tx((GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
 	   MIDI_Tx(GetChannelKey(i));
 	   MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
 			

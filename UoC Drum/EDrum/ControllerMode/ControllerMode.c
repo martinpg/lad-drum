@@ -108,7 +108,7 @@ void CM_SetMIDICode(void* data)
 	if( *input == CM_PRINT_STATUS)
 	{
 		UF_MenuPrint_P( IT_CODE );
-		uint8toa(lastMIDICode, outputString);
+		uint8toa(lastMIDICode >> 4, outputString);
 		UF_MenuPrint_P(outputString);
 		UF_MenuNewLine();
 		return;
