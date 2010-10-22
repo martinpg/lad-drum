@@ -13,6 +13,8 @@
 #define MIDI_OUT_MASK      (MIDI_OUT_BUFFER - 1)
 #define SYS_COMMON_MSG (22)
 
+#define NO_DATA_BYTE    (0xFF)
+
 typedef struct usbMIDIMessage
 {
    uint8_t  header;
