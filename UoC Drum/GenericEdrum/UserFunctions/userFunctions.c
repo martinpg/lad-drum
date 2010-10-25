@@ -19,7 +19,6 @@
 #include "Sample/sample.h"
 #include "Sensor/sensor.h"
 #include "ADC/adc12.h"
-#include "Delay/delay.h"
 #include "Profiles/profiles.h"
 #include "VUMeter/vumeter.h"
 #include "MenuSettings.h"
@@ -31,7 +30,7 @@ static uint8_t SelectedChannel = 0;
 
 void reset(void* data)
 {
-	_reset_vector__();
+	asm volatile("jmp 0"::);
 }
 
 /* Menu wrapper functions */
@@ -65,7 +64,7 @@ void UF_MenuChar(uint8_t data)
    primaryMenu.MenuChar(data);
 }
 
-void UF_MenuPrint_P(const char* string)
+void UF_MenuPrint_P(PGM_P string)
 {
    primaryMenu.MenuPrint_P(string);  
 }   
@@ -264,7 +263,7 @@ void aboutScroll(uint8_t nameIndex)
 void SysExDisplay(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
-	uint8_t outputString[15];
+	char outputString[15];
 		
 	if( primaryMenu.firstEnter != 1 )
    {     
@@ -384,8 +383,8 @@ void GetSysEx(void* data)
    ActiveProcess = RECEIVE_SYSEX;
    
    /* Stop the Auxuliary Timer */
-	TBCCTL2 &= ~(CCIE);
-	TBCCTL0 &= ~(CCIE);
+//	TBCCTL2 &= ~(CCIE);
+//	TBCCTL0 &= ~(CCIE);
 	primaryMenu.firstEnter = 0;
 }
 
@@ -409,7 +408,7 @@ void ControllerMode(void* data)
 	      UF_stateMachine(primaryMenu.currentState);
 	      UF_MenuSetInput(0);
 	      /* Start the Aux Timer again */
-			TBCCTL2 |= (CCIE);
+//			TBCCTL2 |= (CCIE);
 	      return;	
 		}	
 	}
@@ -472,7 +471,7 @@ void SetMIDIRate(void* data)
 
 void PrintMIDIRate(void)
 {
-	uint8_t outputString[15];
+	char outputString[15];
 	uint8_t selectedBaud = 0;
 	
 	UF_MenuPrint_P( PSTR("MIDI Output Rate: ") );
@@ -511,7 +510,7 @@ void EditMIDIRate(void* data)
 	uint8_t* input = (uint8_t*)data;
 	static uint16_t	Delay;
 	uint8_t selectedBaud = 0;
-	uint8_t outputString[10];
+	char outputString[10];
 	
 	if( primaryMenu.firstEnter == 1)
 	{
@@ -623,7 +622,7 @@ void EditMIDIRate(void* data)
 void ChannelSetup(void* data)
 {
    uint8_t* input = data;
-   uint8_t outputString[21];
+   char outputString[21];
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 
@@ -806,7 +805,7 @@ void HandleSubMenu(void* data)
 void SetThreshold(void* data)
 {
 	uint8_t* input;
-   uint8_t outputString[21];
+   char outputString[21];
    
    static uint16_t lastPotValue = 0;
 	static uint8_t firstEnter = 1;
@@ -870,7 +869,7 @@ void SetThreshold(void* data)
 void SetRetrigger(void* data)
 {
 	uint8_t* input;
-   uint8_t outputString[5];
+   char outputString[5];
    
    static uint8_t adjustStyle = DIGITAL_ADJUST;
 	static uint8_t firstEnter = 1;
@@ -1032,7 +1031,7 @@ void SetGainCurves(void* data)
 {
 
    uint8_t* input = 0;
-   uint8_t outputString[10];
+   char outputString[10];
    
    static int8_t presetSetting = CUSTOM;
 	input = data;
@@ -1176,7 +1175,7 @@ void SetGainCurves(void* data)
 void SetDualInput(void* data)
 {
    uint8_t* input = 0;
-   uint8_t outputString[10];
+   char outputString[10];
 	input = data;
 
 
@@ -1296,7 +1295,7 @@ void SetDualInput(void* data)
 void DigitalChannelSettings(void* data)
 {
    uint8_t* input = 0;
-   uint8_t outputString[21];
+   char outputString[21];
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 	uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
@@ -1522,7 +1521,7 @@ void SetSwitchType(void* data)
 void KeypadButtonSettings(void* data)
 {
    uint8_t* input = 0;
-   uint8_t outputString[21];
+   char outputString[21];
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 	uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
@@ -1842,7 +1841,7 @@ void SensorInputChange(void* data)
 
 void ShowProfile(void* data)
 {
-	uint8_t outputString[3];
+	char outputString[3];
 	uint8_t* input = (uint8_t*)data;
 	static uint8_t firstEnter = 1;
 	
@@ -1893,7 +1892,7 @@ void ShowProfile(void* data)
 void SaveProfile(void* data)
 {
    uint8_t* input = 0;
-   uint8_t  outputString[3];
+   char  outputString[3];
    uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_SAVE_PROFILE_1;
  	uint8_t i;
 	  
@@ -1930,7 +1929,7 @@ void SaveProfile(void* data)
 void LoadProfile(void* data)
 {
    uint8_t* input = 0;
-   uint8_t  outputString[3];
+   char  outputString[3];
    uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_LOAD_PROFILE_1;
 	uint8_t i;
 	
@@ -1995,7 +1994,7 @@ void AdjustCrosstalk(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
 	int16_t crosstalk;
-	uint8_t outputString[5];
+	char outputString[5];
 	
 	crosstalk = GetCrossTalkDelay();
 	
@@ -2079,7 +2078,7 @@ void ChangeChannelCode(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
 	static int8_t	code;
-	uint8_t outputString[4];
+	char outputString[4];
 	
 	if( primaryMenu.firstEnter == 1)
 	{

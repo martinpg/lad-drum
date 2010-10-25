@@ -144,7 +144,7 @@ void uartSetBaud(uint8_t baudrateL, uint8_t baudrateH);
  */
 void uartTxString(uint8_t* outString);
 
-void uartTxString_P(const char* outString_P);
+void uartTxString_P(PGM_P outString_P);
 
 /** uartTx:
  *

@@ -5,6 +5,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <avr/pgmspace.h>
 #include <util/delay.h>
 
 #include "version.h"
@@ -22,7 +23,8 @@
 /* Uart Defines */
 #define UART_Tx   uartTx
 #define UART_TxDump   uartTxDump
-
+#define UART_TxString_P uartTxString_P
+#define UART_TxString uartTxString
 
 /* Channel Select Defines */
 #define CHSELOUT  PORTB
@@ -110,7 +112,30 @@
 #define LCD_BL_PORT  (PORTD)
 #define LCD_BL_PIN   (1)
 #define LCD_BL_DDR   (DDRD)
-#define LCD_BL_SEL   P1SEL
+#define LCD_BL_SEL   (DDRD)
 
+
+/* Not used in Direct Mode */
+#define UI_LCD_PORT     (0x00)
+
+/* LCD Inputs */
+#define UI_LCD_PRS      (7)
+#define UI_LCD_RS       (1<<5)
+#define UI_LCD_E        (1<<4)
+#define UI_LCD_D4       (1<<0)
+#define UI_LCD_D5       (1<<1)
+#define UI_LCD_D6       (1<<2)
+#define UI_LCD_D7       (1<<3)    
+
+#define UI_LCD_CONTROL_DIR   (DDRC)
+#define UI_LCD_DATA_DIR      (DDRC)
+
+#define UI_LCD_DATA	(UI_LCD_D4 | UI_LCD_D5 | UI_LCD_D6 | UI_LCD_D7)
+#define UI_LCD_CONTROL	(UI_LCD_RS | UI_LCD_E)
+
+#define UI_LCD_CONTROL_PORT	(PORTC)
+#define UI_LCD_DATA_PORT		(PORTC)
+
+/* END OF VERSION WITHOUT PE Defines */
 
 #endif

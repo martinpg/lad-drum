@@ -19,8 +19,9 @@
 #ifndef	_UI_LCD_ROUTINES
 #define	_UI_LCD_ROUTINES
 
-#include <io.h>
-#include <version.h>
+
+#include "version.h"
+#include "hardwareSpecific.h"
 
 
 
@@ -60,12 +61,6 @@
 #define LCD_LINE1_DDRAMADDR   (0x40)
 #define LCD_LINE2_DDRAMADDR   (0x14)
 #define LCD_LINE3_DDRAMADDR   (0x54)
-
-
-#define LCD_BL_PORT  P1OUT
-#define LCD_BL_PIN   2
-#define LCD_BL_DDR   P1DIR
-#define LCD_BL_SEL   P1SEL
 
 #define LCD_BL_MAX_BRIGHTNESS   (100)
 #define LCD_BL_MIN_BRIGHTNESS   (20)

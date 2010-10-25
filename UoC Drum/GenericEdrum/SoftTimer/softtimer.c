@@ -38,11 +38,11 @@ SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{110, 0, 0},  // Threshold Bar
 														 {10000, 10000, 0}}; //LCD Backlight
 
 
-interrupt (TIMERB0_VECTOR) timerb0_int(void)
+ISR(TIMER0_OVF_vect, ISR_NOBLOCK)
 {
-	dint(); 
+	cli(); 
 
-	TBCCR0 += (SAMPLE_1MS);
+//	TBCCR0 += (SAMPLE_1MS);
    /* MIDI output is in 1ms steps */
 	if(SoftTimerInterrupt(SoftTimer1[SC_MIDIOutput]))
 	{
@@ -77,19 +77,19 @@ interrupt (TIMERB0_VECTOR) timerb0_int(void)
       }
 	} 	
 
-	eint();
+	sei();
 }
 
 
-interrupt (TIMERB1_VECTOR) timerb1_int(void)
+ISR(TIMER1_COMPA_vect, ISR_NOBLOCK)
 {
-   dint();   
+   cli();   
    
-   uint8_t intVec = TBIV;
+//   uint8_t intVec = TBIV;
 					
-   if( intVec & TBIV_CCR2 )
+//   if( intVec & TBIV_CCR2 )
    {
-		TBCCR2 += SAMPLE_1MS;
+//		TBCCR2 += SAMPLE_1MS;
 		
 	
 		if(SoftTimerInterrupt(SoftTimer2[SC_AutoMenuUpdate]))
@@ -121,7 +121,7 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 			if( !SoftTimer_IsTimer2Active() )
 			{
             /* Stop the Auxuliary Timer */
-            TBCCTL2 &= ~(CCIE);
+//            TBCCTL2 &= ~(CCIE);
          }
 			
 		}
@@ -193,7 +193,7 @@ interrupt (TIMERB1_VECTOR) timerb1_int(void)
 		}   
 	}
 	
-	eint();
+	sei();
 }
 
 

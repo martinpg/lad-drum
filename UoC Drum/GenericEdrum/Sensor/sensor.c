@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include "hardwareSpecific.h"
-#include "ADC/adc12.h"
+//#include "ADC/adc12.h"
 #include "sensor.h"
 #include "MSB2LSB/MSB2LSB.h"
 

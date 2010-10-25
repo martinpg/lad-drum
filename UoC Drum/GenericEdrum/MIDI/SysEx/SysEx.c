@@ -118,7 +118,7 @@ void ParseSysExData(uint8_t nextByte)
          if(  DataCount == ((sizeof(Profile_t)*2) + 3) )
          {
             uint8_t i;
-            uint8_t outputString[4];
+            char outputString[4];
             
               
             primaryMenu.MenuPrint_P( PSTR("Download Successful!"));

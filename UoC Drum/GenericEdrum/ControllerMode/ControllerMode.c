@@ -9,13 +9,15 @@
 #include "Sample/sample.h"
 #include "mmculib/uint8toa.h"
 
+#include "hardwareSpecific.h"
+
 static uint8_t inputMode = 0;
 static uint8_t lastChannel = CM_MIN_CHANNEL;
 static uint8_t lastMIDICode = CM_MIN_MIDI_CODE;
 static uint8_t lastMIDIKey = 0;
 static uint8_t menuMode = CM_SETTINGS_MODE;
 
-static uint8_t outputString[21];
+static char outputString[21];
 
 const INPUT_TEXT IT_CHANNEL[] = "Channel ";
 const INPUT_TEXT IT_CODE[] = "MIDI Message: ";
@@ -83,7 +85,7 @@ void printChannelInfo(void)
 		printChannel = lastChannel-ANALOGUE_INPUTS;
 	}
 	uint8toa(printChannel, outputString);
-	UF_MenuPrint_P(outputString);
+	UF_MenuPrint(outputString);
 	UF_MenuNewLine();
 }
 
@@ -109,7 +111,7 @@ void CM_SetMIDICode(void* data)
 	{
 		UF_MenuPrint_P( IT_CODE );
 		uint8toa(lastMIDICode >> 4, outputString);
-		UF_MenuPrint_P(outputString);
+		UF_MenuPrint(outputString);
 		UF_MenuNewLine();
 		return;
 	}
@@ -151,14 +153,14 @@ void CM_SetMIDIKey(void* data)
 		if( lastMIDICode == MIDI_NOTE_ON )
 		{
 			MIDI_NoteString(lastMIDIKey, outputString);
-			UF_MenuPrint_P(outputString);
+			UF_MenuPrint(outputString);
 			uint8toa( MIDI_Octave(lastMIDIKey), outputString);
 		}
 		else
 		{
 			uint8toa(lastMIDIKey, outputString);
 		}
-		UF_MenuPrint_P(outputString);
+		UF_MenuPrint(outputString);
 		UF_MenuNewLine();
 		return;
 	}

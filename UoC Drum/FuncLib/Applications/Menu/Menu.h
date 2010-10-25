@@ -23,6 +23,7 @@
 
 #define PRINT_FUNC   UI_LCD_String_P
 #define MENU_TEXT    char
+#define PSTR(x)   (x)
 
 #define NO_STATE     0
 #define INVALID_STATE 255
@@ -66,7 +67,7 @@
 #define KP_ENTER KP_6
 #define KP_BACK  KP_4
 
-#define PSTR(x)   (x)
+
 
 typedef struct
 {

@@ -32,7 +32,7 @@ void UF_executeState(uint8_t state);
 void UF_MenuReset(void);
 void UF_MenuNewLine(void);
 void UF_MenuChar(uint8_t data);
-void UF_MenuPrint_P(const char* string);
+void UF_MenuPrint_P(PGM_P string);
 void UF_MenuPrint(char* string);
 void UF_MenuUpOneLevel(Menu_t* menu);
 
