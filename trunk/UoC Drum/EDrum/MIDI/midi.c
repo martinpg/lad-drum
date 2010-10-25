@@ -6,6 +6,7 @@
 #include "midi.h"
 #include "VUMeter/vumeter.h"
 
+
 #define MIDI_Tx(x)   UART_Tx(x)
 
 const char MIDI_NOTES[] = "C C#D D#E F F#G G#A A#B ";

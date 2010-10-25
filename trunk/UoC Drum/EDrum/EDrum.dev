@@ -1,7 +1,7 @@
 [Project]
 FileName=EDrum.dev
 Name=EDrum
-UnitCount=47
+UnitCount=48
 Type=1
 Ver=1
 ObjFiles=
@@ -18,16 +18,16 @@ Icon=
 ExeOutput=
 ObjectOutput=
 OverrideOutput=0
-OverrideOutputName=
+OverrideOutputName=EDrum.exe
 HostApplication=
 Folders=ADC12,"Controller Mode",Delay,Menu,MIDI,Profiles,"Ring Buffer",Sample,Sensor,SoftTimer,SysEx,UART,UI,UI/KP,UI/LCD,"User Functions",Util,"VU Meter"
 CommandLine=
-UseCustomMakefile=0
-CustomMakefile=
+UseCustomMakefile=1
+CustomMakefile=makefile
 IncludeVersionInfo=0
 SupportXPThemes=0
 CompilerSet=0
-CompilerSettings=
+CompilerSettings=0000000000000000000000
 
 [Unit1]
 FileName=main.c
@@ -510,6 +510,16 @@ BuildCmd=
 [Unit47]
 FileName=benchmarkresults.txt
 Folder=
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit48]
+FileName=..\FuncLib\Other\MIDICodes\MIDICodes.h
+CompileCpp=0
+Folder=MIDI
 Compile=1
 Link=1
 Priority=1000
