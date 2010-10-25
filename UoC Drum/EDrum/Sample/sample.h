@@ -185,7 +185,7 @@ void SetChannelStatus(uint8_t channel, uint8_t status);
 
 /* Channel Commands */
 uint8_t GetChannelCommand(uint8_t channel);
-void SetChannelCommand(uint8_t channel, int8_t command);
+void SetChannelCommand(uint8_t channel, uint8_t command);
 
 /* Channel Key */
 uint8_t GetChannelKey(uint8_t channel);

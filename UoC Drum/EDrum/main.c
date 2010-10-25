@@ -25,8 +25,8 @@
 #include "Softtimer/Softtimer.h"
 #include "Menu/Menu.h"
 #include "MIDI/midi.h"
-#include "MIDI/SysEx/SysEx.h"
 #include "Profiles/profiles.h"
+#include "MIDI/SysEx/SysEx.h"
 #include "VUMeter/vumeter.h"
 #include "UserFunctions/userFunctions.h"
 #include "ControllerMode/ControllerMode.h"
@@ -42,12 +42,15 @@ const char VersionId[] = "1.0W 4/1/08";
 /* Initial Release: 
    const char VersionId[] = "1.0 4/1/08";
 */
-const char VersionId[] = "1.2 2/5/10";
+const char VersionId[] = "1.3a 23/10/10";
+
+// Version 1.3a 23/10/10 - Optimised Profile ROM usage, no need for IMAGES now.
 
 /* 19/10/2010 
    Update: USB MIDI to be incorporated using an external ATMEGA chip. 
    The next version of the LAD drum will be based off an ATMEGA32. 
    (Maybe single chip, USB->MIDI conversion takes up quite a bit of CPU time.
+   
    Also going to improve the ROM usage of the profiles as well as make Profile1 
    start up by default so your changes are kept upon start up.
 
@@ -362,9 +365,9 @@ interrupt (USCIAB0RX_VECTOR) usart0_rx(void)
       
       	if( buffer == 'E' )
          {
-            UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(0), 512 );
+            /*UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(0), 512 );
             UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(1), 512 ); 
-            UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(2), 512 );		     
+            UART_TxDump((uint8_t*)PROFILE_IMAGE_ADDRESS(2), 512 );*/		     
          }
       
          if( buffer == 'b' )

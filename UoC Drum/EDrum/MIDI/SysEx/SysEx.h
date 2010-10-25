@@ -1,7 +1,7 @@
 #ifndef	_SYSEX_ROUTINES
 #define	_SYSEX_ROUTINES
 
-
+#include "Profiles\profiles.h"
 
 #define GET_SYSEX_DATA (0xFF)
 #define RECEIVING_SYSEX_DATA (1)

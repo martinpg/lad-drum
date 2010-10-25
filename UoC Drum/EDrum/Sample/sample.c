@@ -81,9 +81,9 @@ uint8_t GetChannelCommand(uint8_t channel)
    return ChannelSettings->ChannelCommand[channel];
 }
 
-void SetChannelCommand(uint8_t channel, int8_t command)
+void SetChannelCommand(uint8_t channel, uint8_t command)
 {
-   if( command > MIDI_COMMAND_COUNT)
+   if( command >= MIDI_SYSEX_START)
    {
       command = MIDI_NOTE_OFF;  
    }

@@ -3,6 +3,7 @@
 #include <mspgcc/flash.h>
 #include <string.h>
 #include "profiles.h"
+#include "MIDICodes/MIDICodes.h"
 
 
 Profile_t CurrentProfile = { 
@@ -146,7 +147,7 @@ Profile_t CurrentProfile = {
 void ProfileInit(void)
 {
    /* Divide 8MHZ by 20 as clk range must be within 257 -> 457kHz*/
-   FCTL2 = FWKEY | FSSEL_MCLK | 0x1F;
+   FCTL2 = FWKEY | FSSEL_MCLK | ((F_CPU / 250000) - 1);
    
    MIDISettings = &CurrentProfile.midiSettings;
    ChannelSettings = &CurrentProfile.channelSettings;
@@ -163,7 +164,7 @@ void ProfileInit(void)
    
 }
 
-
+/*
 void Profile_Copy(void)
 {
    uint16_t i;
@@ -175,7 +176,9 @@ void Profile_Copy(void)
                   (uint16_t*)PROFILE_FLASH_ADDRESS(i), 
                    FLASH_BLOCK_SIZE);        
    }				  					             
-}
+}*/
+
+
 
 
 /* Writes profile data to the profile Index,
@@ -183,31 +186,69 @@ void Profile_Copy(void)
 void Profile_Write(Profile_t* profile, uint8_t profileIndex)
 {
    uint16_t i;
+   uint16_t unusedBytes = 0;
+   uint16_t memPtr = PROFILE(0);
+   uint16_t segmentPtr = 0;
+   uint16_t profilePtr = 0;
    
-   Profile_Copy();   
+
+
    for( i = 0 ; i < SEGMENTS_TO_USE; i++ )
    {
-      flash_erase_segment( (uint16_t*)PROFILE_FLASH_ADDRESS(i));
-   }	   
+      flash_erase_segment( (uint16_t*)TEMPORARY_FLASH_BUFFER );  
+      
+      while( segmentPtr < FLASH_BLOCK_SIZE )
+      {
+         if( memPtr >= PROFILE(profileIndex) && memPtr < (PROFILE(profileIndex) + sizeof(Profile_t)) )
+         {
+            /* Write the start of the profile (because it overflows to the next segment */
+            if( segmentPtr + sizeof(Profile_t) > FLASH_BLOCK_SIZE )
+            {
+               flash_write((uint16_t*)(TEMPORARY_FLASH_BUFFER) + segmentPtr, 
+                            profile, 
+                            FLASH_BLOCK_SIZE - segmentPtr);
+                            
+               profilePtr = profilePtr + FLASH_BLOCK_SIZE - segmentPtr;                      
+               segmentPtr = FLASH_BLOCK_SIZE;
+               
+            }
+            else // Write the entire profile block or remainder
+            {
+               flash_write((uint16_t*)(TEMPORARY_FLASH_BUFFER), 
+                            profile + profilePtr, 
+                            sizeof(Profile_t) - profilePtr);
+                            
+               segmentPtr = segmentPtr + sizeof(Profile_t) - profilePtr;
+               memPtr = memPtr + sizeof(Profile_t) - profilePtr;
+               /* Reset the profile pointer now */
+               profilePtr = 0;
+            }
+         }
+         else
+         {
+            /* Write the rest of the block */
+            flash_write((uint16_t*)(TEMPORARY_FLASH_BUFFER), 
+                         (uint16_t*)memPtr, 
+                         FLASH_BLOCK_SIZE - segmentPtr);      
 
-   for( i = 0; i < NUMBER_OF_PROFILES; i++ )
-   {
-      if( i == profileIndex )
-      {
-			
-         flash_write((uint16_t*)(PROFILE(i)), 
-                     profile, 
-                     sizeof(Profile_t));
-				      
+
+            memPtr = memPtr + FLASH_BLOCK_SIZE - segmentPtr;                         
+            segmentPtr = FLASH_BLOCK_SIZE;
+            
+         }
       }
-      else
-      {
-         flash_write((uint16_t*)(PROFILE(i)), 
-                     (uint16_t*)(IMAGE_PROFILE(i)), 
-                     sizeof(Profile_t));
-                   
-      }
-   }
+      
+         if( segmentPtr == FLASH_BLOCK_SIZE )
+         {
+            flash_erase_segment( (uint16_t*)PROFILE_FLASH_ADDRESS(i)  );
+            /* Write the buffer segment to the profile segment */
+            flash_write((uint16_t*)PROFILE_FLASH_ADDRESS(i), 
+                         (uint16_t*)(TEMPORARY_FLASH_BUFFER), 
+                         FLASH_BLOCK_SIZE);   
+                          
+            segmentPtr = 0;      
+         }
+   }              
 }
 
 /* Reads the passed profileIndex into the settings */
