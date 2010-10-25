@@ -56,14 +56,6 @@
 #define MIN_CROSSOVER	(0)
 
 
-#define DIGITAL_PIN1	P5IN
-#define DIGITAL_PIN2	P4IN
-
-#define DIGITAL_PORT1	P5OUT
-#define DIGITAL_PORT2	P4OUT
-
-#define DIGITAL_DDR1		P5DIR
-#define DIGITAL_DDR2		P4DIR
 
 enum {
 	D0 = 0,

@@ -1,15 +1,15 @@
 
-#include <io.h>
+
 #include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
-#include <signal.h>
 
+
+#include "hardwareSpecific.h"
 #include "main.h"
 #include "Menu/Menu.h"
 #include "UI_KP/UI_KP.h"
 #include "UI_LCD/UI_LCD.h"
-#include "UART/uart.h"
 #include "UserFunctions/userFunctions.h"
 #include "mmculib/uint16toa.h"
 #include "mmculib/uint8toa.h"

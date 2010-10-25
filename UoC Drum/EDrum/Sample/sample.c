@@ -1,7 +1,7 @@
 /* Has the Channel sampling code in it */
 
-#include <io.h>
 #include <stdint.h>
+#include "hardwareSpecific.h"
 #include "sample.h"
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"

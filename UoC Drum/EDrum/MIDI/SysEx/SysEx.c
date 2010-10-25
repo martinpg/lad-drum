@@ -4,12 +4,12 @@
 
 #include <stdint.h>
 #include "main.h"
+#include "hardwareSpecific.h"
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"
 #include "Menu/Menu.h"
 #include "Delay/delay.h"
 #include "MenuSettings.h"
-#include "UART/UART.h"
 #include "mmculib/uint16toa.h"
 #include "Sample/sample.h"
 #include "SysEx.h"
@@ -21,9 +21,9 @@ void SysexSend(Profile_t* data)
    uint16_t i = 0;
    uint8_t* buffer = (uint8_t*)data;
    
-   UART_Tx(MIDI_SYSEX_START);
-   UART_Tx(MIDI_MANUFACTURER);
-   UART_Tx(MIDI_DEVICE_CODE);
+   MIDI_Tx(MIDI_SYSEX_START);
+   MIDI_Tx(MIDI_MANUFACTURER);
+   MIDI_Tx(MIDI_DEVICE_CODE);
    
 
 	while( i++ < sizeof(Profile_t) )
@@ -31,17 +31,17 @@ void SysexSend(Profile_t* data)
       /* Ensure all bytes sent are less than 128 or 0x7F */
       if( (*buffer & 0x80) )
       {
-         UART_Tx(1);
+         MIDI_Tx(1);
       }
       else
       {
-         UART_Tx(0);   
+         MIDI_Tx(0);   
       }
       
-      UART_Tx( (*buffer++) & 0x7F );
+      MIDI_Tx( (*buffer++) & 0x7F );
 	}
 
-   UART_Tx(MIDI_SYSEX_STOP);
+   MIDI_Tx(MIDI_SYSEX_STOP);
 }
 
 uint8_t IsReceivingSysExData(uint8_t state)
