@@ -1,8 +1,7 @@
 #include "UI/UI.h"
 #include "MAX7300/max7300.h"
 #include "UI_LCD.h"
-#include "Delay/delay.h"
-
+#include "hardwareSpecific.h"
 
 
 /* Internal Functions */

@@ -3,7 +3,7 @@
 #include <string.h>
 #include "Menu.h"
 #include "UI_KP/UI_KP.h"
-
+#include "hardwareSpecific.h"
 
 
 

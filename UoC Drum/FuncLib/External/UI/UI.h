@@ -18,7 +18,6 @@
 #define	_UI_ROUTINES
 
 
-#include <io.h>
 #include "version.h"
 
 #define UI_INT_IFG	P1IFG

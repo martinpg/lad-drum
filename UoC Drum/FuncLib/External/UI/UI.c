@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include "UI.h"
 
-
+#include "hardwareSpecific.h"
 
 #if VERSION_CODE == VERSION_WITH_PE
 #include "MAX7300/max7300.h"
@@ -23,12 +23,12 @@ void UI_Activate(void)
 
 #if VERSION_CODE == VERSION_WITHOUT_PE	   
 	/* Set Keypad Columns as inputs */
-	UI_KP_DIR &= ~(UI_INT_COL0 | UI_INT_COL1 | UI_INT_COL2 | UI_INT_COL3);
+	//UI_KP_DIR &= ~(UI_INT_COL0 | UI_INT_COL1 | UI_INT_COL2 | UI_INT_COL3);
 	
 	/* Trigger interrupts on a logic high to low transition */
-	UI_INT_IES |= (UI_INT_COL0 | UI_INT_COL1 | UI_INT_COL2 | UI_INT_COL3);
+	//UI_INT_IES |= (UI_INT_COL0 | UI_INT_COL1 | UI_INT_COL2 | UI_INT_COL3);
 	/* Enable Interrupts */
-	UI_INT_IE |= (UI_INT_COL0 | UI_INT_COL1 | UI_INT_COL2 | UI_INT_COL3);   
+	//UI_INT_IE |= (UI_INT_COL0 | UI_INT_COL1 | UI_INT_COL2 | UI_INT_COL3);   
 #endif   
    
 }
