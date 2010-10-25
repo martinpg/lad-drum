@@ -19,7 +19,7 @@
 #define CM_SETTINGS_MODE (0)
 #define CM_MENU_MODE	(1)
 
-#define INPUT_TEXT    char
+#define INPUT_TEXT    prog_char
 
 enum {
 	CM_CHANNEL_SELECT = 0,

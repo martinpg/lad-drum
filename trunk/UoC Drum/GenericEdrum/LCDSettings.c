@@ -1,62 +1,11 @@
 /* Project specific file for LCD Settings */
 #include <stdint.h>
 #include "UI_LCD/UI_LCD.h"
-
-
-#include "Delay/delay.h"
+#include "hardwareSpecific.h"
 #include "MSB2LSB/MSB2LSB.h"
 #include "LCDSettings.h"
 
-#if VERSION_CODE == VERSION_WITH_PE	
 
-#include "MAX7300/max7300.h"
-
-/* LCD Inputs */
-#define UI_LCD_POWER    (MAX7300_P18)
-#define UI_LCD_RS       (MAX7300_P17)
-#define UI_LCD_E        (MAX7300_P16)
-#define UI_LCD_D4       (MAX7300_P15)
-#define UI_LCD_D5       (MAX7300_P14)
-#define UI_LCD_D6       (MAX7300_P13)
-#define UI_LCD_D7       (MAX7300_P12)    
-
-#define UI_LCD_PORT     (0x4C)
-#define UI_LCD_PPOWER   (6)
-#define UI_LCD_PRS      (5)
-#define UI_LCD_PE       (4)
-#define UI_LCD_PD7      (3)
-#define UI_LCD_PD6      (2)
-#define UI_LCD_PD5      (1)
-#define UI_LCD_PD4      (0)
-
-#endif
-
-
-#if VERSION_CODE == VERSION_WITHOUT_PE	
-
-/* Not used in Direct Mode */
-#define UI_LCD_PORT     (0x00)
-
-/* LCD Inputs */
-#define UI_LCD_PRS      (7)
-#define UI_LCD_RS       (1<<7)
-#define UI_LCD_E        (1<<6)
-#define UI_LCD_D4       (1<<3)
-#define UI_LCD_D5       (1<<2)
-#define UI_LCD_D6       (1<<1)
-#define UI_LCD_D7       (1<<0)    
-
-#define UI_LCD_CONTROL_DIR   (P2DIR)
-#define UI_LCD_DATA_DIR      (P3DIR)
-
-#define UI_LCD_DATA	(UI_LCD_D4 | UI_LCD_D5 | UI_LCD_D6 | UI_LCD_D7)
-#define UI_LCD_CONTROL	(UI_LCD_RS | UI_LCD_E)
-
-#define UI_LCD_CONTROL_PORT	(P2OUT)
-#define UI_LCD_DATA_PORT		(P3OUT)
-
-/* END OF VERSION WITHOUT PE Defines */
-#endif
 
 
 HD44780lcd_t   PrimaryDisplay = 
@@ -202,10 +151,10 @@ void UI_LCD_BL_On(void)
    for( i = Min_BL_State ; i < LCD_BL_MAX_BRIGHTNESS >> 2; i ++ )
    {
       _delay_ms(10);
-      TACCR1 = i << 2;
+//      TACCR1 = i << 2;
    }
    
-   TACCR1 = LCD_BL_MAX_BRIGHTNESS;
+//   TACCR1 = LCD_BL_MAX_BRIGHTNESS;
    BL_State = LCD_BL_ON;
    
    //LCD_BL_PORT |= (1 << LCD_BL_PIN);   
@@ -219,10 +168,10 @@ void UI_LCD_BL_Off(void)
    for( i = LCD_BL_MAX_BRIGHTNESS >> 2 ; i >= Min_BL_State; i -- )
    {
       _delay_ms(10);
-      TACCR1 = i << 2;
+//      TACCR1 = i << 2;
    }
    
-   TACCR1 = Min_BL_State;
+//   TACCR1 = Min_BL_State;
    BL_State = !LCD_BL_ON;   
    //LCD_BL_PORT &= ~(1 << LCD_BL_PIN);  
 }
@@ -239,10 +188,10 @@ void UI_LCD_BLInit(uint16_t MinBrightness)
    Min_BL_State = MinBrightness;
    
    /* Sets up the PWM frequency =  (fclk / LCD_BL_MAX_BRIGHTNESS) */
-   TACCR0 = LCD_BL_MAX_BRIGHTNESS;
+//   TACCR0 = LCD_BL_MAX_BRIGHTNESS;
    
-   TACTL |= (TASSEL_SMCLK | MC_UPTO_CCR0);
-   TACCTL1 |= (OUTMOD_RESET_SET);
+//   TACTL |= (TASSEL_SMCLK | MC_UPTO_CCR0);
+//  TACCTL1 |= (OUTMOD_RESET_SET);
    
 }
 

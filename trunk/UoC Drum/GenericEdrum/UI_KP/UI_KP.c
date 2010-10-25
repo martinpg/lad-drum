@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include "UI/UI.h"
 #include "UI_KP.h"
-#include "Delay/delay.h"
+#include "hardwareSpecific.h"
 
 #if VERSION_CODE == VERSION_WITH_PE	
 #include "SoftI2C/softi2c.h"

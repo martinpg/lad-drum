@@ -170,7 +170,7 @@ void uartTxString(uint8_t* outString)
 
 /* Usage: uartTxString_P( PSTR("hello!") ); */
 /* Send a string which resides in the program memory */
-void uartTxString_P(const char* outString_P)
+void uartTxString_P(PGM_P outString_P)
 {
 
    char c;
