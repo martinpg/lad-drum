@@ -2,19 +2,13 @@
 #define MIDI_CODES_H
 
 
-#define MIDI_
 #define OCTAVE_OFFSET      (1)
-
 #define MIDI_SYSTEM_COMMON_MSG (0xF0)
-
-
 #define MIDI_DATA_READY     (0x01)
 #define MIDI_DATA_NOT_READY (0x00)
 
-
 #define UNKNOWN_SYS_MSG (0xFF)
 #define UNKNOWN_VOICE_MSG (0xFE)
- 
 
 /* In 100us resolution */
 #define MIDI_MAX_DATA   (127)

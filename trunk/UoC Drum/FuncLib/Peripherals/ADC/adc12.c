@@ -6,13 +6,14 @@
  
 #include <io.h>
 #include "adc12.h"
-#include "UART/uart.h"
 #include "Delay/delay.h"
 
 void ADC12_Init(void)
 {
-   /* For a 256 CLK Sample Hold Time */
-//   ADC12_SH_Time(0x88);   
+   /* Make all ADC inputs as inputs and select as special function */
+   P6SEL |= (0xFF);
+   P6DIR &= ~(0xFF);
+   P6OUT &= ~(0xFF);
 
    /* Try a sample time of 512 clks */
    ADC12_SH_Time(0xAA);
