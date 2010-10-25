@@ -1,7 +1,7 @@
 /* Project Specific Menus */
 #include <stdint.h>
 #include "MenuSettings.h"
-#include "UART/uart.h"
+#include "hardwareSpecific.h"
 #include "UserFunctions/userFunctions.h"
 #include "LCDSettings.h"
 

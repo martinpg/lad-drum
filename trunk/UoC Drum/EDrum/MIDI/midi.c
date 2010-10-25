@@ -1,13 +1,13 @@
 
 #include <stdint.h>
 #include <string.h>
+#include "hardwareSpecific.h"
 #include "Sample/sample.h"
-#include "UART/uart.h"
 #include "midi.h"
 #include "VUMeter/vumeter.h"
 
 
-#define MIDI_Tx(x)   UART_Tx(x)
+
 
 const char MIDI_NOTES[] = "C C#D D#E F F#G G#A A#B ";
 const char MIDI_BAUD[][11] = {"31.25k",

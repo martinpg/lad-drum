@@ -2,23 +2,22 @@
    MSP430F16x Electronic Drum Kit
    
 */
-#include <io.h>
+#include "hardwareSpecific.h"
 #include <stdint.h>
 #include <string.h>
 #include <signal.h>
 #include <stdlib.h>
-#include <mspgcc/flash.h>
-#include <mspgcc/util.h>
+
 
 
 #include "main.h"
 #include "Delay/delay.h"
-#include "UART/uart.h"
+#include "SoftI2C/softi2c.h"
+
 #include "Sample/sample.h"
 #include "Sensor/sensor.h"
 #include "ADC/adc12.h"
 #include "mmculib/uint16toa.h"
-#include "SoftI2C/softi2c.h"
 #include "UI_LCD/UI_LCD.h"
 #include "UI/UI.h"
 #include "UI_KP/UI_KP.h"
@@ -147,10 +146,7 @@ int main(void)
    /* Update the Retrigger periods */
    UpdateChannelRetriggers();
 
-   /* Make all ADC inputs as inputs and select as special function */
-   P6SEL |= (0xFF);
-   P6DIR &= ~(0xFF);
-   P6OUT &= ~(0xFF);
+
    
    /* ADC Module Init */
    ADC12_Init();

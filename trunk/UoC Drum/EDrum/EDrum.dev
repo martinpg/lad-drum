@@ -1,7 +1,7 @@
 [Project]
 FileName=EDrum.dev
 Name=EDrum
-UnitCount=48
+UnitCount=49
 Type=1
 Ver=1
 ObjFiles=
@@ -520,6 +520,16 @@ BuildCmd=
 FileName=..\FuncLib\Other\MIDICodes\MIDICodes.h
 CompileCpp=0
 Folder=MIDI
+Compile=1
+Link=1
+Priority=1000
+OverrideBuildCmd=0
+BuildCmd=
+
+[Unit49]
+FileName=hardwareSpecific.h
+CompileCpp=0
+Folder=EDrum
 Compile=1
 Link=1
 Priority=1000

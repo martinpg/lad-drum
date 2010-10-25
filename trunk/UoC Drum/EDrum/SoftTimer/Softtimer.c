@@ -1,10 +1,10 @@
 
 
-#include <io.h>
 #include <stdint.h>
 #include <signal.h>
 #include <stdlib.h>
 
+#include "hardwareSpecific.h"
 #include "main.h"
 #include "Softtimer.h"
 #include "UI/UI.h"
@@ -13,7 +13,6 @@
 #include "Menu/Menu.h"
 #include "UserFunctions/userFunctions.h"
 #include "VUMeter/vumeter.h"
-#include "UART/uart.h"
 #include "UI_LCD/UI_LCD.h"
 #include "UI_KP/UI_KP.h"
 #include "LCDSettings.h"

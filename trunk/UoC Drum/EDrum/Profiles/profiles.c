@@ -1,7 +1,7 @@
 
-#include <io.h>
-#include <mspgcc/flash.h>
+
 #include <string.h>
+#include "hardwareSpecific.h"
 #include "profiles.h"
 #include "MIDICodes/MIDICodes.h"
 
