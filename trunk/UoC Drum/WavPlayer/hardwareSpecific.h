@@ -1,15 +1,30 @@
 #ifndef __HARDWARE_SPECIFIC
 #define __HARDWARE_SPECIFIC
 
-/* This file is specific to the AVR build of Edrum */
+/* This file is specific to the AVR build of WavePlayer */
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/wdt.h>
 #include <util/delay.h>
 
-#include "version.h"
 #include "hardUART/hardUart.h"
+
+
+
+/* SPI Interface */
+#define SPI_DDR   (DDRB)
+#define SPI_PORT  (PORTB)
+#define SCK       (PB5)
+#define MISO      (PB4)
+#define MOSI      (PB3)
+#define nSS       (PB2)
+
+/* SD Card Specific */
+#define MMC_CS_DDR   DDRB
+#define MMC_CS_PORT  PORTB
+#define MMC_CS_PIN   (PB2)
 
 
 /* Interrupts */

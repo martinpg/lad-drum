@@ -22,8 +22,8 @@
 #define MENU_DEBUG 0
 
 #define PRINT_FUNC   UI_LCD_String_P
-#define MENU_TEXT    char
-#define PSTR(x)   (x)
+//#define MENU_TEXT    char //for the AVR use prog_char if you want strings in ROM
+//#define PSTR(x)   (x) //for AVR include the pgmspace.h for this macro
 
 #define NO_STATE     0
 #define INVALID_STATE 255
