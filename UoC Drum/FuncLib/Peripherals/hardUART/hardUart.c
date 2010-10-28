@@ -102,14 +102,14 @@ void uartTx(uint8_t byte)
 
    while(ringbuffer_put((RINGBUFFER_T*)&TransmitBuffer, byte) == BUFFER_OVERFLOW)
    {
-      PORTC |= (1<<4);
+      /*PORTC |= (1<<4);
       if( (UCSRA & (1<<UDRE)) )
       {
          if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
       	{
          	UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
       	}	
-   	}
+   	}*/
    }
 
    /* If this is the first byte */
@@ -126,7 +126,6 @@ void uartTx(uint8_t byte)
 /* Once a tx has completed, this is called */
 ISR(SIG_UART_TRANS)
 {
-
    sei();
    /* Tx the next byte if there are still bytes in the buffer */
    if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )

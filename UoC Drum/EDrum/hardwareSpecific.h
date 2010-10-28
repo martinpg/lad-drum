@@ -147,4 +147,9 @@
 #define LCD_BL_SEL   P1SEL
 
 
+#define MENU_TEXT    char //for the AVR use prog_char if you want strings in ROM
+#define PSTR(x)   (x) //for AVR include the pgmspace.h for this macro
+
+
+
 #endif
