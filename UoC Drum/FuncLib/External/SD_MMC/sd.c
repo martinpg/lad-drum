@@ -2,9 +2,9 @@
 
 
 #include "hardwareSpecific.h"
+#include <util/delay.h>
 #include "sd.h"
 #include "SPI/spi.h"
-#include <util/delay.h>
 #include "mmculib/uint8toa.h"
 #include "PetitFS/diskio.h"
 
@@ -20,7 +20,7 @@ uint8_t SD_WaitUntilReady(void)
    uint16_t i = 0;
    uint8_t result;
 
-   for(i = 0; i < SD_TIMEOUT; i++)
+   /*for(i = 0; i < SD_TIMEOUT; i++)
    {
       result = SPI_RxByte();
       if( result == 0xFF )
@@ -29,7 +29,16 @@ uint8_t SD_WaitUntilReady(void)
       }
       _delay_us(1);
    }   
+   return result;*/
+
+   while( (result = SPI_RxByte()) != 0xFF )
+   {
+
+   }
+
    return result;
+
+
 }
 
 
@@ -85,6 +94,7 @@ uint8_t SD_Init(void)
    /* Reset the card */
    for( i = 0; ; i++)
    { 
+      _delay_ms(10);
       r1 = SD_Command(SD_GO_IDLE_STATE, 0);
 		if(r1 == SD_R1_IDLE_STATE)
       {
@@ -101,7 +111,7 @@ uint8_t SD_Init(void)
    for( i = 0; ; i++)
    { 
       r1 = SD_Command(SD_SEND_IF_COND, 0x01AA);
-      _delay_ms(1);
+      _delay_ms(10);
 		if(r1 == SD_R1_IDLE_STATE)
       {
          
@@ -127,8 +137,9 @@ uint8_t SD_Init(void)
       for( i = 0; ; i++)
       {          
          r1 = SD_Command(SD_APP_CMD,0); //CMD55, must be sent before sending any ACMD command
+         _delay_ms(10);
          r1 = SD_Command(SD_SEND_OP_COND,0x40000000); //ACMD41
-         _delay_ms(1);
+         //_delay_ms(10);
    		if(r1 == SD_R1_READY)
          {
             /* If it works, initiate the High Capacity card's HC bit */
@@ -605,7 +616,7 @@ DRESULT disk_readp (
    // Single block read 
 	if (SD_Command(SD_READ_SINGLE_BLOCK, sector) == 0)		// READ_SINGLE_BLOCK
    {
-   	uint8_t retry = SD_TIMEOUT;
+   	uint16_t retry = SD_TIMEOUT;
       
       	
       bytesRemaining = bytesRemaining - offset - byteCount;
@@ -695,7 +706,7 @@ DRESULT disk_writep (
 			byteCount = WriteCounter + 2;
 			while (byteCount--) 
          {
-            SPI_TxByte(0xFF);	/* Fill left bytes and CRC with zeros */
+            SPI_TxByte(0x00);	/* Fill left bytes and CRC with zeros */
 			}     
          if( (SPI_RxByte() & SD_DR_MASK) == SD_DR_ACCEPT) 
          {	/* Receive data resp and wait for end of write process in timeout of 300ms */

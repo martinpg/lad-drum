@@ -58,7 +58,7 @@ int main(void)
          fileptr = 0;
       }
 
-      uint16toa(fileptr, outputString, 0);
+//      uint16toa(fileptr, outputString, 0);
       //uartTxDump(outputString, 5);
 
 
