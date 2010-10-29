@@ -8,7 +8,7 @@
 #include "mmculib/uint8toa.h"
 #include "PetitFS/diskio.h"
 
-#define SD_DEBUG  1
+#define SD_DEBUG  0
 
 static uint8_t outputString[10];
 
@@ -23,11 +23,11 @@ uint8_t SD_WaitUntilReady(void)
    for(i = 0; i < SD_TIMEOUT; i++)
    {
       result = SPI_RxByte();
-      
       if( result == 0xFF )
       {
          return result;
       }
+      _delay_us(1);
    }   
    return result;
 }
@@ -88,7 +88,6 @@ uint8_t SD_Init(void)
       r1 = SD_Command(SD_GO_IDLE_STATE, 0);
 		if(r1 == SD_R1_IDLE_STATE)
       {
-         
          break;
       } 
       if( i > SD_MAX_RETRIES )
@@ -101,10 +100,8 @@ uint8_t SD_Init(void)
    /* See if it is a SD V2 Card */
    for( i = 0; ; i++)
    { 
-#if SD_DEBUG
-      uartTxString_P(PSTR("Testing SDV2"));
-#endif
       r1 = SD_Command(SD_SEND_IF_COND, 0x01AA);
+      _delay_ms(1);
 		if(r1 == SD_R1_IDLE_STATE)
       {
          
@@ -119,9 +116,6 @@ uint8_t SD_Init(void)
       }    
       if( i > SD_MAX_RETRIES || r1 & SD_R1_ILLEGAL_COM )      /* This command is not supported */
       {
-#if SD_DEBUG
-         uartTxString_P(PSTR("Card is SDv1"));
-#endif
          SDVersion = CT_SD1;
          break;
       }
@@ -131,12 +125,10 @@ uint8_t SD_Init(void)
    {
       /* Attempt to initiate the High Capacity card's HC bit */
       for( i = 0; ; i++)
-      { 
-#if SD_DEBUG
-         uartTxString_P(PSTR("Testing SDHC"));
-#endif
+      {          
          r1 = SD_Command(SD_APP_CMD,0); //CMD55, must be sent before sending any ACMD command
          r1 = SD_Command(SD_SEND_OP_COND,0x40000000); //ACMD41
+         _delay_ms(1);
    		if(r1 == SD_R1_READY)
          {
             /* If it works, initiate the High Capacity card's HC bit */
@@ -147,16 +139,10 @@ uint8_t SD_Init(void)
                   r1 = SPI_RxByte();
                   if( r1 & 0x40 )
                   {
-#if SD_DEBUG
-                     uartTxString_P(PSTR("Card is SDHC"));
-#endif
                      SDVersion = CT_SD2 | CT_BLOCK; /* Its version 2, High Capacity */
                   }
                   else
                   {
-#if SD_DEBUG
-                     uartTxString_P(PSTR("Card is SDv2"));
-#endif
                      SDVersion = CT_SD2; /* Its just Version 2, Normal SDC */
                   }
                   /* Clock out the remaining data */
@@ -167,7 +153,8 @@ uint8_t SD_Init(void)
                }
          }    
          if( i > SD_MAX_RETRIES )
-         {
+         {  
+            break;
             return SD_ERROR;
          }
       }
@@ -181,12 +168,13 @@ uint8_t SD_Init(void)
       { 
          r1 = SD_Command(SD_APP_CMD,0); //CMD55, must be sent before sending any ACMD command
          r1 = SD_Command(SD_SEND_OP_COND,0x00000000); //ACMD41
+         _delay_ms(1);
    		if(r1 == SD_R1_READY)
          {
             break;
          }
             
-         if( i > SD_MAX_RETRIES )
+         if( i > SD_TIMEOUT )
          {
             break;
          }
@@ -197,6 +185,7 @@ uint8_t SD_Init(void)
          for( i = 0; ; i++)
          { 
             r1 = SD_Command(MMC_SEND_OP_COND, 0);
+            _delay_ms(1);
       		if(r1 == SD_R1_READY)
             {
                break;
@@ -204,11 +193,21 @@ uint8_t SD_Init(void)
             
             if( i > SD_MAX_RETRIES )
             {
-               return SD_ERROR;
+               break;
+               //return SD_ERROR;
             }
          }
       }
    }
+
+#if SD_DEBUG
+   uartNewLine();
+   uartTxString("SD Version: ");
+   uint8toa(SDVersion, outputString);
+   uartTxString(outputString);
+   uartNewLine();   
+#endif    
+
    
    SD_SetMaxSpeed();
 
@@ -235,10 +234,10 @@ uint8_t SD_Command(uint8_t cmd, uint32_t arg)
 
    /* Select the card */
    SD_RELEASE();
-   SD_WaitUntilReady();
+   SPI_RxByte();
 
    SD_SELECT();
-   SD_WaitUntilReady();
+   SPI_RxByte();
 	
 	// send command
 	SPI_TxByte(cmd | 0x40);
@@ -264,15 +263,14 @@ uint8_t SD_Command(uint8_t cmd, uint32_t arg)
 	// wait for response
 	// if more than 8 retries, card has timed-out
 	// return the received 0xFF
-	while( (r1 = SPI_RxByte() ) == 0xFF)
+	while( (r1 = SPI_RxByte() ) & 0x80)
    {
-		if(retry++ > SD_MAX_RETRIES)
+		if(retry++ > 10)
       {
          break;
       }
    }
 
-   
 	// return response
 #if SD_DEBUG	
    uartNewLine();
@@ -607,15 +605,14 @@ DRESULT disk_readp (
    // Single block read 
 	if (SD_Command(SD_READ_SINGLE_BLOCK, sector) == 0)		// READ_SINGLE_BLOCK
    {
-   	uint8_t retry = SD_MAX_RETRIES;	
+   	uint8_t retry = SD_TIMEOUT;
+      
+      	
       bytesRemaining = bytesRemaining - offset - byteCount;
    	/** Wait for start block */
-   	while( SPI_RxByte() != SD_STARTBLOCK_READ && retry)
+   	while( (SPI_RxByte() != SD_STARTBLOCK_READ) && (retry--))
    	{
-   		if(retry--)
-   		{
-   			ret = RES_ERROR;		
-   		}
+         _delay_us(1);
    	}
       if( retry )
       {
@@ -640,7 +637,7 @@ DRESULT disk_readp (
 	}
 
    // wait until card not busy
-	while(!SPI_RxByte());
+	//while(!SPI_RxByte());
    
    /* Release and return clock phase and speed back to default */
    SD_RELEASE();
@@ -698,11 +695,12 @@ DRESULT disk_writep (
 			byteCount = WriteCounter + 2;
 			while (byteCount--) 
          {
-            SPI_TxByte(0);	/* Fill left bytes and CRC with zeros */
+            SPI_TxByte(0xFF);	/* Fill left bytes and CRC with zeros */
 			}     
-         if( (SPI_RxByte() & 0x1F) == SD_DR_ACCEPT) 
+         if( (SPI_RxByte() & SD_DR_MASK) == SD_DR_ACCEPT) 
          {	/* Receive data resp and wait for end of write process in timeout of 300ms */
             SD_WaitUntilReady();
+
             ret = RES_OK;
 			}
 
