@@ -29,16 +29,18 @@ ISR(SPI_STC_vect)
 void SPI_Init(void)
 {
    
-   SPI_PORT |= (1 << nSS);
-   /* Setup ports */
-   /* Initiate as Master and Use CPHA = 1*/
-   SPCR |= ((1 << SPE) | (1 << MSTR));
-    
    /* Setup ports */
    SPI_DDR |= ( (1 << SCK) | (1 << nSS) | (1 << MOSI) );
    SPI_DDR &=  ~(1 << MISO);
    SPI_PORT &= ~((1 << MOSI));
    SPI_PORT |= ((1 << nSS) | (1 << MISO) | (1 << SCK) | (1 << MOSI));
+
+   SPI_PORT |= (1 << nSS);
+   /* Setup ports */
+   /* Initiate as Master and Use CPHA = 1*/
+   SPCR |= ((1 << SPE) | (1 << MSTR));
+    
+
      
     
    /* set CLK speed to fclk/32 */
