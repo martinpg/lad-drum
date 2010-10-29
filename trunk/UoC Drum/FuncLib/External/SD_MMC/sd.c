@@ -8,8 +8,9 @@
 #include "mmculib/uint8toa.h"
 #include "PetitFS/diskio.h"
 
-#define SD_DEBUG  0
+#define SD_DEBUG  1
 
+static uint8_t outputString[10];
 
 DSTATUS SD_Stat = STA_NOINIT;
 uint8_t SDVersion = 0;
@@ -17,15 +18,18 @@ uint8_t SDVersion = 0;
 uint8_t SD_WaitUntilReady(void)
 {
    uint16_t i = 0;
-    /* card needs 74 cycles minimum to start up */
-   for(i = 0; i < SD_TIMEOUT; ++i)
+   uint8_t result;
+
+   for(i = 0; i < SD_TIMEOUT; i++)
    {
-      if( SPI_RxByte() != 0xFF )
+      result = SPI_RxByte();
+      
+      if( result == 0xFF )
       {
-         return SD_R1_READY;
+         return result;
       }
    }   
-   return SD_R1_BUSY;
+   return result;
 }
 
 
@@ -41,7 +45,7 @@ void SD_Startup(void)
 
 void SD_SetMaxSpeed(void)
 {
-   SPCR &= ~((1 << CPHA) | (1 << CPOL));
+   SPCR &= ~((1 << SPR1) | (1 << SPR0));
    SPSR |= (1 << SPI2X);
 }
 
@@ -84,7 +88,7 @@ uint8_t SD_Init(void)
       r1 = SD_Command(SD_GO_IDLE_STATE, 0);
 		if(r1 == SD_R1_IDLE_STATE)
       {
-         SD_SetMaxSpeed();
+         
          break;
       } 
       if( i > SD_MAX_RETRIES )
@@ -136,7 +140,7 @@ uint8_t SD_Init(void)
    		if(r1 == SD_R1_READY)
          {
             /* If it works, initiate the High Capacity card's HC bit */
-               r1 = SD_Command(SD_READ_OCR,0); //CMD55, must be sent before sending any ACMD command
+               r1 = SD_Command(SD_READ_OCR,0);
                
                if( r1 == SD_R1_READY )
                {
@@ -192,7 +196,7 @@ uint8_t SD_Init(void)
          /* try for MMC */
          for( i = 0; ; i++)
          { 
-            r1 = SD_Command(SD_SEND_OP_COND, 0);
+            r1 = SD_Command(MMC_SEND_OP_COND, 0);
       		if(r1 == SD_R1_READY)
             {
                break;
@@ -206,6 +210,7 @@ uint8_t SD_Init(void)
       }
    }
    
+   SD_SetMaxSpeed();
 
    r1 = SD_Command(SD_CRC_ON_OFF, 0);
    r1 = SD_Command(SD_SET_BLOCKLEN, 512);   /* Block len is always 512 */  
@@ -228,12 +233,12 @@ uint8_t SD_Command(uint8_t cmd, uint32_t arg)
 	uint8_t retry = 0;
    uint8_t crcByte = 0x01;
 
-   /* Deselect the Card */
-   SD_CS_DDR |= (1 << SD_CS_PIN);   
-   SPI_RxByte();
    /* Select the card */
-   SD_CS_PORT &= ~(1 << SD_CS_PIN);
-   SPI_RxByte();
+   SD_RELEASE();
+   SD_WaitUntilReady();
+
+   SD_SELECT();
+   SD_WaitUntilReady();
 	
 	// send command
 	SPI_TxByte(cmd | 0x40);
@@ -261,16 +266,15 @@ uint8_t SD_Command(uint8_t cmd, uint32_t arg)
 	// return the received 0xFF
 	while( (r1 = SPI_RxByte() ) == 0xFF)
    {
-      _delay_ms(100);
 		if(retry++ > SD_MAX_RETRIES)
       {
          break;
       }
    }
+
+   
 	// return response
 #if SD_DEBUG	
-	uint8_t outputString[5];
-
    uartNewLine();
    uartTxString("R1 Response: ");
    uint8toa(r1, outputString);
@@ -338,7 +342,6 @@ uint8_t SD_WriteSector(uint8_t* buffer, uint8_t token)
 	if( (r1 & SD_DR_MASK) != SD_DR_ACCEPT)
 	{
 #if SD_DEBUG		
-		uint8_t outputString[5];	
    	uartNewLine();
    	uartTxString("R1 Response: ");
    	uint8toa(r1, outputString);
@@ -591,11 +594,9 @@ DRESULT disk_readp (
 	WORD byteCount		/* Number of bytes to read (offset + byteCount mus be <= 512) */
 )
 {
-		uint8_t outputString[5];	
+		
    uint16_t bytesRemaining = 514;
    uint8_t ret = RES_ERROR;
-	// assert chip select
-   //SD_CS_PORT &= ~(1 << SD_CS_PIN);
    
    /* Convert sectors to bytes, if it is NOT an SDHC card */
    if( !(SDVersion & CT_BLOCK) )
@@ -611,10 +612,8 @@ DRESULT disk_readp (
    	/** Wait for start block */
    	while( SPI_RxByte() != SD_STARTBLOCK_READ && retry)
    	{
-         _delay_ms(10);
    		if(retry--)
    		{
-            
    			ret = RES_ERROR;		
    		}
    	}
@@ -644,7 +643,7 @@ DRESULT disk_readp (
 	while(!SPI_RxByte());
    
    /* Release and return clock phase and speed back to default */
-   SD_CS_PORT |= (1 << SD_CS_PIN);
+   SD_RELEASE();
  
 
 	// return success
@@ -686,8 +685,9 @@ DRESULT disk_writep (
          
          /* WRITE_SINGLE_BLOCK */
 			if (SD_Command(SD_WRITE_BLOCK, sectorNumber) == 0) 
-         {			
-				while(!SPI_RxByte()); 
+         {		
+         	/* I don't like this infinite loop */
+				SD_WaitUntilReady(); 
             SPI_TxByte(SD_STARTBLOCK_WRITE);		/* Data block header */
 				WriteCounter = 512;							/* Set byte counter */
 				ret = RES_OK;
@@ -699,18 +699,15 @@ DRESULT disk_writep (
 			while (byteCount--) 
          {
             SPI_TxByte(0);	/* Fill left bytes and CRC with zeros */
-			}
-         uint8_t x = SPI_RxByte();        
-         if( (x & 0x1F) == SD_DR_ACCEPT) 
+			}     
+         if( (SPI_RxByte() & 0x1F) == SD_DR_ACCEPT) 
          {	/* Receive data resp and wait for end of write process in timeout of 300ms */
-               /* Reset the card */
-                     // wait until card not busy
-      	   while(!SPI_RxByte());
+            SD_WaitUntilReady();
             ret = RES_OK;
 			}
 
          /* Release SPI */
-         SD_CS_PORT |= (1 << SD_CS_PIN);
+         SD_RELEASE();
 	   }
    }
 
