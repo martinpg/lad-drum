@@ -71,8 +71,8 @@
 #define SD_PWR_PORT PORTB
 #define SD_PWR_PIN  PB0 */
 
-#define SD_MAX_RETRIES 8
-#define SD_TIMEOUT   (50000)
+#define SD_MAX_RETRIES 100
+#define SD_TIMEOUT   (65000)
 
 #define SD_SELECT()    (SD_CS_PORT &= ~(1 << SD_CS_PIN))
 #define SD_RELEASE()   (SD_CS_DDR |= (1 << SD_CS_PIN))
@@ -151,9 +151,10 @@ uint8_t SD_Init(void);
 void SD_Startup(void);
 void SD_Shutdown(void);
 
-
+uint8_t SD_disk_Init(void);
 uint8_t SD_ReadBlock(uint8_t* buffer, uint16_t byteCount);
 uint8_t SD_WriteSector(uint8_t* buffer, uint8_t token);
+
 uint8_t SD_Command(uint8_t cmd, uint32_t arg);
 
 /** SD DISK IO Functions */
