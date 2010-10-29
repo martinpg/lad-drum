@@ -3,7 +3,6 @@
 #include "SD_MMC/sd.h"
 #include "PetitFS/pff.h"
 #include "SPI/spi.h"
-#include "mmculib/uint8toa.h"
 #include "mmculib/uint16toa.h"
 
 int main(void) 
@@ -22,10 +21,7 @@ int main(void)
 
    DDRC |= (1<<4);
    
-   sei();
-   //_delay_ms(30);
-
-   
+   sei();  
 
    //uartTxString_P( PSTR("Entering Loop") );
 
@@ -55,24 +51,24 @@ int main(void)
 
    while( 1 )
    {
-      _delay_ms(30);
-      _delay_ms(30);
       /* Goto start of file */
       fileptr = fileptr + 512;
+      if( fileptr > 64000 )
+      {
+         fileptr = 0;
+      }
 
       uint16toa(fileptr, outputString, 0);
-      uartTxDump(outputString, 5);
+      //uartTxDump(outputString, 5);
 
 
       if( pf_lseek(fileptr) == FR_OK )
       {
-         //uartTxString_P( PSTR("lseek") );
       }
 
       if( pf_write("Hello", 5, &bytesWritten) == FR_OK )
       {
-         //fileptr = fileptr + bytesWritten;
-         uartTxString_P( PSTR("Write Okay!") );
+         //uartTxString_P( PSTR("Write Okay!") );
       }
       else
       {
@@ -81,8 +77,7 @@ int main(void)
 
      if( pf_write(" Adrian", 7, &bytesWritten) == FR_OK )
       {
-         //fileptr = fileptr + bytesWritten;
-         uartTxString_P( PSTR("Write Okay!") );
+         //uartTxString_P( PSTR("Write Okay!") );
       }
       else
       {
@@ -91,7 +86,7 @@ int main(void)
       
       if( pf_write(0, 0, &bytesWritten) == FR_OK )
       {
-         uartTxString_P( PSTR("Write Finalised!") );
+         uartTxString_P( PSTR("1") );
       }
       else
       {
@@ -99,7 +94,7 @@ int main(void)
       }
 
 
-     	MMC_CS_PORT |= (1 << MMC_CS_PIN);
+       SD_RELEASE();
    	//SPCR |= (1 << CPHA) | (1 << SPR1);
       
    }

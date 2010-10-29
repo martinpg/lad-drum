@@ -22,9 +22,9 @@
 #define nSS       (PB2)
 
 /* SD Card Specific */
-#define MMC_CS_DDR   DDRB
-#define MMC_CS_PORT  PORTB
-#define MMC_CS_PIN   (PB2)
+#define SD_CS_DDR   DDRB
+#define SD_CS_PORT  PORTB
+#define SD_CS_PIN   (PB2)
 
 
 /* Interrupts */
