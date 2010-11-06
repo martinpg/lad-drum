@@ -19,12 +19,12 @@
 #define SCK       (PB5)
 #define MISO      (PB4)
 #define MOSI      (PB3)
-#define nSS       (PB2)
+#define nSS       (PB0)
 
 /* SD Card Specific */
-#define SD_CS_DDR   DDRB
-#define SD_CS_PORT  PORTB
-#define SD_CS_PIN   (nSS)
+#define SD_CS_DDR   (DDRB)
+#define SD_CS_PORT  (PORTB)
+#define SD_CS_PIN   (PB2)
 
 
 /* Interrupts */
