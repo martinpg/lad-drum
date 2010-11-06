@@ -9,11 +9,7 @@
 
 
 waveHeader_t wavefile;
-
 uint8_t outputString[20];
-WORD bytesWritten = 0;
-
-
 
 
 int main(void) 
@@ -31,13 +27,6 @@ int main(void)
    _delay_ms(100);
 
    DDRC |= (1<<4);
-   
-
-
-   DDRB |= (1<<0);
-
-
-
 
    //uartTxString_P( PSTR("Entering Loop") );
 
@@ -47,28 +36,7 @@ int main(void)
       ret = pf_mount(&filesys);
    }
 
-
-   if( ret == RES_OK )
-   {
-      uartTxString_P( PSTR("Mount success") );
-   }
-
-   /* Goto start of file */
-   if( pf_lseek(0) == FR_OK )
-   {
-      ret = waveParseHeader(&wavefile, "1.wav");
-   }
-
-   pf_read(Buff, WAVE_OUTBUFFER_SIZE, &bytesWritten);
-   if( bytesWritten != WAVE_OUTBUFFER_SIZE )
-   {
-      uartTxString_P(PSTR("Read ErrorStart!"));
-   }
-
-   
    uartTxString_P(PSTR("Loop Starting"));
-
-
 
    for( ;; )
    {
@@ -79,8 +47,7 @@ int main(void)
       if( waveContinuePlaying(&wavefile) == 0)
       {
          waveAudioOff();
-         uartTxString_P( PSTR("Wave Finished!"));
-         break;
+         //uartTxString_P( PSTR("Wave Finished!"));
       }
       //waveContinuePlaying();
       /* Goto start of file */
@@ -91,8 +58,6 @@ int main(void)
    {
       uartTxString_P( PSTR("Unmounted!") );
    }
-
-   while(1);
 
    return 0;
 }
@@ -113,16 +78,22 @@ ISR(SIG_OUTPUT_COMPARE2)
 ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
+   static uint8_t readPtr = 0;
    sei();
-	uartTx(buffer);
+
+   uartTx(buffer);
 
 
-   switch( buffer )
+   if( buffer == 13 || buffer == 10 )
    {
-      case '1':
-
-      break;
-
+      strcpy_P( &outputString[readPtr] , PSTR(".wav") );
+      readPtr = 0;
+      uartNewLine();
+      uartTxString_P( PSTR("Now playing: ") );
+      uartTxString(outputString);
+      wavePlayFile(&wavefile, outputString);
    }
+
+   outputString[readPtr++] = buffer;
 
 }
