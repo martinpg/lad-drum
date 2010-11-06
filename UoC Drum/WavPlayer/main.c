@@ -18,20 +18,26 @@ WORD bytesWritten = 0;
 
 int main(void) 
 {
-
-
-		
-
    DWORD fileptr = 0;  
    uint8_t ret = 0;   
 
+   _delay_ms(100);
+
+   sei(); 
 
    uartInit(10,0);
    SPI_Init();
 
+   _delay_ms(100);
+
    DDRC |= (1<<4);
    
-   sei();  
+
+
+   DDRB |= (1<<0);
+
+
+
 
    //uartTxString_P( PSTR("Entering Loop") );
 
@@ -96,8 +102,14 @@ int main(void)
    
    uartTxString_P(PSTR("Loop Starting"));
 
-   waveAudioSetup(0);
-   waveAudioOn();
+   //waveAudioSetup(0);
+   //waveAudioOn();
+
+   while(1)
+   {
+      //uartTxString_P( PSTR("Hello!"));
+      PORTB ^= (1 << 0);
+   }
 
 
    for( ;; )

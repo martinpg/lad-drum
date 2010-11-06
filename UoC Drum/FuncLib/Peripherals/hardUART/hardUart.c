@@ -102,6 +102,15 @@ void uartTx(uint8_t byte)
 
    while(ringbuffer_put((RINGBUFFER_T*)&TransmitBuffer, byte) == BUFFER_OVERFLOW)
    {
+      /* If this is the first byte */
+      if( transmitState != IS_TRANSMITTING )
+      {
+         if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
+      	{
+            transmitState = IS_TRANSMITTING;
+         	UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
+      	}	
+   	}
       /*PORTC |= (1<<4);
       if( (UCSRA & (1<<UDRE)) )
       {

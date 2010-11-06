@@ -10,13 +10,10 @@
 
 volatile uint8_t spiTransferComplete = TRANSFER_COMPLETE;
 
-ISR(SPI_STC_vect)
+ISR(SIG_SPI)
 {
-   cli();
-   
+   uartTx('H');
    spiTransferComplete = TRANSFER_COMPLETE;
-   
-   sei();
 }
 
 /** Sets the micro up as a
@@ -28,20 +25,24 @@ ISR(SPI_STC_vect)
  */
 void SPI_Init(void)
 {
-   
+   /* Initiate as Master and Use CPHA = 1*/
+   uint8_t i;
+
+
    /* Setup ports */
-   SPI_DDR |= ( (1 << SCK) | (1 << nSS) | (1 << MOSI) );
+   SPI_DDR |= ((1 << nSS) | (1 << SCK) | (1 << MOSI) );
    SPI_DDR &=  ~(1 << MISO);
    SPI_PORT &= ~((1 << MOSI));
-   SPI_PORT |= ((1 << nSS) | (1 << MISO) | (1 << SCK) | (1 << MOSI));
+   SPI_PORT |= ((1 << MISO) | (1 << SCK) | (1 << MOSI));
 
-   SPI_PORT |= (1 << nSS);
    /* Setup ports */
-   /* Initiate as Master and Use CPHA = 1*/
-   SPCR |= ((1 << SPE) | (1 << MSTR));
-    
 
-     
+    
+   SPCR |= ((1 << SPE) | (1 << MSTR));
+   
+   i = SPSR;
+   i = SPDR;
+
     
    /* set CLK speed to fclk/32 */
    SPCR |= ((1 << SPR0) | (1 << SPR1));
@@ -49,6 +50,7 @@ void SPI_Init(void)
    /*
    SPSR;
    SPCR |= (1 << SPIE);  */
+   //SPCR |= (1 << SPIE);
 }
 
 
@@ -56,11 +58,26 @@ void SPI_Init(void)
 
 uint8_t SPI_TxByte(uint8_t data)
 {
-   //while( !spiTransferComplete );
-   SPDR = data;
+
+
+  
+
    //spiTransferComplete = TRANSFER_INCOMPLETE;
-   while( ! ( SPSR & (1 << SPIF)));
-   SPSR &= ~(1 << SPIF);
+   SPDR = data;
+   uartTx('W');
+   //while( spiTransferComplete == TRANSFER_INCOMPLETE)
+   //{
+      //_delay_ms(10);
+      //uartTx('S');//
+   //}
+   //
+   while( !( SPSR & (1 << SPIF)))
+   {
+      /*if( SPSR & (1 << WCOL) )
+      {
+         uartTx('6');
+      }*/
+   }
    
    return SPDR;
 }
