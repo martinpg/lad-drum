@@ -44,11 +44,21 @@ void waveAudioSetup(void)
 }
 
 
-/* This assumes the filesystem has been mounted */
+/* This assumes the filesystem has been mounted, 
+ * waveContinuePlaying needs to be constantly called in the main loop thereafter
+ */
 uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename)
 {
+   uint8_t bytesWritten;
+
    waveAudioSetup();
    waveParseHeader(&wavefile, filename);
+   pf_read(Buff, WAVE_OUTBUFFER_SIZE, &bytesWritten);
+   if( bytesWritten != WAVE_OUTBUFFER_SIZE )
+   {
+      return WAVE_IO_ERROR;
+   }
+
    waveAudioOn();
 
 
@@ -88,7 +98,7 @@ uint8_t waveContinuePlaying(waveHeader_t* wavefile)
 
       if( bytesWritten != bytesToPlay )
       {
-         uartTxString_P(PSTR("Read Error1!"));
+         return 0;
       }
    }
 

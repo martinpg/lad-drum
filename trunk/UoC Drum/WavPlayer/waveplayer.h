@@ -7,6 +7,7 @@
 #define FCC(b1,b2,b3,b4)	(((uint32_t)b4<<24)+((uint32_t)b3<<16)+((uint16_t)b2<<8)+(uint8_t)b1)	/* FourCC */
 //#define GET32(x)            (uint32_t)(*(uint32_t*)x)
 
+#define WAVE_SUCCESS        (0)
 #define WAVE_IO_ERROR       (2)
 #define WAVE_INVALID_FILE   (4)
 #define WAVE_MINIMUM_SAMPLES    (1024)
