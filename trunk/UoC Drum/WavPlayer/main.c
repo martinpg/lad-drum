@@ -51,10 +51,6 @@ int main(void)
    if( ret == RES_OK )
    {
       uartTxString_P( PSTR("Mount success") );
-      if( pf_open("1.wav") == RES_OK )
-      {
-         //uartTxString_P( PSTR("File Opened!") );
-      }
    }
 
    /* Goto start of file */
@@ -62,36 +58,6 @@ int main(void)
    {
       ret = waveParseHeader(&wavefile, "1.wav");
    }
-
-
-   uartNewLine();
-
-   uint16toa(wavefile.channelCount, outputString, 0);
-   uartTxString_P( PSTR("Channel Count: ") );
-   uartTxString(outputString);
-   uartNewLine();
-
-   uint16toa(wavefile.resolution, outputString, 0);
-   uartTxString_P( PSTR("Res: ") );
-   uartTxString(outputString);
-   uartNewLine();
-
-   uint16toa(wavefile.sampleRate, outputString, 0);
-   uartTxString_P( PSTR("SampleRate: ") );
-   uartTxString(outputString);
-   uartNewLine();
-
-   uartTxString_P( PSTR("DataSize: ") );
-   uint16toa(((uint32_t)(wavefile.dataSize)>>16), outputString, 0);
-   uartTxString(outputString);
-   uartNewLine();
-   uint16toa(wavefile.dataSize, outputString, 0);
-   uartTxString(outputString);
-   uartNewLine();
-
-
-   uint8_t i;
-   uint8_t direction = 1;
 
    pf_read(Buff, WAVE_OUTBUFFER_SIZE, &bytesWritten);
    if( bytesWritten != WAVE_OUTBUFFER_SIZE )
@@ -102,14 +68,6 @@ int main(void)
    
    uartTxString_P(PSTR("Loop Starting"));
 
-   //waveAudioSetup(0);
-   //waveAudioOn();
-
-   while(1)
-   {
-      //uartTxString_P( PSTR("Hello!"));
-      PORTB ^= (1 << 0);
-   }
 
 
    for( ;; )
@@ -120,6 +78,7 @@ int main(void)
       /* If we are ready to receive the next bytes then do it */
       if( waveContinuePlaying(&wavefile) == 0)
       {
+         waveAudioOff();
          uartTxString_P( PSTR("Wave Finished!"));
          break;
       }
@@ -156,4 +115,14 @@ ISR(SIG_UART_RECV)
    uint8_t buffer = UDR;
    sei();
 	uartTx(buffer);
+
+
+   switch( buffer )
+   {
+      case '1':
+
+      break;
+
+   }
+
 }

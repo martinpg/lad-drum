@@ -10,8 +10,10 @@
 #define WAVE_IO_ERROR       (2)
 #define WAVE_INVALID_FILE   (4)
 #define WAVE_MINIMUM_SAMPLES    (1024)
-/* 2:I/O error, 4:Invalid file, >=1024:Ok(number of samples) */
 
+#define WAVE_STEREO_ENABLED (1)
+
+/* 2:I/O error, 4:Invalid file, >=1024:Ok(number of samples) */
 #define FMT_FORMAT    (0)
 #define FMT_NUM_CHANNELS (2)
 #define FMT_SAMPLERATE  (4)
@@ -39,7 +41,7 @@ extern FATFS filesys;
 extern uint8_t Buff[];
 extern volatile uint16_t audioReadptr;
 
-void waveAudioSetup(uint8_t hasRightChannel);
+void waveAudioSetup(void);
 void waveAudioOn(void);
 void waveAudioOff(void);
 

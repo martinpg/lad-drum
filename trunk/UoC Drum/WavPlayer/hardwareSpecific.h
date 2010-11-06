@@ -25,7 +25,6 @@
 #define SD_CS_DDR   (DDRB)
 #define SD_CS_PORT  (PORTB)
 #define SD_CS_PIN   (PB0)
-#define SD_CS_PIN2  (PB0)
 
 /* Interrupts */
 //#define ENABLE_INTERRUPT() (sei())

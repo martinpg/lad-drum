@@ -26,16 +26,15 @@ void waveAudioOff(void)
 }
 
 /* AudioSetup must be called at the start of a new wave file */
-void waveAudioSetup(uint8_t hasRightChannel)
+void waveAudioSetup(void)
 {
    TCCR1A |= (1 << COM1A0) | (1 << COM1A1) | (1 << WGM10);
    TCCR1B |= (1 << CS10) | (1 << WGM12);
 
-   if( hasRightChannel == 1 )
-   {
-      DDRB |= (1 << 2);
-      TCCR1A |= (1 << COM1B0) | (1 << COM1B1);
-   }
+#if WAVE_STEREO_ENABLED
+   DDRB |= (1 << 2);
+   TCCR1A |= (1 << COM1B0) | (1 << COM1B1);
+#endif
 
    DDRB |= (1 << 1);
    /* Set levels back to centre */
@@ -44,6 +43,16 @@ void waveAudioSetup(uint8_t hasRightChannel)
    audioReadptr = 0;
 }
 
+
+/* This assumes the filesystem has been mounted */
+uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename)
+{
+   waveAudioSetup();
+   waveParseHeader(&wavefile, filename);
+   waveAudioOn();
+
+
+}
 
 /* If this returns false, then the song has finished */
 uint8_t waveContinuePlaying(waveHeader_t* wavefile)
@@ -99,21 +108,25 @@ void waveProcessBuffer(waveHeader_t* wavefile)
    /* For Mono / Stereo */
    uint8_t offsetMultiplier = 0;
 
+   /* Setup the resolution byte offsets */
    if( wavefile->resolution == 16 )
    {
-      byteOffset += 1;
+      byteOffset = 1;
       valueOffset = 128;
    }
 
-   /* Right is second */
+   /* Setup the offsets for stereo */
    if( wavefile->channelCount == 2 )
    {
       offsetMultiplier = 1;
-      OCR1B = Buff[audioReadptr + (byteOffset << offsetMultiplier) + offsetMultiplier] + valueOffset;
    }
 
    /* Left is first */
    OCR1A = Buff[(audioReadptr + byteOffset)] + valueOffset;
+
+   /* Right is second */
+   /* This will not do anything if WAVE_STEREO_ENABLED is not set to 1 */
+   OCR1B = Buff[audioReadptr + (byteOffset << offsetMultiplier) + offsetMultiplier] + valueOffset;
 
    audioReadptr = audioReadptr + ((1 + byteOffset) << offsetMultiplier);
 
