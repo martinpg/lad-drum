@@ -6,27 +6,10 @@
 #include "mmculib/uint16toa.h"
 #include "waveplayer.h"
 
-/* Using Timer2 */
-void SampleRateInit(void)
-{
-   TCCR2 |= ((1 << WGM21) | (1 << CS21) | (1 << CS20));
-   TCCR2 &= ~((1 << WGM20) | (1 << COM21) | (1 << COM20));
-   //OCR2 = 100;
-   TIMSK |= (1 << OCIE2);
-}
-
-
-void AudioOutSetup(void)
-{
-   TCCR1A |= (1 << COM1A0) | (1 << COM1A1) | (1 << WGM10);
-   TCCR1B |= (1 << CS10) | (1 << WGM12);
-
-   DDRB |= (1 << 1);
-   OCR1A = 128;
-}
 
 
 waveHeader_t wavefile;
+
 uint8_t outputString[20];
 WORD bytesWritten = 0;
 
@@ -61,7 +44,7 @@ int main(void)
 
    if( ret == RES_OK )
    {
-      uartTxString_P( PSTR("Mount sucess") );
+      uartTxString_P( PSTR("Mount success") );
       if( pf_open("1.wav") == RES_OK )
       {
          //uartTxString_P( PSTR("File Opened!") );
@@ -110,11 +93,11 @@ int main(void)
       uartTxString_P(PSTR("Read ErrorStart!"));
    }
 
-   AudioOutSetup();
+   
    uartTxString_P(PSTR("Loop Starting"));
 
-   SampleRateInit();
-
+   waveAudioSetup(0);
+   waveAudioOn();
 
 
    for( ;; )
@@ -123,6 +106,11 @@ int main(void)
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
       /* If we are ready to receive the next bytes then do it */
+      if( waveContinuePlaying(&wavefile) == 0)
+      {
+         uartTxString_P( PSTR("Wave Finished!"));
+         break;
+      }
       //waveContinuePlaying();
       /* Goto start of file */
        //
@@ -132,6 +120,8 @@ int main(void)
    {
       uartTxString_P( PSTR("Unmounted!") );
    }
+
+   while(1);
 
    return 0;
 }
@@ -143,8 +133,8 @@ int main(void)
 
 ISR(SIG_OUTPUT_COMPARE2)
 {
-   sei();
-   waveProcessBuffer();
+   //sei();
+   waveProcessBuffer(&wavefile);
 
 }
 
