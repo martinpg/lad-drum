@@ -26,7 +26,7 @@ int main(void)
    uint8_t ret = 0;   
 
 
-   uartInit(10,1);
+   uartInit(10,0);
    SPI_Init();
 
    DDRC |= (1<<4);
