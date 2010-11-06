@@ -4,19 +4,47 @@
 #include "PetitFS/pff.h"
 #include "SPI/spi.h"
 #include "mmculib/uint16toa.h"
+#include "waveplayer.h"
+
+/* Using Timer2 */
+void SampleRateInit(void)
+{
+   TCCR2 |= ((1 << WGM21) | (1 << CS21) | (1 << CS20));
+   TCCR2 &= ~((1 << WGM20) | (1 << COM21) | (1 << COM20));
+   //OCR2 = 100;
+   TIMSK |= (1 << OCIE2);
+}
+
+
+void AudioOutSetup(void)
+{
+   TCCR1A |= (1 << COM1A0) | (1 << COM1A1) | (1 << WGM10);
+   TCCR1B |= (1 << CS10) | (1 << WGM12);
+
+   DDRB |= (1 << 1);
+   OCR1A = 128;
+}
+
+
+waveHeader_t wavefile;
+uint8_t outputString[20];
+WORD bytesWritten = 0;
+
+
+volatile uint16_t audioReadptr = 0;
+volatile uint8_t audioFillBufferFlag = 0;
 
 int main(void) 
 {
 
-   FATFS filesys;
+
 		
-	uint8_t outputString[20];
+
    DWORD fileptr = 0;  
-
    uint8_t ret = 0;   
-   WORD bytesWritten = 0;
 
-   uartInit(39,0);
+
+   uartInit(10,1);
    SPI_Init();
 
    DDRC |= (1<<4);
@@ -28,16 +56,14 @@ int main(void)
       /* Initialise SD Card */
    if( SD_Init() == SD_SUCCESS )
    {
-      /* Mount the drive */
-      //uartTxString_P( PSTR("Mounting..") );
       ret = pf_mount(&filesys);
    }
 
 
    if( ret == RES_OK )
    {
-      uartTxString_P( PSTR("Opening File") );
-      if( pf_open("hello.txt") == RES_OK )
+      uartTxString_P( PSTR("Mount sucess") );
+      if( pf_open("1.wav") == RES_OK )
       {
          //uartTxString_P( PSTR("File Opened!") );
       }
@@ -46,71 +72,108 @@ int main(void)
    /* Goto start of file */
    if( pf_lseek(0) == FR_OK )
    {
-      //uartTxString_P( PSTR("lseek") );
+      ret = waveParseHeader(&wavefile, "1.wav");
    }
 
-   while( 1 )
+
+   uartNewLine();
+
+   uint16toa(wavefile.channelCount, outputString, 0);
+   uartTxString_P( PSTR("Channel Count: ") );
+   uartTxString(outputString);
+   uartNewLine();
+
+   uint16toa(wavefile.resolution, outputString, 0);
+   uartTxString_P( PSTR("Res: ") );
+   uartTxString(outputString);
+   uartNewLine();
+
+   uint16toa(wavefile.sampleRate, outputString, 0);
+   uartTxString_P( PSTR("SampleRate: ") );
+   uartTxString(outputString);
+   uartNewLine();
+
+   uartTxString_P( PSTR("DataSize: ") );
+   uint16toa(((uint32_t)(wavefile.dataSize)>>16), outputString, 0);
+   uartTxString(outputString);
+   uartNewLine();
+   uint16toa(wavefile.dataSize, outputString, 0);
+   uartTxString(outputString);
+   uartNewLine();
+
+
+   uint8_t i;
+   uint8_t direction = 1;
+
+   pf_read(Buff, WAVE_OUTBUFFER_SIZE, &bytesWritten);
+   if( bytesWritten != WAVE_OUTBUFFER_SIZE )
    {
+      uartTxString_P(PSTR("Read ErrorStart!"));
+   }
+
+   AudioOutSetup();
+   uartTxString_P(PSTR("Loop Starting"));
+
+   SampleRateInit();
+
+   uint8_t outputBlock = 0;
+
+   for( ;; )
+   {
+      
+      //uartTx(OCR2);
+      /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
+      if( (audioReadptr % WAVE_OUTBLOCK_SIZE) == 0)
+      {
+         outputBlock = audioReadptr;
+         audioFillBufferFlag = 1;
+      }
+
+
+      if( audioFillBufferFlag )
+      {
+         if( outputBlock == 0 )
+         {
+            outputBlock = WAVE_OUTBUFFER_SIZE - WAVE_OUTBLOCK_SIZE;
+         }
+
+         outputBlock = outputBlock / WAVE_OUTBLOCK_SIZE;
+         
+         pf_read(Buff+outputBlock, WAVE_OUTBLOCK_SIZE, &bytesWritten);
+         if( bytesWritten != WAVE_OUTBLOCK_SIZE )
+         {
+            uartTxString_P(PSTR("Read Error1!"));
+         }
+      
+         audioFillBufferFlag = 0;
+      }
+         
+      
       /* Goto start of file */
-      fileptr = fileptr + 512;
-      if( fileptr > 64000 )
-      {
-         fileptr = 0;
-      }
-
-//      uint16toa(fileptr, outputString, 0);
-      //uartTxDump(outputString, 5);
-
-
-      if( pf_lseek(fileptr) == FR_OK )
-      {
-      }
-
-      if( pf_write("Hello", 5, &bytesWritten) == FR_OK )
-      {
-         //uartTxString_P( PSTR("Write Okay!") );
-      }
-      else
-      {
-         uartTxString_P( PSTR("Write fail") );
-      }
-
-     if( pf_write(" Adrian", 7, &bytesWritten) == FR_OK )
-      {
-         //uartTxString_P( PSTR("Write Okay!") );
-      }
-      else
-      {
-         uartTxString_P( PSTR("Write fail") );
-      }
-      
-      if( pf_write(0, 0, &bytesWritten) == FR_OK )
-      {
-         uartTxString_P( PSTR("1") );
-      }
-      else
-      {
-         uartTxString_P( PSTR("SD Card fail!") );
-      }
-
-
-       SD_RELEASE();
-   	//SPCR |= (1 << CPHA) | (1 << SPR1);
-      
+       //SD_RELEASE();
    }
    
-
-
    if( pf_mount(0) == FR_OK )
    {
-      //uartTxString_P( PSTR("Unmounted!") );
+      uartTxString_P( PSTR("Unmounted!") );
    }
-   //uartTxString_P( PSTR("SD Card Initialised!") );
+
+   return 0;
+}
 
 
 
-   //return 0;
 
+
+
+ISR(SIG_OUTPUT_COMPARE2)
+{
+   //sei();
+   OCR1A = Buff[audioReadptr++];
+   if( audioReadptr == WAVE_OUTBUFFER_SIZE)
+   {
+      audioReadptr = 0;
+   }
 }
 
 
@@ -118,5 +181,5 @@ ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
    sei();
-	//uartTx(UDR);
+	uartTx(buffer);
 }
