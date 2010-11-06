@@ -8,7 +8,7 @@
 #include "mmculib/uint8toa.h"
 #include "PetitFS/diskio.h"
 
-#define SD_DEBUG  0
+#define SD_DEBUG  1
 
 static uint8_t outputString[10];
 
@@ -17,10 +17,9 @@ uint8_t SDVersion = 0;
 
 uint8_t SD_WaitUntilReady(void)
 {
-   uint16_t i = 0;
    uint8_t result;
 
-   /*for(i = 0; i < SD_TIMEOUT; i++)
+   /*for(uint8_t i = 0; i < SD_TIMEOUT; i++)
    {
       result = SPI_RxByte();
       if( result == 0xFF )
@@ -77,6 +76,11 @@ uint8_t SD_Init(void)
    uint8_t j;
    uint8_t r1;
    
+   
+
+   SD_CS_DDR |= (1 << SD_CS_PIN);
+   SD_CS_DDR |= (1 << SD_CS_PIN2);
+
    SD_RELEASE();
    
    SD_Startup();
@@ -86,6 +90,7 @@ uint8_t SD_Init(void)
    {
       /* wait 8 clock cycles */
       SPI_RxByte();
+      uartTx('1');
    }
    /* Select the card */
    SD_SELECT();
@@ -94,8 +99,11 @@ uint8_t SD_Init(void)
    /* Reset the card */
    for( i = 0; ; i++)
    { 
+      uartTx('A');
       _delay_ms(10);
+      
       r1 = SD_Command(SD_GO_IDLE_STATE, 0);
+      
 		if(r1 == SD_R1_IDLE_STATE)
       {
          break;
@@ -110,6 +118,7 @@ uint8_t SD_Init(void)
    /* See if it is a SD V2 Card */
    for( i = 0; ; i++)
    { 
+      uartTx('B');
       r1 = SD_Command(SD_SEND_IF_COND, 0x01AA);
       _delay_ms(10);
 		if(r1 == SD_R1_IDLE_STATE)
@@ -133,6 +142,7 @@ uint8_t SD_Init(void)
 
    if( SDVersion == CT_SD2 )
    {
+      uartTx('C');
       /* Attempt to initiate the High Capacity card's HC bit */
       for( i = 0; ; i++)
       {          
@@ -179,7 +189,7 @@ uint8_t SD_Init(void)
       { 
          r1 = SD_Command(SD_APP_CMD,0); //CMD55, must be sent before sending any ACMD command
          r1 = SD_Command(SD_SEND_OP_COND,0x00000000); //ACMD41
-         _delay_ms(1);
+         _delay_ms(2);
    		if(r1 == SD_R1_READY)
          {
             break;
@@ -196,7 +206,7 @@ uint8_t SD_Init(void)
          for( i = 0; ; i++)
          { 
             r1 = SD_Command(MMC_SEND_OP_COND, 0);
-            _delay_ms(1);
+            _delay_ms(2);
       		if(r1 == SD_R1_READY)
             {
                break;
@@ -244,6 +254,7 @@ uint8_t SD_Command(uint8_t cmd, uint32_t arg)
    uint8_t crcByte = 0x01;
 
    /* Select the card */
+   
    SD_RELEASE();
    SPI_RxByte();
 
@@ -257,11 +268,15 @@ uint8_t SD_Command(uint8_t cmd, uint32_t arg)
 	SPI_TxByte(arg>>8);
 	SPI_TxByte(arg);
 
+   uartTx('K');
+
 	//for remaining commands, CRC is ignored in SPI mode
    if(cmd == SD_SEND_IF_COND)	 //it is compulsory to send correct CRC for CMD8 (CRC=0x87) & CMD0 (CRC=0x95)
    {
       crcByte = 0x87;
    }
+
+   uartTx('L');
 
    if(cmd == SD_GO_IDLE_STATE)	 //it is compulsory to send correct CRC for CMD8 (CRC=0x87) & CMD0 (CRC=0x95)
    {
@@ -270,12 +285,15 @@ uint8_t SD_Command(uint8_t cmd, uint32_t arg)
 
    SPI_TxByte(crcByte);
    
+
+   uartTx('J');
 	// end command
 	// wait for response
 	// if more than 8 retries, card has timed-out
 	// return the received 0xFF
 	while( (r1 = SPI_RxByte() ) & 0x80)
    {
+      
 		if(retry++ > 10)
       {
          break;
