@@ -31,8 +31,7 @@ uint8_t outputString[20];
 WORD bytesWritten = 0;
 
 
-volatile uint16_t audioReadptr = 0;
-volatile uint8_t audioFillBufferFlag = 0;
+
 
 int main(void) 
 {
@@ -116,41 +115,17 @@ int main(void)
 
    SampleRateInit();
 
-   uint8_t outputBlock = 0;
+
 
    for( ;; )
    {
       
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
-      if( (audioReadptr % WAVE_OUTBLOCK_SIZE) == 0)
-      {
-         outputBlock = audioReadptr;
-         audioFillBufferFlag = 1;
-      }
-
-
-      if( audioFillBufferFlag )
-      {
-         if( outputBlock == 0 )
-         {
-            outputBlock = WAVE_OUTBUFFER_SIZE - WAVE_OUTBLOCK_SIZE;
-         }
-
-         outputBlock = outputBlock / WAVE_OUTBLOCK_SIZE;
-         
-         pf_read(Buff+outputBlock, WAVE_OUTBLOCK_SIZE, &bytesWritten);
-         if( bytesWritten != WAVE_OUTBLOCK_SIZE )
-         {
-            uartTxString_P(PSTR("Read Error1!"));
-         }
-      
-         audioFillBufferFlag = 0;
-      }
-         
-      
+      /* If we are ready to receive the next bytes then do it */
+      //waveContinuePlaying();
       /* Goto start of file */
-       //SD_RELEASE();
+       //
    }
    
    if( pf_mount(0) == FR_OK )
@@ -168,12 +143,9 @@ int main(void)
 
 ISR(SIG_OUTPUT_COMPARE2)
 {
-   //sei();
-   OCR1A = Buff[audioReadptr++];
-   if( audioReadptr == WAVE_OUTBUFFER_SIZE)
-   {
-      audioReadptr = 0;
-   }
+   sei();
+   waveProcessBuffer();
+
 }
 
 
