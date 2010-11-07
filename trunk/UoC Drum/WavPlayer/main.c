@@ -19,16 +19,20 @@ int main(void)
    uint8_t ret;
    _delay_ms(100);
 
-   sei(); 
+   
 
    uartInit(10,0);
+   sei(); 
+
+   uartTxString_P( PSTR("1") );
+
    SPI_Init();
 
    _delay_ms(100);
 
    DDRC |= (1<<4);
 
-   //uartTxString_P( PSTR("Entering Loop") );
+   uartTxString_P( PSTR("Entering Loop") );
 
       /* Initialise SD Card */
    if( SD_Init() == SD_SUCCESS )
@@ -41,7 +45,7 @@ int main(void)
 
    for( ;; )
    {
-      
+      PORTC &= ~(1 << 4);
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
       /* If we are ready to receive the next bytes then do it */
