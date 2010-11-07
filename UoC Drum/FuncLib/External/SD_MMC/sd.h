@@ -74,8 +74,8 @@
 #define SD_MAX_RETRIES 100
 #define SD_TIMEOUT   (65000)
 
-#define SD_SELECT()    SD_CS_PORT &= ~(1 << SD_CS_PIN); SD_CS_PORT &= ~(1 << SD_CS_PIN2)
-#define SD_RELEASE()   SD_CS_PORT |= (1 << SD_CS_PIN); SD_CS_PORT |= (1 << SD_CS_PIN2)
+#define SD_SELECT()    SD_CS_PORT &= ~(1 << SD_CS_PIN); 
+#define SD_RELEASE()   SD_CS_PORT |= (1 << SD_CS_PIN);
 
 
 // constants/macros/typdefs

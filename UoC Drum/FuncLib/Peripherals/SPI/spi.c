@@ -12,7 +12,6 @@ volatile uint8_t spiTransferComplete = TRANSFER_COMPLETE;
 
 ISR(SIG_SPI)
 {
-   uartTx('H');
    spiTransferComplete = TRANSFER_COMPLETE;
 }
 
@@ -58,26 +57,11 @@ void SPI_Init(void)
 
 uint8_t SPI_TxByte(uint8_t data)
 {
-
-
-  
-
    //spiTransferComplete = TRANSFER_INCOMPLETE;
    SPDR = data;
-   uartTx('W');
-   //while( spiTransferComplete == TRANSFER_INCOMPLETE)
-   //{
-      //_delay_ms(10);
-      //uartTx('S');//
-   //}
-   //
+
    while( !( SPSR & (1 << SPIF)))
-   {
-      /*if( SPSR & (1 << WCOL) )
-      {
-         uartTx('6');
-      }*/
-   }
+   {}
    
    return SPDR;
 }

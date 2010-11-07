@@ -46,6 +46,7 @@ void waveAudioSetup(void);
 void waveAudioOn(void);
 void waveAudioOff(void);
 
+uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename);
 uint8_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename);
 void waveProcessBuffer(waveHeader_t* wavefile);
 uint8_t waveContinuePlaying(waveHeader_t* wavefile);
