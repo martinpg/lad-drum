@@ -24,9 +24,7 @@ ISR(SIG_SPI)
  */
 void SPI_Init(void)
 {
-   /* Initiate as Master and Use CPHA = 1*/
-   uint8_t i;
-
+   
 
    /* Setup ports */
    SPI_DDR |= ((1 << nSS) | (1 << SCK) | (1 << MOSI) );
@@ -34,15 +32,9 @@ void SPI_Init(void)
    SPI_PORT &= ~((1 << MOSI));
    SPI_PORT |= ((1 << MISO) | (1 << SCK) | (1 << MOSI));
 
-   /* Setup ports */
-
-    
+   /* Initiate as Master and Use CPHA = 1*/
    SPCR |= ((1 << SPE) | (1 << MSTR));
    
-   i = SPSR;
-   i = SPDR;
-
-    
    /* set CLK speed to fclk/32 */
    SPCR |= ((1 << SPR0) | (1 << SPR1));
    //SPSR |= (1<<SPI2X);
@@ -60,8 +52,12 @@ uint8_t SPI_TxByte(uint8_t data)
    //spiTransferComplete = TRANSFER_INCOMPLETE;
    SPDR = data;
 
+   /* This while loop has given me so many problems! Sometimes the interrupt is not set! */
    while( !( SPSR & (1 << SPIF)))
-   {}
+   {
+      PORTC |= (1 << 4);
+      //uartTx('.');
+   }
    
    return SPDR;
 }
