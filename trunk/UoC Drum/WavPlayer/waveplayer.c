@@ -1,6 +1,7 @@
 #include "PetitFS/pff.h"
 #include "hardwareSpecific.h"
 #include "waveplayer.h"
+#include <string.h>
 
 uint8_t Buff[WAVE_OUTBUFFER_SIZE];		/* Audio output FIFO */
 FATFS filesys;
@@ -8,6 +9,12 @@ FATFS filesys;
 
 
 volatile uint16_t audioReadptr = 0;
+uint8_t audioState = 0;
+
+uint8_t waveIsPlaying(void)
+{
+   return audioState;
+}
 
 /* Using Timer2 */
 void waveAudioOn(void)
@@ -15,6 +22,7 @@ void waveAudioOn(void)
    TCCR2 |= ((1 << WGM21) | (1 << CS21) | (1 << CS20));
    TCCR2 &= ~((1 << WGM20) | (1 << COM21) | (1 << COM20));
    TIMSK |= (1 << OCIE2);
+   audioState = WAVE_OUTPUT_ON;
 }
 
 void waveAudioOff(void)
@@ -23,6 +31,7 @@ void waveAudioOff(void)
    TIMSK &= ~(1 << OCIE2);
    OCR1A = 128;
    OCR1B = 128;
+   audioState = WAVE_OUTPUT_OFF;
 }
 
 /* AudioSetup must be called at the start of a new wave file */
@@ -49,18 +58,71 @@ void waveAudioSetup(void)
  */
 uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename)
 {
-   waveParseHeader(wavefile, filename);
-   //waveAudioSetup();
-   //waveAudioOn();
+   uint32_t ret = 0;
+   uint8_t retries = WAVE_RETRY_COUNT;
 
-   return 0;
+   while( retries-- )
+   {
+      ret = waveParseHeader(wavefile, filename);
+      _delay_ms(1);
+      if( ret > WAVE_MINIMUM_SAMPLES )
+      {
+         waveAudioSetup();
+         waveAudioOn();
+         return WAVE_SUCCESS;
+      }
+   }
+
+/*
+   uartNewLine();
+
+   uint16toa(wavefile->channelCount, outputString, 0);
+   uartTxString_P( PSTR("Channel Count: ") );
+   uartTxString(outputString);
+   uartNewLine();
+
+   uint16toa(wavefile->resolution, outputString, 0);
+   uartTxString_P( PSTR("Res: ") );
+   uartTxString(outputString);
+   uartNewLine();
+
+   uint16toa(wavefile->sampleRate, outputString, 0);
+   uartTxString_P( PSTR("SampleRate: ") );
+   uartTxString(outputString);
+   uartNewLine();
+
+   uartTxString_P( PSTR("DataSize: ") );
+   uint16toa(((uint32_t)(wavefile->dataSize)>>16), outputString, 0);
+   uartTxString(outputString);
+   uartNewLine();
+   uint16toa(wavefile->dataSize, outputString, 0);
+   uartTxString(outputString);
+   uartNewLine();
+
+   _delay_ms(10);
+   _delay_ms(10);*/
+
+
+   /*
+   uint16toa((uint16_t)ret, outputString, 0);
+   uartTxString_P( PSTR("Ret: ") );
+   uartTxString(outputString);
+   uartNewLine();
+
+   uartTx('B');*/
+   return ret;
 }
 
 /* If this returns false, then the song has finished */
 uint8_t waveContinuePlaying(waveHeader_t* wavefile)
 {
-   uint16_t bytesWritten = 0;
+   WORD bytesWritten = 0;
    uint32_t bytesToPlay = 0;
+
+   if( audioState == WAVE_OUTPUT_OFF )
+   {
+      return 0;
+   }
 
    if( (audioReadptr % WAVE_OUTBLOCK_SIZE) == 0 )
    {
@@ -141,18 +203,18 @@ void waveProcessBuffer(waveHeader_t* wavefile)
 
 
 /* Returns the number of data bytes otherwise returns an error code */
-uint8_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
+uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
 {
     
-    uint8_t bytesRead;
-    uint32_t chunkSize;
+   WORD bytesRead;
+   uint32_t chunkSize;
 
+   memset(wavefile, 0, sizeof(waveHeader_t));
 
-
-    if(pf_open(filename) != FR_OK) return WAVE_IO_ERROR+1;
-    if(pf_lseek(0) != FR_OK) return WAVE_IO_ERROR+2;
+   if(pf_open((const char*)filename) != FR_OK) return WAVE_IO_ERROR+1;
+   if(pf_lseek(0) != FR_OK) return WAVE_IO_ERROR+2;
         
-    /* Check RIFF-WAVE file header */
+   /* Check RIFF-WAVE file header */
 	if (pf_read(Buff, 12, &bytesRead)) return WAVE_IO_ERROR+3;
 
     /* Make sure it is a WAVE file */
