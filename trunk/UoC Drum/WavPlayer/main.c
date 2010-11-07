@@ -10,6 +10,8 @@
 
 volatile waveHeader_t wavefile;
 volatile uint8_t newSongFlag = 0;
+volatile uint8_t ProcessBufferFlag = 0;
+
 uint8_t outputString[20];
 
 
@@ -17,9 +19,10 @@ uint8_t outputString[20];
 int main(void) 
 {  
    uint8_t ret;
-   _delay_ms(100);
+   _delay_ms(10);
 
-   
+   DDRC |= ((1<<4) | (1<<5));
+   PORTC |= (1 << 4);
 
    uartInit(10,0);
    sei(); 
@@ -30,7 +33,7 @@ int main(void)
 
    _delay_ms(100);
 
-   DDRC |= (1<<4);
+   
 
    uartTxString_P( PSTR("Entering Loop") );
 
@@ -49,8 +52,9 @@ int main(void)
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
       /* If we are ready to receive the next bytes then do it */
-      if( waveIsPlaying() && waveContinuePlaying((waveHeader_t*)&wavefile) == 0)
+      if( (waveIsPlaying()) && (waveContinuePlaying((waveHeader_t*)&wavefile) == 0) )
       {
+         
          waveAudioOff();
          //uartTxString_P( PSTR("Wave Finished!"));
       }
@@ -59,6 +63,12 @@ int main(void)
          uartTxString_P( PSTR("Playing\n"));
          wavePlayFile( (waveHeader_t*)&wavefile, outputString);
          newSongFlag = 0;
+      }
+
+      if( ProcessBufferFlag )
+      {
+         
+         ProcessBufferFlag--;
       }
       //waveContinuePlaying();
       /* Goto start of file */
@@ -82,7 +92,7 @@ ISR(SIG_OUTPUT_COMPARE2)
 {
    sei();
    waveProcessBuffer((waveHeader_t*)&wavefile);
-
+   ProcessBufferFlag++;
 }
 
 
@@ -101,7 +111,7 @@ ISR(SIG_UART_RECV)
       strcpy_P( (char*)&outputString[readPtr] , PSTR(".wav") );
       readPtr = 0;
       uartNewLine();
-      uartTxString_P( PSTR("Now playing: ") );
+      //uartTxString_P( PSTR("Now playing: ") );
       uartTxString(outputString);
       newSongFlag = 1;
       return;
