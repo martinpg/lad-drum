@@ -66,13 +66,19 @@ uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename)
    while( retries-- )
    {
       ret = waveParseHeader(wavefile, filename);
-      _delay_ms(1);
+      uartTx('X');
       if( ret > WAVE_MINIMUM_SAMPLES )
       {
+         uartTx('O');
          waveAudioSetup();
          waveAudioOn();
          return WAVE_SUCCESS;
       }
+      else
+      {
+         uartTxString_P( PSTR("File too small!"));
+      }
+
    }
 
 /*
@@ -120,15 +126,12 @@ void wavePutByte(uint8_t byte)
 {
    /* Wait for a bit */
    /* Forward data to Audio Fifo */
-   while( ((audioWriteptr + 1) & WAVE_OUTMASK) == audioReadptr )
+   while( (((audioWriteptr + 1) & WAVE_OUTMASK) == audioReadptr) && (waveIsPlaying()) )
    {
-      _delay_us(1);
-   }
-   //uartTx(byte);
-   Buff[audioWriteptr++] = byte;
    
+   }
+   Buff[audioWriteptr++] = byte;
    audioWriteptr &= WAVE_OUTMASK;
-
 }
 
 
@@ -137,98 +140,31 @@ uint8_t waveContinuePlaying(waveHeader_t* wavefile)
 {
    WORD bytesWritten = 0;
    WORD bytesToPlay = 0;
-   uint8_t ret = 0;
-   uint8_t outputString[10];
 
-   if( audioState == WAVE_OUTPUT_OFF )
+   if( !waveIsPlaying() )
    {
       return 0;
    }
 
-#if 1
-   if( (wavefile->dataSize - WAVE_MINIMUM_SAMPLES) > WAVE_OUTBLOCK_SIZE)
+   if( wavefile->dataSize > WAVE_OUTBLOCK_SIZE)
    {
       bytesToPlay = WAVE_OUTBLOCK_SIZE;
    }
    else
    {
       bytesToPlay = wavefile->dataSize;
-   }  
-/*
-   pf_read(0, 512 - (filesys.fptr % 512), &bytesWritten);
-   uint16toa(ret, outputString, 0);
-   uartTxString_P( PSTR("Ret1: ") );
-   uartTxString(outputString);
-   uartNewLine();
+   }   
 
-   wavefile->dataSize = wavefile->dataSize - bytesWritten;*/
-
-   
-
-   ret = pf_read(0, 512, &bytesWritten);
-   uint16toa(ret, outputString, 0);
-   uartTxString_P( PSTR("Ret2: ") );
-   uartTxString(outputString);
-   uartNewLine();
-
-   wavefile->dataSize = wavefile->dataSize - bytesWritten;
-   //audioWriteptr += bytesWritten;
-
-   //_delay_ms(50);
-
+   pf_read(0, bytesToPlay, &bytesWritten);
+   wavefile->dataSize = wavefile->dataSize - bytesToPlay;
 
    if( bytesWritten != bytesToPlay )
    {
-      
-      uint16toa(bytesWritten, outputString, 0);
-      uartTxString_P( PSTR("Bytes: ") );
-      uartTxString(outputString);
-      uartNewLine();
-
-      _delay_ms(50);
-
+      uartTxString_P( PSTR("IO Error") );
       return 0;
    }
    
-#else
-
-   if( (audioReadptr % WAVE_OUTBLOCK_SIZE) == 0 )
-   {
-      uint16_t outputBlock;
-
-      if( (wavefile->dataSize - WAVE_MINIMUM_SAMPLES) > WAVE_OUTBLOCK_SIZE)
-      {
-         bytesToPlay = WAVE_OUTBLOCK_SIZE;
-      }
-      else
-      {
-         bytesToPlay = wavefile->dataSize;
-      }  
-
-      /* Wrap the audio read ptr around */
-      outputBlock = audioReadptr;
-      if( outputBlock == 0 )
-      {
-         outputBlock = WAVE_OUTBUFFER_SIZE;
-      }
-
-      /* Write to the previous block address that just finished playing */
-      outputBlock = outputBlock - WAVE_OUTBLOCK_SIZE;
-   
-      /* Forward data to Audio Fifo */
-      pf_read(Buff+outputBlock, bytesToPlay, &bytesWritten);
-      wavefile->dataSize = wavefile->dataSize - bytesToPlay;
-
-      if( bytesWritten != bytesToPlay )
-      {
-         uartTxString_P( PSTR("IO Error"));
-         return 0;
-      }
-   }
-#endif
-
    return (uint8_t)wavefile->dataSize;
-
 }
 
 
@@ -271,10 +207,8 @@ void waveProcessBuffer(waveHeader_t* wavefile)
 
    audioReadptr = audioReadptr + ((1 + byteOffset) << offsetMultiplier);
 
-   if( audioReadptr >= WAVE_OUTBUFFER_SIZE)
-   {
-      audioReadptr = 0;
-   }
+   audioReadptr &= WAVE_OUTMASK;
+
 }
 
 

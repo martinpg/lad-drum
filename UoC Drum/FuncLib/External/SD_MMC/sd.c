@@ -2,11 +2,12 @@
 
 
 #include "hardwareSpecific.h"
-#include <util/delay.h>
 #include "sd.h"
 #include "SPI/spi.h"
 #include "mmculib/uint8toa.h"
 #include "PetitFS/diskio.h"
+
+#include "waveplayer.h"
 
 #define SD_DEBUG  0
 
@@ -76,8 +77,6 @@ uint8_t SD_Init(void)
    uint8_t j;
    uint8_t r1;
    
-   
-
    SD_CS_DDR |= (1 << SD_CS_PIN);
 
    SD_RELEASE();
@@ -634,16 +633,29 @@ DRESULT disk_readp (
    	}
       if( retry )
       {
-      	/* read in data */
+      	/* read in data , skip leading bytes */
       	while( offset-- )
          {
       		SPI_RxByte();
       	}
 
-         while( byteCount-- )
+         if( buffer )
          {
-      		*buffer++ = SPI_RxByte();
-      	}
+            while( byteCount-- )
+            {
+               
+         		*buffer++ = SPI_RxByte();
+         	}
+         }
+         else
+         {
+            /* Forward data stream */
+            while( byteCount-- )
+            {
+               uint8_t byte = SPI_RxByte();
+         		FORWARD(byte);
+         	}
+         }
          
          /* Skip CRCs, and remaining bytes */
       	while( bytesRemaining-- )

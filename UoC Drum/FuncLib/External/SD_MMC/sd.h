@@ -77,6 +77,7 @@
 #define SD_SELECT()    SD_CS_PORT &= ~(1 << SD_CS_PIN); 
 #define SD_RELEASE()   SD_CS_PORT |= (1 << SD_CS_PIN);
 
+#define FORWARD(x)      wavePutByte(x)
 
 // constants/macros/typdefs
 // SD commands (taken from sandisk SD reference)
