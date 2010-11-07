@@ -9,14 +9,14 @@
 
 
 volatile waveHeader_t wavefile;
+volatile uint8_t newSongFlag = 0;
 uint8_t outputString[20];
 
 
-int main(void) 
-{
-   DWORD fileptr = 0;  
-   uint8_t ret = 0;   
 
+int main(void) 
+{  
+   uint8_t ret;
    _delay_ms(100);
 
    sei(); 
@@ -39,31 +39,23 @@ int main(void)
    uartTxString_P(PSTR("Loop Starting"));
 
 
-   if( ret == RES_OK )
-   {
-      uartTxString_P( PSTR("Mount success") );
-      if( pf_open("1.wav") == RES_OK )
-      {
-         //uartTxString_P( PSTR("File Opened!") );
-      }
-   }
-
-
-
-
-
-
    for( ;; )
    {
       
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
       /* If we are ready to receive the next bytes then do it */
-      //if( waveContinuePlaying(&wavefile) == 0)
-      //{
-      //   waveAudioOff();
+      if( waveIsPlaying() && waveContinuePlaying((waveHeader_t*)&wavefile) == 0)
+      {
+         waveAudioOff();
          //uartTxString_P( PSTR("Wave Finished!"));
-      //}
+      }
+      if( newSongFlag )
+      {
+         uartTxString_P( PSTR("Playing\n"));
+         wavePlayFile( (waveHeader_t*)&wavefile, outputString);
+         newSongFlag = 0;
+      }
       //waveContinuePlaying();
       /* Goto start of file */
        //
@@ -85,7 +77,7 @@ int main(void)
 ISR(SIG_OUTPUT_COMPARE2)
 {
    sei();
-   waveProcessBuffer(&wavefile);
+   waveProcessBuffer((waveHeader_t*)&wavefile);
 
 }
 
@@ -101,45 +93,14 @@ ISR(SIG_UART_RECV)
 
    if( buffer == 13 || buffer == 10 )
    {
-      strcpy_P( &outputString[readPtr] , PSTR(".wav") );
+      waveAudioOff();
+      strcpy_P( (char*)&outputString[readPtr] , PSTR(".wav") );
       readPtr = 0;
       uartNewLine();
       uartTxString_P( PSTR("Now playing: ") );
       uartTxString(outputString);
-
-      waveParseHeader(&wavefile, outputString);
-
-      uartNewLine();
-
-      uint16toa(wavefile.channelCount, outputString, 0);
-      uartTxString_P( PSTR("Channel Count: ") );
-      uartTxString(outputString);
-      uartNewLine();
-
-      uint16toa(wavefile.resolution, outputString, 0);
-      uartTxString_P( PSTR("Res: ") );
-      uartTxString(outputString);
-      uartNewLine();
-
-      uint16toa(wavefile.sampleRate, outputString, 0);
-      uartTxString_P( PSTR("SampleRate: ") );
-      uartTxString(outputString);
-      uartNewLine();
-
-      uartTxString_P( PSTR("DataSize: ") );
-      uint16toa(((uint32_t)(wavefile.dataSize)>>16), outputString, 0);
-      uartTxString(outputString);
-      uartNewLine();
-      uint16toa(wavefile.dataSize, outputString, 0);
-      uartTxString(outputString);
-      uartNewLine();
-
-
-
-      
-
+      newSongFlag = 1;
       return;
-
    }
 
    outputString[readPtr++] = buffer;

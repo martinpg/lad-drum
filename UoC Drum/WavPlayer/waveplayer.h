@@ -13,6 +13,9 @@
 #define WAVE_MINIMUM_SAMPLES    (1024)
 
 #define WAVE_STEREO_ENABLED (1)
+#define WAVE_OUTPUT_ON     (1)
+#define WAVE_OUTPUT_OFF    (0)
+#define WAVE_RETRY_COUNT   (200)
 
 /* 2:I/O error, 4:Invalid file, >=1024:Ok(number of samples) */
 #define FMT_FORMAT    (0)
@@ -23,8 +26,8 @@
 #define WAVE_MINSAMPLE_RATE (8000)
 #define WAVE_MAXSAMPLE_RATE (48000)
 
-#define WAVE_OUTBLOCK_SIZE   (512)
-#define WAVE_OUTBLOCK_COUNT       (1)
+#define WAVE_OUTBLOCK_SIZE   (256)
+#define WAVE_OUTBLOCK_COUNT       (2)
 #define WAVE_OUTBUFFER_SIZE   (WAVE_OUTBLOCK_SIZE*WAVE_OUTBLOCK_COUNT)
 
 typedef struct waveHeader
@@ -45,9 +48,10 @@ extern volatile uint16_t audioReadptr;
 void waveAudioSetup(void);
 void waveAudioOn(void);
 void waveAudioOff(void);
+uint8_t waveIsPlaying(void);
 
 uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename);
-uint8_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename);
+uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename);
 void waveProcessBuffer(waveHeader_t* wavefile);
 uint8_t waveContinuePlaying(waveHeader_t* wavefile);
 
