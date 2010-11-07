@@ -8,7 +8,7 @@
 #include "mmculib/uint8toa.h"
 #include "PetitFS/diskio.h"
 
-#define SD_DEBUG  1
+#define SD_DEBUG  0
 
 static uint8_t outputString[10];
 
@@ -79,7 +79,6 @@ uint8_t SD_Init(void)
    
 
    SD_CS_DDR |= (1 << SD_CS_PIN);
-   SD_CS_DDR |= (1 << SD_CS_PIN2);
 
    SD_RELEASE();
    
@@ -90,7 +89,6 @@ uint8_t SD_Init(void)
    {
       /* wait 8 clock cycles */
       SPI_RxByte();
-      uartTx('1');
    }
    /* Select the card */
    SD_SELECT();
@@ -99,7 +97,6 @@ uint8_t SD_Init(void)
    /* Reset the card */
    for( i = 0; ; i++)
    { 
-      uartTx('A');
       _delay_ms(10);
       
       r1 = SD_Command(SD_GO_IDLE_STATE, 0);
@@ -118,7 +115,6 @@ uint8_t SD_Init(void)
    /* See if it is a SD V2 Card */
    for( i = 0; ; i++)
    { 
-      uartTx('B');
       r1 = SD_Command(SD_SEND_IF_COND, 0x01AA);
       _delay_ms(10);
 		if(r1 == SD_R1_IDLE_STATE)
@@ -142,7 +138,6 @@ uint8_t SD_Init(void)
 
    if( SDVersion == CT_SD2 )
    {
-      uartTx('C');
       /* Attempt to initiate the High Capacity card's HC bit */
       for( i = 0; ; i++)
       {          
@@ -268,15 +263,11 @@ uint8_t SD_Command(uint8_t cmd, uint32_t arg)
 	SPI_TxByte(arg>>8);
 	SPI_TxByte(arg);
 
-   uartTx('K');
-
 	//for remaining commands, CRC is ignored in SPI mode
    if(cmd == SD_SEND_IF_COND)	 //it is compulsory to send correct CRC for CMD8 (CRC=0x87) & CMD0 (CRC=0x95)
    {
       crcByte = 0x87;
    }
-
-   uartTx('L');
 
    if(cmd == SD_GO_IDLE_STATE)	 //it is compulsory to send correct CRC for CMD8 (CRC=0x87) & CMD0 (CRC=0x95)
    {
@@ -285,8 +276,6 @@ uint8_t SD_Command(uint8_t cmd, uint32_t arg)
 
    SPI_TxByte(crcByte);
    
-
-   uartTx('J');
 	// end command
 	// wait for response
 	// if more than 8 retries, card has timed-out

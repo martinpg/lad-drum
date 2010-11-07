@@ -49,19 +49,11 @@ void waveAudioSetup(void)
  */
 uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename)
 {
-   uint8_t bytesWritten;
+   waveParseHeader(wavefile, filename);
+   //waveAudioSetup();
+   //waveAudioOn();
 
-   waveAudioSetup();
-   waveParseHeader(&wavefile, filename);
-   pf_read(Buff, WAVE_OUTBUFFER_SIZE, &bytesWritten);
-   if( bytesWritten != WAVE_OUTBUFFER_SIZE )
-   {
-      return WAVE_IO_ERROR;
-   }
-
-   waveAudioOn();
-
-
+   return 0;
 }
 
 /* If this returns false, then the song has finished */
@@ -70,11 +62,11 @@ uint8_t waveContinuePlaying(waveHeader_t* wavefile)
    uint16_t bytesWritten = 0;
    uint32_t bytesToPlay = 0;
 
-   if( (audioReadptr % WAVE_OUTBLOCK_SIZE) == 0)
+   if( (audioReadptr % WAVE_OUTBLOCK_SIZE) == 0 )
    {
       uint16_t outputBlock;
 
-      if( (wavefile->dataSize - 1024) > WAVE_OUTBLOCK_SIZE)
+      if( (wavefile->dataSize - WAVE_MINIMUM_SAMPLES) > WAVE_OUTBLOCK_SIZE)
       {
          bytesToPlay = WAVE_OUTBLOCK_SIZE;
       }
@@ -98,6 +90,7 @@ uint8_t waveContinuePlaying(waveHeader_t* wavefile)
 
       if( bytesWritten != bytesToPlay )
       {
+         uartTxString_P( PSTR("IO Error"));
          return 0;
       }
    }
@@ -154,11 +147,13 @@ uint8_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
     uint8_t bytesRead;
     uint32_t chunkSize;
 
-    if(pf_open(filename) != FR_OK) return WAVE_IO_ERROR;
-    
+
+
+    if(pf_open(filename) != FR_OK) return WAVE_IO_ERROR+1;
+    if(pf_lseek(0) != FR_OK) return WAVE_IO_ERROR+2;
         
     /* Check RIFF-WAVE file header */
-	if (pf_read(Buff, 12, &bytesRead)) return WAVE_IO_ERROR;
+	if (pf_read(Buff, 12, &bytesRead)) return WAVE_IO_ERROR+3;
 
     /* Make sure it is a WAVE file */
 	if (bytesRead != 12 || LD_DWORD(Buff+8) != FCC('W','A','V','E')) return WAVE_INVALID_FILE;
@@ -166,7 +161,7 @@ uint8_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
    for (;;) 
    {
         /* Get Chunk ID and size */
-		if (pf_read(Buff, 8, &bytesRead)) return WAVE_IO_ERROR;		
+		if (pf_read(Buff, 8, &bytesRead)) return WAVE_IO_ERROR+4;		
 		if (bytesRead != 8) return WAVE_INVALID_FILE;
 		chunkSize = LD_DWORD(Buff+4);		/* Chunk size */
     
@@ -176,7 +171,7 @@ uint8_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
 		   case FCC('f','m','t',' ') :		/* 'fmt ' chunk */
 		      if (chunkSize & 1) chunkSize++;
 			   if (chunkSize > 128 || chunkSize < 16) return WAVE_INVALID_FILE;		/* Check chunk size */
-			   if (pf_read(Buff, chunkSize, &bytesRead)) return WAVE_IO_ERROR;	/* Get the chunk content */
+			   if (pf_read(Buff, chunkSize, &bytesRead)) return WAVE_IO_ERROR+5;	/* Get the chunk content */
 			   if (bytesRead != chunkSize) return WAVE_INVALID_FILE;
 			   if (Buff[FMT_FORMAT] != 1) return WAVE_INVALID_FILE;				/* Check coding type (1: LPCM) */
 			   if (Buff[FMT_NUM_CHANNELS] < 1 && Buff[FMT_NUM_CHANNELS] > 2) return WAVE_INVALID_FILE; 			/* Check channels (1/2: Mono/Stereo) */
@@ -200,7 +195,7 @@ uint8_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
 		   case FCC('f','a','c','t') :		/* 'fact' chunk (skip) */
 		   case FCC('L','I','S','T') :		/* 'LIST' chunk (skip) */
 			   if (chunkSize & 1) chunkSize++;
-			   if (pf_lseek(filesys.fptr + chunkSize)) return WAVE_IO_ERROR;
+			   if (pf_lseek(filesys.fptr + chunkSize)) return WAVE_IO_ERROR+6;
 			   break;
 
 		   default:						/* Unknown chunk */

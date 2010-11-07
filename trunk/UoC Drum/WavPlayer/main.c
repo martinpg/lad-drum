@@ -8,7 +8,7 @@
 
 
 
-waveHeader_t wavefile;
+volatile waveHeader_t wavefile;
 uint8_t outputString[20];
 
 
@@ -38,17 +38,32 @@ int main(void)
 
    uartTxString_P(PSTR("Loop Starting"));
 
+
+   if( ret == RES_OK )
+   {
+      uartTxString_P( PSTR("Mount success") );
+      if( pf_open("1.wav") == RES_OK )
+      {
+         //uartTxString_P( PSTR("File Opened!") );
+      }
+   }
+
+
+
+
+
+
    for( ;; )
    {
       
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
       /* If we are ready to receive the next bytes then do it */
-      if( waveContinuePlaying(&wavefile) == 0)
-      {
-         waveAudioOff();
+      //if( waveContinuePlaying(&wavefile) == 0)
+      //{
+      //   waveAudioOff();
          //uartTxString_P( PSTR("Wave Finished!"));
-      }
+      //}
       //waveContinuePlaying();
       /* Goto start of file */
        //
@@ -69,7 +84,7 @@ int main(void)
 
 ISR(SIG_OUTPUT_COMPARE2)
 {
-   //sei();
+   sei();
    waveProcessBuffer(&wavefile);
 
 }
@@ -91,7 +106,40 @@ ISR(SIG_UART_RECV)
       uartNewLine();
       uartTxString_P( PSTR("Now playing: ") );
       uartTxString(outputString);
-      wavePlayFile(&wavefile, outputString);
+
+      waveParseHeader(&wavefile, outputString);
+
+      uartNewLine();
+
+      uint16toa(wavefile.channelCount, outputString, 0);
+      uartTxString_P( PSTR("Channel Count: ") );
+      uartTxString(outputString);
+      uartNewLine();
+
+      uint16toa(wavefile.resolution, outputString, 0);
+      uartTxString_P( PSTR("Res: ") );
+      uartTxString(outputString);
+      uartNewLine();
+
+      uint16toa(wavefile.sampleRate, outputString, 0);
+      uartTxString_P( PSTR("SampleRate: ") );
+      uartTxString(outputString);
+      uartNewLine();
+
+      uartTxString_P( PSTR("DataSize: ") );
+      uint16toa(((uint32_t)(wavefile.dataSize)>>16), outputString, 0);
+      uartTxString(outputString);
+      uartNewLine();
+      uint16toa(wavefile.dataSize, outputString, 0);
+      uartTxString(outputString);
+      uartNewLine();
+
+
+
+      
+
+      return;
+
    }
 
    outputString[readPtr++] = buffer;
