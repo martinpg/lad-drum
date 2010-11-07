@@ -100,8 +100,8 @@
 
 #define	UCSRCMASK		(0x7F)
 
-#define  TXBUFFER_SIZE   (16)
-#define  RXBUFFER_SIZE   (16)
+#define  TXBUFFER_SIZE   (8)
+#define  RXBUFFER_SIZE   (4)
 
 
 #define IS_TRANSMITTING (1)

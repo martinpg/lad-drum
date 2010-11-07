@@ -56,7 +56,7 @@ int main(void)
       {
          
          waveAudioOff();
-         //uartTxString_P( PSTR("Wave Finished!"));
+         uartTxString_P( PSTR("Wave Finished!"));
       }
       if( newSongFlag )
       {
