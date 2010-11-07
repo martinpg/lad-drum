@@ -9,6 +9,7 @@ FATFS filesys;
 
 
 volatile uint16_t audioReadptr = 0;
+uint16_t audioWriteptr = 0;
 uint8_t audioState = 0;
 
 uint8_t waveIsPlaying(void)
@@ -50,6 +51,7 @@ void waveAudioSetup(void)
    OCR1A = 128;
    OCR1B = 128;
    audioReadptr = 0;
+   audioWriteptr = 0;
 }
 
 
@@ -113,16 +115,82 @@ uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename)
    return ret;
 }
 
+
+void wavePutByte(uint8_t byte)
+{
+   /* Wait for a bit */
+   /* Forward data to Audio Fifo */
+   while( ((audioWriteptr + 1) & WAVE_OUTMASK) == audioReadptr )
+   {
+      _delay_us(1);
+   }
+   //uartTx(byte);
+   Buff[audioWriteptr++] = byte;
+   
+   audioWriteptr &= WAVE_OUTMASK;
+
+}
+
+
 /* If this returns false, then the song has finished */
 uint8_t waveContinuePlaying(waveHeader_t* wavefile)
 {
    WORD bytesWritten = 0;
-   uint32_t bytesToPlay = 0;
+   WORD bytesToPlay = 0;
+   uint8_t ret = 0;
+   uint8_t outputString[10];
 
    if( audioState == WAVE_OUTPUT_OFF )
    {
       return 0;
    }
+
+#if 1
+   if( (wavefile->dataSize - WAVE_MINIMUM_SAMPLES) > WAVE_OUTBLOCK_SIZE)
+   {
+      bytesToPlay = WAVE_OUTBLOCK_SIZE;
+   }
+   else
+   {
+      bytesToPlay = wavefile->dataSize;
+   }  
+/*
+   pf_read(0, 512 - (filesys.fptr % 512), &bytesWritten);
+   uint16toa(ret, outputString, 0);
+   uartTxString_P( PSTR("Ret1: ") );
+   uartTxString(outputString);
+   uartNewLine();
+
+   wavefile->dataSize = wavefile->dataSize - bytesWritten;*/
+
+   
+
+   ret = pf_read(0, 512, &bytesWritten);
+   uint16toa(ret, outputString, 0);
+   uartTxString_P( PSTR("Ret2: ") );
+   uartTxString(outputString);
+   uartNewLine();
+
+   wavefile->dataSize = wavefile->dataSize - bytesWritten;
+   //audioWriteptr += bytesWritten;
+
+   //_delay_ms(50);
+
+
+   if( bytesWritten != bytesToPlay )
+   {
+      
+      uint16toa(bytesWritten, outputString, 0);
+      uartTxString_P( PSTR("Bytes: ") );
+      uartTxString(outputString);
+      uartNewLine();
+
+      _delay_ms(50);
+
+      return 0;
+   }
+   
+#else
 
    if( (audioReadptr % WAVE_OUTBLOCK_SIZE) == 0 )
    {
@@ -147,6 +215,7 @@ uint8_t waveContinuePlaying(waveHeader_t* wavefile)
       /* Write to the previous block address that just finished playing */
       outputBlock = outputBlock - WAVE_OUTBLOCK_SIZE;
    
+      /* Forward data to Audio Fifo */
       pf_read(Buff+outputBlock, bytesToPlay, &bytesWritten);
       wavefile->dataSize = wavefile->dataSize - bytesToPlay;
 
@@ -156,6 +225,7 @@ uint8_t waveContinuePlaying(waveHeader_t* wavefile)
          return 0;
       }
    }
+#endif
 
    return (uint8_t)wavefile->dataSize;
 
@@ -172,6 +242,12 @@ void waveProcessBuffer(waveHeader_t* wavefile)
 
    /* For Mono / Stereo */
    uint8_t offsetMultiplier = 0;
+
+   /* Dont do anything if the buffer is empty */
+   if( audioReadptr == audioWriteptr )
+   {
+      return;
+   }
 
    /* Setup the resolution byte offsets */
    if( wavefile->resolution == 16 )

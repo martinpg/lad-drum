@@ -26,8 +26,9 @@
 #define WAVE_MINSAMPLE_RATE (8000)
 #define WAVE_MAXSAMPLE_RATE (48000)
 
-#define WAVE_OUTBLOCK_SIZE   (256)
-#define WAVE_OUTBLOCK_COUNT       (2)
+#define WAVE_OUTBLOCK_SIZE   (128)
+#define WAVE_OUTBLOCK_COUNT       (1)
+#define WAVE_OUTMASK         (WAVE_OUTBLOCK_SIZE-1)
 #define WAVE_OUTBUFFER_SIZE   (WAVE_OUTBLOCK_SIZE*WAVE_OUTBLOCK_COUNT)
 
 typedef struct waveHeader
@@ -44,11 +45,16 @@ typedef struct waveHeader
 extern FATFS filesys;
 extern uint8_t Buff[];
 extern volatile uint16_t audioReadptr;
+extern uint16_t audioWriteptr;
+
 
 void waveAudioSetup(void);
 void waveAudioOn(void);
 void waveAudioOff(void);
 uint8_t waveIsPlaying(void);
+
+/* Puts the byte on the buffer */
+void wavePutByte(uint8_t byte);
 
 uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename);
 uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename);
