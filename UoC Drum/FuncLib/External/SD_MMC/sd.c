@@ -14,22 +14,11 @@
 static uint8_t outputString[10];
 
 DSTATUS SD_Stat = STA_NOINIT;
-uint8_t SDVersion = 0;
+uint8_t SDVersion;
 
 uint8_t SD_WaitUntilReady(void)
 {
    uint8_t result;
-
-   /*for(uint8_t i = 0; i < SD_TIMEOUT; i++)
-   {
-      result = SPI_RxByte();
-      if( result == 0xFF )
-      {
-         return result;
-      }
-      _delay_us(1);
-   }   
-   return result;*/
 
    while( (result = SPI_RxByte()) != 0xFF )
    {

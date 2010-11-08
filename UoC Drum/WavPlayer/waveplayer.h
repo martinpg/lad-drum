@@ -28,7 +28,7 @@
 
 #define WAVE_OUTBLOCK_SIZE   (WAVE_MINIMUM_SAMPLES)
 
-#define WAVE_OUTBUFFER_SIZE   (128)
+#define WAVE_OUTBUFFER_SIZE   (512)
 #define WAVE_OUTMASK         (WAVE_OUTBUFFER_SIZE-1)
 
 typedef struct waveHeader
@@ -37,6 +37,14 @@ typedef struct waveHeader
    uint8_t resolution;
    uint16_t sampleRate;
    uint32_t dataSize;
+
+   /* Here we should determine whether the wave we are playing
+    * is a 8/16bit */
+   uint8_t byteOffset;
+   uint8_t valueOffset;
+
+   /* For Mono / Stereo */
+   uint8_t offsetMultiplier;
 } waveHeader_t;
 
 
@@ -44,9 +52,6 @@ typedef struct waveHeader
 
 extern FATFS filesys;
 extern uint8_t Buff[];
-extern volatile uint16_t audioReadptr;
-extern uint16_t audioWriteptr;
-
 
 void waveAudioSetup(void);
 void waveAudioOn(void);

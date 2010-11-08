@@ -6,11 +6,15 @@
 uint8_t Buff[WAVE_OUTBUFFER_SIZE];		/* Audio output FIFO */
 FATFS filesys;
 
+uint8_t byteOffset;
+uint8_t valueOffset;
 
+/* For Mono / Stereo */
+uint8_t offsetMultiplier;
 
-volatile uint16_t audioReadptr = 0;
-uint16_t audioWriteptr = 0;
-uint8_t audioState = 0;
+volatile uint16_t audioReadptr;
+uint16_t audioWriteptr;
+volatile uint8_t audioState;
 
 uint8_t waveIsPlaying(void)
 {
@@ -60,16 +64,14 @@ void waveAudioSetup(void)
  */
 uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename)
 {
-   uint32_t ret = 0;
+   uint32_t ret;
    uint8_t retries = WAVE_RETRY_COUNT;
 
    while( retries-- )
    {
       ret = waveParseHeader(wavefile, filename);
-      uartTx('X');
       if( ret > WAVE_MINIMUM_SAMPLES )
       {
-         uartTx('O');
          waveAudioSetup();
          waveAudioOn();
          return WAVE_SUCCESS;
@@ -80,44 +82,8 @@ uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename)
       }
 
    }
+   
 
-/*
-   uartNewLine();
-
-   uint16toa(wavefile->channelCount, outputString, 0);
-   uartTxString_P( PSTR("Channel Count: ") );
-   uartTxString(outputString);
-   uartNewLine();
-
-   uint16toa(wavefile->resolution, outputString, 0);
-   uartTxString_P( PSTR("Res: ") );
-   uartTxString(outputString);
-   uartNewLine();
-
-   uint16toa(wavefile->sampleRate, outputString, 0);
-   uartTxString_P( PSTR("SampleRate: ") );
-   uartTxString(outputString);
-   uartNewLine();
-
-   uartTxString_P( PSTR("DataSize: ") );
-   uint16toa(((uint32_t)(wavefile->dataSize)>>16), outputString, 0);
-   uartTxString(outputString);
-   uartNewLine();
-   uint16toa(wavefile->dataSize, outputString, 0);
-   uartTxString(outputString);
-   uartNewLine();
-
-   _delay_ms(10);
-   _delay_ms(10);*/
-
-
-   /*
-   uint16toa((uint16_t)ret, outputString, 0);
-   uartTxString_P( PSTR("Ret: ") );
-   uartTxString(outputString);
-   uartNewLine();
-
-   uartTx('B');*/
    return ret;
 }
 
@@ -126,9 +92,8 @@ void wavePutByte(uint8_t byte)
 {
    /* Wait for a bit */
    /* Forward data to Audio Fifo */
-   while( (((audioWriteptr + 1) & WAVE_OUTMASK) == audioReadptr) && (waveIsPlaying()) )
+   while( (((audioWriteptr + 1) & WAVE_OUTMASK) == audioReadptr) && (audioState) )
    {
-   
    }
    Buff[audioWriteptr++] = byte;
    audioWriteptr &= WAVE_OUTMASK;
@@ -138,8 +103,8 @@ void wavePutByte(uint8_t byte)
 /* If this returns false, then the song has finished */
 uint8_t waveContinuePlaying(waveHeader_t* wavefile)
 {
-   WORD bytesWritten = 0;
-   WORD bytesToPlay = 0;
+   WORD bytesWritten;
+   WORD bytesToPlay;
 
    if( !waveIsPlaying() )
    {
@@ -164,43 +129,29 @@ uint8_t waveContinuePlaying(waveHeader_t* wavefile)
       return 0;
    }
    
-   return (uint8_t)wavefile->dataSize;
+   if( wavefile->dataSize )
+   {
+      return 1;
+   }
+   else
+   {
+      return 0;
+   }
+
+
 }
 
 
 void waveProcessBuffer(waveHeader_t* wavefile)
 {
-
-   /* Here we should determine whether the wave we are playing
-    * is a 8/16bit */
-   uint8_t byteOffset = 0;
-   uint8_t valueOffset = 0;
-
-   /* For Mono / Stereo */
-   uint8_t offsetMultiplier = 0;
-
    /* Dont do anything if the buffer is empty */
    if( audioReadptr == audioWriteptr )
    {
       return;
    }
 
-   /* Setup the resolution byte offsets */
-   if( wavefile->resolution == 16 )
-   {
-      byteOffset = 1;
-      valueOffset = 128;
-   }
-
-   /* Setup the offsets for stereo */
-   if( wavefile->channelCount == 2 )
-   {
-      offsetMultiplier = 1;
-   }
-
    /* Left is first */
    OCR1A = Buff[(audioReadptr + byteOffset)] + valueOffset;
-
    /* Right is second */
    /* This will not do anything if WAVE_STEREO_ENABLED is not set to 1 */
    OCR1B = Buff[audioReadptr + (byteOffset << offsetMultiplier) + offsetMultiplier] + valueOffset;
@@ -249,11 +200,25 @@ uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
 			   if (Buff[FMT_NUM_CHANNELS] < 1 && Buff[FMT_NUM_CHANNELS] > 2) return WAVE_INVALID_FILE; 			/* Check channels (1/2: Mono/Stereo) */
 			   
             wavefile->channelCount = Buff[FMT_NUM_CHANNELS];						/* Save channel flag */
+            /* Setup the offsets for stereo */
+            if( wavefile->channelCount == 2 )
+            {
+               offsetMultiplier = 1;
+            }
+
 			   if (Buff[FMT_RESOLUTION] != 8 && Buff[FMT_RESOLUTION] != 16) return WAVE_INVALID_FILE;		/* Check resolution (8/16 bit) */
 			   wavefile->resolution = Buff[FMT_RESOLUTION];							/* Save resolution flag */
-			   wavefile->sampleRate = LD_DWORD(&Buff[FMT_SAMPLERATE]);					/* Check sampling freqency (8k-48k) */
+			   /* Setup the resolution byte offsets */
+            if( wavefile->resolution == 16 )
+            {
+               byteOffset = 1;
+               valueOffset = 128;
+            }
+          
+            wavefile->sampleRate = LD_DWORD(&Buff[FMT_SAMPLERATE]);					/* Check sampling freqency (8k-48k) */
 			   if (wavefile->sampleRate < WAVE_MINSAMPLE_RATE || wavefile->sampleRate > WAVE_MAXSAMPLE_RATE) return WAVE_INVALID_FILE;
-			   /* Set interval timer (sampling period) */
+			   
+            /* Set interval timer (sampling period) */
             /* Use OCR2 */
             OCR2 = (F_CPU/32/wavefile->sampleRate) - 1;		
 			   break;
