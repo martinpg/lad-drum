@@ -48,13 +48,11 @@ int main(void)
 
    for( ;; )
    {
-      PORTC &= ~(1 << 4);
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
       /* If we are ready to receive the next bytes then do it */
       if( (waveIsPlaying()) && (waveContinuePlaying((waveHeader_t*)&wavefile) == 0) )
-      {
-         
+      {     
          waveAudioOff();
          uartTxString_P( PSTR("Wave Finished!"));
       }
@@ -62,13 +60,33 @@ int main(void)
       {
          uartTxString_P( PSTR("Playing\n"));
          wavePlayFile( (waveHeader_t*)&wavefile, outputString);
-         newSongFlag = 0;
-      }
 
-      if( ProcessBufferFlag )
-      {
-         
-         ProcessBufferFlag--;
+         uartNewLine();
+
+         uint16toa(wavefile.channelCount, outputString, 0);
+         uartTxString_P( PSTR("Channel Count: ") );
+         uartTxString(outputString);
+         uartNewLine();
+
+         uint16toa(wavefile.resolution, outputString, 0);
+         uartTxString_P( PSTR("Res: ") );
+         uartTxString(outputString);
+         uartNewLine();
+
+         uint16toa(wavefile.sampleRate, outputString, 0);
+         uartTxString_P( PSTR("SampleRate: ") );
+         uartTxString(outputString);
+         uartNewLine();
+
+         uartTxString_P( PSTR("DataSize: ") );
+         uint16toa(((uint32_t)(wavefile.dataSize)>>16), outputString, 0);
+         uartTxString(outputString);
+         uartNewLine();
+         uint16toa(wavefile.dataSize, outputString, 0);
+         uartTxString(outputString);
+         uartNewLine();
+
+         newSongFlag = 0;
       }
       //waveContinuePlaying();
       /* Goto start of file */
@@ -90,9 +108,8 @@ int main(void)
 
 ISR(SIG_OUTPUT_COMPARE2)
 {
-   sei();
+   //sei();
    waveProcessBuffer((waveHeader_t*)&wavefile);
-   ProcessBufferFlag++;
 }
 
 

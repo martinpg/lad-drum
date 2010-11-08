@@ -51,14 +51,9 @@ uint8_t SPI_TxByte(uint8_t data)
 {
    //spiTransferComplete = TRANSFER_INCOMPLETE;
    SPDR = data;
-   //_delay_us(5);
-   PORTC |= (1 << 4);
    /* This while loop has given me so many problems! Sometimes the interrupt is not set! */
    while( !( SPSR & (1 << SPIF)))
    {
-      _delay_us(1);
-      
-      PORTC ^= (1 << 5);
    }
    
    return SPDR;
