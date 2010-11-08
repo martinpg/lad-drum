@@ -618,7 +618,7 @@ DRESULT disk_readp (
    	/** Wait for start block */
    	while( (SPI_RxByte() != SD_STARTBLOCK_READ) && (retry--))
    	{
-         _delay_us(1);
+         
    	}
       if( retry )
       {

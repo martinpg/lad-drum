@@ -6,9 +6,10 @@
 uint8_t Buff[WAVE_OUTBUFFER_SIZE];		/* Audio output FIFO */
 FATFS filesys;
 
-volatile uint16_t audioReadptr;
-uint16_t audioWriteptr;
+volatile uint8_t audioReadptr;
+volatile uint8_t audioWriteptr;
 volatile uint8_t audioState;
+uint8_t fastMode;
 
 uint8_t waveIsPlaying(void)
 {
@@ -147,20 +148,17 @@ void waveProcessBuffer(waveHeader_t* wavefile)
    PORTC &= ~(1 << 4);
 
    /* Left is first */
-   OCR1A = Buff[(audioReadptr + wavefile->byteOffset)] + wavefile->valueOffset;
+   OCR1A = Buff[(audioReadptr + wavefile->byteOffset) & WAVE_OUTMASK] + wavefile->valueOffset;
    /* Right is second */
    /* This will not do anything if WAVE_STEREO_ENABLED is not set to 1 */
-   OCR1B = Buff[audioReadptr + (wavefile->byteOffset << wavefile->offsetMultiplier) + wavefile->offsetMultiplier] + wavefile->valueOffset;
+   OCR1B = Buff[(audioReadptr + (wavefile->byteOffset << wavefile->offsetMultiplier) + wavefile->offsetMultiplier) & WAVE_OUTMASK] + wavefile->valueOffset;
 
    if( OCR1A > 220 || OCR1A < 30 )
    {
       PORTC |= (1 << 4); 
    }
 
-   audioReadptr = audioReadptr + ((1 + wavefile->byteOffset) << wavefile->offsetMultiplier);
-
-   audioReadptr &= WAVE_OUTMASK;
-
+   audioReadptr = (audioReadptr + ((1 + wavefile->byteOffset) << wavefile->offsetMultiplier)) & WAVE_OUTMASK;
 }
 
 
@@ -219,6 +217,16 @@ uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
             wavefile->sampleRate = LD_DWORD(&Buff[FMT_SAMPLERATE]);					/* Check sampling freqency (8k-48k) */
 			   if (wavefile->sampleRate < WAVE_MINSAMPLE_RATE || wavefile->sampleRate > WAVE_MAXSAMPLE_RATE) return WAVE_INVALID_FILE;
 			   
+            if( wavefile->byteOffset && wavefile->offsetMultiplier && wavefile->sampleRate >= 44100 )
+            {
+               fastMode = 1;
+            }
+            else
+            {
+               fastMode = 0;
+            }
+
+
             /* Set interval timer (sampling period) */
             /* Use OCR2 */
             OCR2 = (F_CPU/32/wavefile->sampleRate) - 1;		

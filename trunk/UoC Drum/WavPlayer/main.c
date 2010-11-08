@@ -19,23 +19,15 @@ uint8_t outputString[20] = "448s.wav";
 int main(void) 
 {  
    uint8_t ret;
-   _delay_ms(100);
 
    uartInit(10,0);
    sei(); 
 
-   uartTxString_P( PSTR("1") );
-
    SPI_Init();
 
-   
-
    DDRC |= (1 << 4);
-   PORTC |= (1 << 4);   
 
-   uartTxString_P( PSTR("Entering Loop") );
-
-      /* Initialise SD Card */
+   /* Initialise SD Card */
    if( SD_Init() == SD_SUCCESS )
    {
       ret = pf_mount(&filesys);
@@ -55,6 +47,7 @@ int main(void)
          waveAudioOff();
          uartTxString_P( PSTR("Wave Finished!"));
       }
+
       if( newSongFlag )
       {
          uartTxString_P( PSTR("Playing\n"));
@@ -105,10 +98,18 @@ int main(void)
 
 
 
-ISR(SIG_OUTPUT_COMPARE2)
+ISR(SIG_OUTPUT_COMPARE2, ISR_NOBLOCK)
 {
-   PORTC &= ~(1 << 4);
-   waveProcessBuffer((waveHeader_t*)&wavefile);
+   if( fastMode )
+   {
+      OCR1A = Buff[(audioReadptr + 1)] + 0x80;
+      OCR1B = Buff[(audioReadptr + 3)] + 0x80;
+      audioReadptr = (audioReadptr + 4) & WAVE_OUTMASK;
+   }
+   else
+   {
+      waveProcessBuffer((waveHeader_t*)&wavefile);
+   }
 }
 
 
