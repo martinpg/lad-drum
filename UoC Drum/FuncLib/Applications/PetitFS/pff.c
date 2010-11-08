@@ -474,14 +474,6 @@ FRESULT pf_mount (
 	bsect = 0;
 	fmt = check_fs(buf, bsect);			/* Check sector 0 as an SFD format */
 
-
-		uint8_t outputString[5];	
-   	uartNewLine();
-   	uartTxString("fmt checks: ");
-   	uint8toa(fmt, outputString);
-   	uartTxString(outputString);
-   	uartNewLine();  
-
 	if (fmt == 1) {						/* Not an FAT boot record, it may be FDISK format */
 		/* Check a partition listed in top of the partition table */
 		if (disk_readp(buf, bsect, MBR_Table, 16)) {	/* 1st partition entry */
