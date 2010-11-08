@@ -6,12 +6,6 @@
 uint8_t Buff[WAVE_OUTBUFFER_SIZE];		/* Audio output FIFO */
 FATFS filesys;
 
-uint8_t byteOffset;
-uint8_t valueOffset;
-
-/* For Mono / Stereo */
-uint8_t offsetMultiplier;
-
 volatile uint16_t audioReadptr;
 uint16_t audioWriteptr;
 volatile uint8_t audioState;
@@ -150,13 +144,20 @@ void waveProcessBuffer(waveHeader_t* wavefile)
       return;
    }
 
+   PORTC &= ~(1 << 4);
+
    /* Left is first */
-   OCR1A = Buff[(audioReadptr + byteOffset)] + valueOffset;
+   OCR1A = Buff[(audioReadptr + wavefile->byteOffset)] + wavefile->valueOffset;
    /* Right is second */
    /* This will not do anything if WAVE_STEREO_ENABLED is not set to 1 */
-   OCR1B = Buff[audioReadptr + (byteOffset << offsetMultiplier) + offsetMultiplier] + valueOffset;
+   OCR1B = Buff[audioReadptr + (wavefile->byteOffset << wavefile->offsetMultiplier) + wavefile->offsetMultiplier] + wavefile->valueOffset;
 
-   audioReadptr = audioReadptr + ((1 + byteOffset) << offsetMultiplier);
+   if( OCR1A > 220 || OCR1A < 30 )
+   {
+      PORTC |= (1 << 4); 
+   }
+
+   audioReadptr = audioReadptr + ((1 + wavefile->byteOffset) << wavefile->offsetMultiplier);
 
    audioReadptr &= WAVE_OUTMASK;
 
@@ -203,7 +204,7 @@ uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
             /* Setup the offsets for stereo */
             if( wavefile->channelCount == 2 )
             {
-               offsetMultiplier = 1;
+               wavefile->offsetMultiplier = 1;
             }
 
 			   if (Buff[FMT_RESOLUTION] != 8 && Buff[FMT_RESOLUTION] != 16) return WAVE_INVALID_FILE;		/* Check resolution (8/16 bit) */
@@ -211,8 +212,8 @@ uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
 			   /* Setup the resolution byte offsets */
             if( wavefile->resolution == 16 )
             {
-               byteOffset = 1;
-               valueOffset = 128;
+               wavefile->byteOffset = 1;
+               wavefile->valueOffset = 128;
             }
           
             wavefile->sampleRate = LD_DWORD(&Buff[FMT_SAMPLERATE]);					/* Check sampling freqency (8k-48k) */

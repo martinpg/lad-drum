@@ -10,7 +10,7 @@
 #define WAVE_SUCCESS        (0)
 #define WAVE_IO_ERROR       (2)
 #define WAVE_INVALID_FILE   (4)
-#define WAVE_MINIMUM_SAMPLES    (1024)
+#define WAVE_MINIMUM_SAMPLES    (2048)
 
 #define WAVE_STEREO_ENABLED (1)
 #define WAVE_OUTPUT_ON     (1)

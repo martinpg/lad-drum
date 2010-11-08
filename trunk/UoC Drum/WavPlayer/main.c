@@ -9,20 +9,17 @@
 
 
 volatile waveHeader_t wavefile;
-volatile uint8_t newSongFlag = 0;
-volatile uint8_t ProcessBufferFlag = 0;
+volatile uint8_t newSongFlag = 1;
+volatile uint8_t ProcessBufferFlag;
 
-uint8_t outputString[20];
+uint8_t outputString[20] = "448s.wav";
 
 
 
 int main(void) 
 {  
    uint8_t ret;
-   _delay_ms(10);
-
-   DDRC |= ((1<<4) | (1<<5));
-   PORTC |= (1 << 4);
+   _delay_ms(100);
 
    uartInit(10,0);
    sei(); 
@@ -31,9 +28,10 @@ int main(void)
 
    SPI_Init();
 
-   _delay_ms(100);
-
    
+
+   DDRC |= (1 << 4);
+   PORTC |= (1 << 4);   
 
    uartTxString_P( PSTR("Entering Loop") );
 
@@ -43,11 +41,12 @@ int main(void)
       ret = pf_mount(&filesys);
    }
 
-   uartTxString_P(PSTR("Loop Starting"));
+   //uartTxString_P(PSTR("Loop Starting"));
 
 
    for( ;; )
    {
+      
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
       /* If we are ready to receive the next bytes then do it */
@@ -108,7 +107,7 @@ int main(void)
 
 ISR(SIG_OUTPUT_COMPARE2)
 {
-   //sei();
+   PORTC &= ~(1 << 4);
    waveProcessBuffer((waveHeader_t*)&wavefile);
 }
 
