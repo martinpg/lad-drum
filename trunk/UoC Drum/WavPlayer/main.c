@@ -12,7 +12,7 @@ volatile waveHeader_t wavefile;
 volatile uint8_t newSongFlag = 1;
 volatile uint8_t ProcessBufferFlag;
 
-uint8_t outputString[20] = "448s.wav";
+uint8_t outputString[20] = "4416s.wav";
 
 
 
@@ -33,15 +33,14 @@ int main(void)
       ret = pf_mount(&filesys);
    }
 
-   //uartTxString_P(PSTR("Loop Starting"));
-
 
    for( ;; )
    {
-      
+      PORTC &= ~(1 << 4);
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
       /* If we are ready to receive the next bytes then do it */
+      
       if( (waveIsPlaying()) && (waveContinuePlaying((waveHeader_t*)&wavefile) == 0) )
       {     
          waveAudioOff();
@@ -80,9 +79,6 @@ int main(void)
 
          newSongFlag = 0;
       }
-      //waveContinuePlaying();
-      /* Goto start of file */
-       //
    }
    
    if( pf_mount(0) == FR_OK )
@@ -96,20 +92,31 @@ int main(void)
 
 
 
-
-
 ISR(SIG_OUTPUT_COMPARE2, ISR_NOBLOCK)
 {
-   if( fastMode )
+   /* We need to put this here to increase the speed */
+   /* Left is first */
+   OCR1A = Buff[(audioReadptr)];
+   /* Right is second */
+   /* This will not do anything if WAVE_STEREO_ENABLED is not set to 1 */
+   OCR1B = Buff[(audioReadptr + isStereo)];
+   audioReadptr = (audioReadptr + 1 + isStereo) & WAVE_OUTMASK;
+   
+   if( OCR1A > 220 || OCR1A < 30 )
    {
-      OCR1A = Buff[(audioReadptr + 1)] + 0x80;
-      OCR1B = Buff[(audioReadptr + 3)] + 0x80;
-      audioReadptr = (audioReadptr + 4) & WAVE_OUTMASK;
+      PORTC |= (1 << 4); 
+   }
+
+   /*if( fastMode )
+   {
+      OCR1A = Buff[(audioReadptr)];
+      OCR1B = Buff[(audioReadptr + 1)];
+      audioReadptr = (audioReadptr + 2);
    }
    else
    {
       waveProcessBuffer((waveHeader_t*)&wavefile);
-   }
+   }*/
 }
 
 
