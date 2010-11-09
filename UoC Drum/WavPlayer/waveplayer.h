@@ -10,7 +10,7 @@
 #define WAVE_SUCCESS        (0)
 #define WAVE_IO_ERROR       (2)
 #define WAVE_INVALID_FILE   (4)
-#define WAVE_MINIMUM_SAMPLES    (16384)
+#define WAVE_MINIMUM_SAMPLES    (32768)
 
 #define WAVE_STEREO_ENABLED (1)
 #define WAVE_OUTPUT_ON     (1)
@@ -49,10 +49,14 @@ typedef struct waveHeader
 
 
 volatile uint8_t audioReadptr;
+volatile uint8_t audioWriteptr;
+
+uint8_t len;
 
 extern FATFS filesys;
 extern uint8_t Buff[];
 extern uint8_t fastMode;
+extern uint8_t isStereo;
 
 void waveAudioSetup(void);
 void waveAudioOn(void);

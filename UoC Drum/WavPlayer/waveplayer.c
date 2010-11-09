@@ -11,6 +11,11 @@ volatile uint8_t audioWriteptr;
 volatile uint8_t audioState;
 uint8_t fastMode;
 
+uint8_t len;
+
+uint8_t is16Bit;
+uint8_t isStereo;
+
 uint8_t waveIsPlaying(void)
 {
    return audioState;
@@ -75,23 +80,34 @@ uint8_t wavePlayFile(waveHeader_t* wavefile, uint8_t* filename)
       {
          uartTxString_P( PSTR("File too small!"));
       }
-
    }
    
-
    return ret;
 }
 
 
 void wavePutByte(uint8_t byte)
 {
+   static uint8_t highByte = 1;
+
+   /* Throw away every other byte, due to the Little Endianness */
+   if( is16Bit && highByte)
+   {
+      highByte = 0;
+      return;
+   }
+
+   highByte = 1;
+
    /* Wait for a bit */
    /* Forward data to Audio Fifo */
-   while( (((audioWriteptr + 1) & WAVE_OUTMASK) == audioReadptr) && (audioState) )
+   while( (( (uint8_t)(audioWriteptr + 1)) == audioReadptr) && (audioState) )
    {
    }
-   Buff[audioWriteptr++] = byte;
-   audioWriteptr &= WAVE_OUTMASK;
+
+   /* Do the signed 16bit -128 -> 127 to unsigned 8bit 0 - >255here */
+   Buff[audioWriteptr++] = byte + (is16Bit << 7);
+   //audioWriteptr &= WAVE_OUTMASK;
 }
 
 
@@ -139,26 +155,13 @@ uint8_t waveContinuePlaying(waveHeader_t* wavefile)
 
 void waveProcessBuffer(waveHeader_t* wavefile)
 {
-   /* Dont do anything if the buffer is empty */
-   if( audioReadptr == audioWriteptr )
-   {
-      return;
-   }
-
-   PORTC &= ~(1 << 4);
-
    /* Left is first */
-   OCR1A = Buff[(audioReadptr + wavefile->byteOffset) & WAVE_OUTMASK] + wavefile->valueOffset;
+   OCR1A = Buff[(audioReadptr)];
    /* Right is second */
    /* This will not do anything if WAVE_STEREO_ENABLED is not set to 1 */
-   OCR1B = Buff[(audioReadptr + (wavefile->byteOffset << wavefile->offsetMultiplier) + wavefile->offsetMultiplier) & WAVE_OUTMASK] + wavefile->valueOffset;
-
-   if( OCR1A > 220 || OCR1A < 30 )
-   {
-      PORTC |= (1 << 4); 
-   }
-
-   audioReadptr = (audioReadptr + ((1 + wavefile->byteOffset) << wavefile->offsetMultiplier)) & WAVE_OUTMASK;
+   OCR1B = Buff[(audioReadptr + isStereo)];
+   audioReadptr = (audioReadptr + 1 + isStereo) & WAVE_OUTMASK;
+   //audioReadptr = (audioReadptr + 1 + isStereo);
 }
 
 
@@ -170,6 +173,8 @@ uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
    uint32_t chunkSize;
 
    memset(wavefile, 0, sizeof(waveHeader_t));
+   is16Bit = 0;
+   isStereo = 0;
 
    if(pf_open((const char*)filename) != FR_OK) return WAVE_IO_ERROR+1;
    if(pf_lseek(0) != FR_OK) return WAVE_IO_ERROR+2;
@@ -202,7 +207,7 @@ uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
             /* Setup the offsets for stereo */
             if( wavefile->channelCount == 2 )
             {
-               wavefile->offsetMultiplier = 1;
+               isStereo = 1;
             }
 
 			   if (Buff[FMT_RESOLUTION] != 8 && Buff[FMT_RESOLUTION] != 16) return WAVE_INVALID_FILE;		/* Check resolution (8/16 bit) */
@@ -210,14 +215,13 @@ uint32_t waveParseHeader(waveHeader_t* wavefile, uint8_t* filename)
 			   /* Setup the resolution byte offsets */
             if( wavefile->resolution == 16 )
             {
-               wavefile->byteOffset = 1;
-               wavefile->valueOffset = 128;
+               is16Bit = 1;
             }
           
             wavefile->sampleRate = LD_DWORD(&Buff[FMT_SAMPLERATE]);					/* Check sampling freqency (8k-48k) */
 			   if (wavefile->sampleRate < WAVE_MINSAMPLE_RATE || wavefile->sampleRate > WAVE_MAXSAMPLE_RATE) return WAVE_INVALID_FILE;
 			   
-            if( wavefile->byteOffset && wavefile->offsetMultiplier && wavefile->sampleRate >= 44100 )
+            if( isStereo && is16Bit && wavefile->sampleRate >= 44100 )
             {
                fastMode = 1;
             }
