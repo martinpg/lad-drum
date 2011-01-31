@@ -46,6 +46,9 @@ uint8_t SPI_TxByte(uint8_t data);
 /** SPI_RxByte, the same as SPI_TxByte(0xFF) */
 uint8_t SPI_RxByte(void);
 
+
+
+
 void SPI_RxBlock(uint8_t* data, uint8_t n);
 
 void SPI_TxBlock(uint8_t* data, uint8_t n);

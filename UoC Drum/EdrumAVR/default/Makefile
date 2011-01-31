@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99       -DVERSION_CODE=VERSION_WITHOUT_PE  -DF_CPU=20000000UL -Os -fsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+CFLAGS += -Wall -gdwarf-2 -std=gnu99        -DF_CPU=20000000UL -Os -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -37,10 +37,10 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 
 
 ## Include Directories
-INCLUDES = -I"M:\Edrum\EdrumAVR\..\FuncLib" -I"M:\Edrum\EdrumAVR\." -I"M:\Edrum\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Edrum\EdrumAVR\..\FuncLib\Other" -I"M:\Edrum\EdrumAVR\..\FuncLib\Applications" -I"M:\Edrum\EdrumAVR\..\FuncLib\External" -I"M:\Edrum\EdrumAVR\..\GenericEdrum" -I"M:\Edrum\EdrumAVR\..\FuncLib\Util" 
+INCLUDES = -I"M:\Robotics\Source\EdrumAVR\..\FuncLib" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Other" -I"M:\Robotics\Source\EdrumAVR\..\GenericEdrum" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Applications" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\External" -I"M:\Robotics\Source\EdrumAVR\." 
 
 ## Objects that must be built in order to link
-OBJECTS = main.o hardUart.o ControllerMode.o midi.o SysEx.o profiles.o sample.o sensor.o Softtimer.o UI_KP.o UI_LCD.o userFunctions.o LCDSettings.o MenuSettings.o Menu.o uint16toa.o uint8toa.o vumeter.o ringbuffer.o UI.o 
+OBJECTS = main.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o MenuSettings.o Menu.o userFunctions.o midi.o SysEx.o profiles.o vumeter.o sample.o sensor.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -55,7 +55,31 @@ main.o: ../main.c
 hardUart.o: ../../FuncLib/Peripherals/hardUART/hardUart.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
-ControllerMode.o: ../../GenericEdrum/ControllerMode/ControllerMode.c
+ringbuffer.o: ../../FuncLib/Other/RingBuffer/ringbuffer.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+UI_LCD.o: ../../FuncLib/External/UI_LCD/UI_LCD.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+LCDSettings.o: ../LCDSettings.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+spi.o: ../../FuncLib/Peripherals/SPI/spi.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+uint8toa.o: ../../FuncLib/Other/mmculib/uint8toa.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+UI_KP.o: ../UI_KP.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+MenuSettings.o: ../../GenericEdrum/MenuSettings.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+Menu.o: ../../FuncLib/Applications/Menu/Menu.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+userFunctions.o: ../../GenericEdrum/UserFunctions/userFunctions.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 midi.o: ../../GenericEdrum/MIDI/midi.c
@@ -67,46 +91,13 @@ SysEx.o: ../../GenericEdrum/MIDI/SysEx/SysEx.c
 profiles.o: ../../GenericEdrum/Profiles/profiles.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
+vumeter.o: ../../FuncLib/External/VUMeter/vumeter.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
 sample.o: ../../GenericEdrum/Sample/sample.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 sensor.o: ../../GenericEdrum/Sensor/sensor.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-Softtimer.o: ../../GenericEdrum/SoftTimer/Softtimer.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-UI_KP.o: ../../GenericEdrum/UI_KP/UI_KP.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-UI_LCD.o: ../../GenericEdrum/UI_LCD/UI_LCD.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-userFunctions.o: ../../GenericEdrum/UserFunctions/userFunctions.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-LCDSettings.o: ../../GenericEdrum/LCDSettings.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-MenuSettings.o: ../../GenericEdrum/MenuSettings.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-Menu.o: ../../FuncLib/Applications/Menu/Menu.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-uint16toa.o: ../../FuncLib/Other/mmculib/uint16toa.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-uint8toa.o: ../../FuncLib/Other/mmculib/uint8toa.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-vumeter.o: ../../FuncLib/External/VUMeter/vumeter.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-ringbuffer.o: ../../FuncLib/Other/RingBuffer/ringbuffer.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-UI.o: ../../GenericEdrum/UI/UI.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link

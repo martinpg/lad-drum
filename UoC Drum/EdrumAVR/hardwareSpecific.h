@@ -19,6 +19,14 @@
 /* MIDI Defines */
 #define MIDI_Tx(x)   uartTx(x)
 
+/* SPI Defines */
+#define SPI_DDR   (DDRB)
+#define SPI_PORT  (PORTB)
+#define SCK       (PB7)
+#define MISO      (PB6)
+#define MOSI      (PB5)
+#define nSS       (PB4)
+
 
 /* Uart Defines */
 #define UART_Tx   uartTx
@@ -61,56 +69,56 @@
 
 /* Keypad Defines */
 /* Key Pad Inputs */
-#define UI_COL0   (1<<4)
-#define UI_COL1   (1<<5)
-#define UI_COL2   (1<<6)
-#define UI_COL3   (1<<7)
-#define UI_ROW3   (1<<8)
-#define UI_ROW2   (1<<7)
-#define UI_ROW1   (1<<6)
-#define UI_ROW0   (1<<5)
+#define UI_COL0   (1<<0)
+#define UI_COL1   (1<<2)
+#define UI_COL2   (1<<1)
+#define UI_COL3   (1<<0)
+#define UI_ROW3   (1<<6)
+#define UI_ROW2   (1<<5)
+#define UI_ROW1   (1<<4)
+#define UI_ROW0   (1<<3)
 
 #define UI_ROWS	(UI_ROW0 | UI_ROW1 | UI_ROW2 | UI_ROW3)
-#define UI_COLS	(UI_COL0 | UI_COL1 | UI_COL2 | UI_COL3)
+#define UI_COLS	(UI_COL1 | UI_COL2 | UI_COL3)
 
-#define UI_COL_OUT (PORTB)
-#define UI_ROW_OUT (PORTD)
+#define UI_COL_OUT (PORTA)
+#define UI_ROW_OUT (PORTC)
 
-#define UI_COL_IN (PINB)
-#define UI_ROW_IN (PIND)
+#define UI_COL_IN (PINA)
+#define UI_ROW_IN (PINC)
 
-#define UI_COL_DIR (DDRB)
-#define UI_ROW_DIR (DDRD)
+#define UI_COL_DIR (DDRA)
+#define UI_ROW_DIR (DDRC)
 
 /* KeyPad Defines */
 /* 1st Row */
-#define KP_1   (0xEE)
-#define KP_2   (0xDE)
-#define KP_3   (0xBE)
-#define KP_A   (0x7E)
+#define KP_1   (0x18)
+#define KP_2   (0x14)
+#define KP_3   (0x12)
+#define KP_A   (0x11)
 
 /* 2nd Row */
-#define KP_4   (0xED)
-#define KP_5   (0xDD)
-#define KP_6   (0xBD)
-#define KP_B   (0x7D)
+#define KP_4   (0x28)
+#define KP_5   (0x24)
+#define KP_6   (0x22)
+#define KP_B   (0x21)
 
 /* 3rd Row */
-#define KP_7   (0xEB)
-#define KP_8   (0xDB)
-#define KP_9   (0xBB)
-#define KP_C   (0x7B)
+#define KP_7   (0x48)
+#define KP_8   (0x44)
+#define KP_9   (0x42)
+#define KP_C   (0x41)
 
 /* 4th Row */
-#define KP_STAR   (0xE7)
-#define KP_0      (0xD7)
-#define KP_HASH   (0xB7)
-#define KP_D      (0x77)
+#define KP_STAR   (0x88)
+#define KP_0      (0x84)
+#define KP_HASH   (0x82)
+#define KP_D      (0x81)
 
 
 /* LCD Defines */
 #define LCD_BL_PORT  (PORTD)
-#define LCD_BL_PIN   (1)
+#define LCD_BL_PIN   (7)
 #define LCD_BL_DDR   (DDRD)
 #define LCD_BL_SEL   (DDRD)
 
@@ -123,13 +131,17 @@
 #define UI_LCD_PORT     (0x00)
 
 /* LCD Inputs */
-#define UI_LCD_PRS      (7)
+#define UI_LCD_RS_PIN      (5)
 #define UI_LCD_RS       (1<<5)
-#define UI_LCD_E        (1<<4)
+#define UI_LCD_E        (1<<7)
 #define UI_LCD_D4       (1<<0)
 #define UI_LCD_D5       (1<<1)
 #define UI_LCD_D6       (1<<2)
 #define UI_LCD_D7       (1<<3)    
+
+/* Use 8bit mode via 74HC164 */
+#define UI_LCD_8BITMODE
+#define UI_LCD_SERIAL_DATA (UI_LCD_RS)
 
 #define UI_LCD_CONTROL_DIR   (DDRC)
 #define UI_LCD_DATA_DIR      (DDRC)
@@ -139,6 +151,11 @@
 
 #define UI_LCD_CONTROL_PORT	(PORTC)
 #define UI_LCD_DATA_PORT		(PORTC)
+
+
+#define LCD_FUNCTION_DEFAULT	((1<<LCD_FUNCTION) | (1<<LCD_FUNCTION_2LINES) | (1 << LCD_FUNCTION_8BIT))
+#define LCD_MODE_DEFAULT		((1<<LCD_ENTRY_MODE) | (1<<LCD_ENTRY_INC))
+#define LCD_DISPLAY_DEFAULT   ((1<<LCD_DISPLAY) | (1<<LCD_ON_DISPLAY))
 
 /* END OF VERSION WITHOUT PE Defines */
 

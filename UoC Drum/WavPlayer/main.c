@@ -36,7 +36,7 @@ int main(void)
 
    for( ;; )
    {
-      PORTC &= ~(1 << 4);
+      
       //uartTx(OCR2);
       /* Is a mutliple of WAVE_OUTBLOCK_SIZE */
       /* If we are ready to receive the next bytes then do it */
@@ -94,6 +94,7 @@ int main(void)
 
 ISR(SIG_OUTPUT_COMPARE2, ISR_NOBLOCK)
 {
+   PORTC &= ~(1 << 4);
    /* We need to put this here to increase the speed */
    /* Left is first */
    OCR1A = Buff[(audioReadptr)];

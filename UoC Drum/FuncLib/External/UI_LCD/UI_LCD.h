@@ -47,10 +47,12 @@
 // reading:
 #define LCD_BUSY            7      // DB7: LCD is busy
 
-
-#define LCD_FUNCTION_DEFAULT	((1<<LCD_FUNCTION) | (1<<LCD_FUNCTION_2LINES))
+/* To be defined in hardware Specific */
+/*
+#define LCD_FUNCTION_DEFAULT	((1<<LCD_FUNCTION) | (1<<LCD_FUNCTION_2LINES) | (LCD_FUNCTION_8BIT))
 #define LCD_MODE_DEFAULT		((1<<LCD_ENTRY_MODE) | (1<<LCD_ENTRY_INC))
 #define LCD_DISPLAY_DEFAULT   ((1<<LCD_DISPLAY) | (1<<LCD_ON_DISPLAY))
+*/
 
 
 #define LCD_LINE0_DDRAMADDR   (0x00)

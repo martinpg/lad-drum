@@ -30,7 +30,7 @@ void SPI_Init(void)
    SPI_DDR |= ((1 << nSS) | (1 << SCK) | (1 << MOSI) );
    SPI_DDR &=  ~(1 << MISO);
    SPI_PORT &= ~((1 << MOSI));
-   SPI_PORT |= ((1 << MISO) | (1 << SCK) | (1 << MOSI));
+   SPI_PORT &= ((1 << MISO) | (1 << SCK) | (1 << MOSI));
 
    /* Initiate as Master and Use CPHA = 1*/
    SPCR |= ((1 << SPE) | (1 << MSTR));
