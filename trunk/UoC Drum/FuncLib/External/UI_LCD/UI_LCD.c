@@ -39,24 +39,20 @@ void UI_LCD_Shutdown(void)
 }
 #endif
 
+
+
 /* Assumes 4-bit Mode, 4 MSB are sent first */
 void UI_LCD_Write(HD44780lcd_t* lcd, char code)
 {
+#ifdef UI_LCD_8BITMODE
+	lcd->SetRegister(code);
+   lcd->Strobe();
+#else
 	lcd->SetRegister((code >> 4) & (0x0F) );
    lcd->Strobe();
 	lcd->SetRegister((code) & (0x0F) );   
    lcd->Strobe();
-   _delay_us(40);
-   
-   /* Keep a count of the position */
-//   if( (lcd->RSStatus == UI_LCD_RS_DATA) && (lcd->ColPos++ >= lcd->MAX_COL) )
-//   {
-//      lcd->ColPos = 0;
-//      if(lcd->RowPos++ >= lcd->MAX_ROW)
-//      {
-//         lcd->RowPos = 0;  
-//      }
-//   }
+#endif
 }
 
 void  UI_LCD_Char(HD44780lcd_t* lcd, char data)
@@ -71,6 +67,15 @@ void  UI_LCD_Char(HD44780lcd_t* lcd, char data)
 /* Clears the screen, sets up the LCD to accept commands */
 void UI_LCD_Init(HD44780lcd_t* lcd)
 {
+
+#ifdef UI_LCD_8BITMODE
+   UI_LCD_SetInstruction(lcd);
+   UI_LCD_Write( lcd, LCD_FUNCTION_DEFAULT );
+   UI_LCD_Write( lcd, LCD_DISPLAY_DEFAULT );
+   UI_LCD_Write( lcd, LCD_MODE_DEFAULT );  
+   UI_LCD_Clear(lcd);   
+   UI_LCD_Home(lcd);
+#else
 
    UI_LCD_SetInstruction(lcd);
    lcd->Strobe();
@@ -89,7 +94,7 @@ void UI_LCD_Init(HD44780lcd_t* lcd)
    _delay_ms(2);    
    UI_LCD_Home(lcd);
    _delay_ms(2); 
-	
+#endif
 
 }
 
@@ -101,7 +106,7 @@ void UI_LCD_Home(HD44780lcd_t* lcd)
 {
    UI_LCD_SetInstruction(lcd);   
    UI_LCD_Write(lcd, (1 << LCD_HOME ) );   
-   _delay_ms(2);   
+   _delay_ms(20);   
    
    lcd->RowPos = 0;
    lcd->ColPos = 0;
