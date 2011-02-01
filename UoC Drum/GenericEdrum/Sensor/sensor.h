@@ -26,6 +26,24 @@
 
 
 
+/*
+// Channel Select Defines 
+// To be defined in the hardwareSpecific.h
+#define CHSELOUT  PORTB
+#define CHSELDIR  DDRB
+#define CHSELSEL  P4SEL
+#define CHSELIN   PINB
+
+#define CHSELA     (1<<0)
+#define CHSELB     (1<<1)
+#define CHSELC     (1<<2)
+#define CHSELD     (1<<3)
+
+#define CHANNEL_COUNT (15)
+
+#define CHSELPINS  ( CHSELA | CHSELB | CHSELC | CHSELD )
+*/
+
 
 typedef struct {
 

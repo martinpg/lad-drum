@@ -4,6 +4,9 @@
 #include "LCDSettings.h"
 
 #include "SPI/spi.h"
+#include "VUmeter/vumeter.h"
+#include "Sample/sample.h"
+#include "Sensor/sensor.h"
 #include <stdlib.h>
 
 const char VersionId[] = "1.4a 31/01/11";
@@ -40,12 +43,52 @@ int main(void)
 
    UI_KP_Init();
 
+   /* ADC Module Init */
+   ADC_Init();
+   ADC_SetupAddress(SENSOR_OUTPUT2);
+
+   SensorInit();
+   SensorChannel(7);
+
+   /* Load the VU meter stuff */
+   UI_LCD_LoadDefaultChars();
+
+   VUSetPosition(0,0);
+   VUSetRows(MAX_ROWS);
+
 
    sei();
 
+   uint16_t k;
+
    while (1)
-   {     
-      
+   {   
+
+      k++;
+      uint16_t result;
+      char outputString[6];
+      /* Do the VU Meter*/
+      uint16_t i;
+      uint8_t  VURows = GetVURows();
+
+
+      if( (k % 20) == 0 )
+      {
+         result = ADC_Sample();
+         VUSetLevel(0, result >> 3, VURows);
+      }
+
+
+
+		   			           
+      VUMeterPrint(SEQUENTIAL_METERS | 0x01, VURows);
+
+      if( (k % 10) == 0)
+      {
+         VULevelDecay(ALL_METERS);
+         //ResetVUValues();
+      }
+      _delay_ms(1);
    }
 
    return 0;
@@ -65,15 +108,18 @@ ISR(INT1_vect)
    if( result != KP_INVALID )
    {
       UI_LCD_Clear(&PrimaryDisplay);
+      UI_LCD_Pos(&PrimaryDisplay, 1, 0);
       utoa(result, outputString, 10);
       UI_LCD_String(&PrimaryDisplay,"R:");
       UI_LCD_String(&PrimaryDisplay,outputString);
    
       j++;
       utoa(j, outputString, 10);
-      UI_LCD_Pos(&PrimaryDisplay, 1, 0);
+      UI_LCD_Pos(&PrimaryDisplay, 2, 0);
       UI_LCD_String(&PrimaryDisplay,"j=");
       UI_LCD_String(&PrimaryDisplay,outputString);
+
+      SensorChannel(result);
    }
 
 
