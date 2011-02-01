@@ -6,10 +6,6 @@
 #include "hardwareSpecific.h"
 //#include "ADC/adc12.h"
 #include "sensor.h"
-#include "MSB2LSB/MSB2LSB.h"
-
-
-
 
 
 SensorSettings_t* SensorSettings;
@@ -32,16 +28,18 @@ void SensorChannel(uint8_t channel)
 	
 	uint8_t channelState;
 	
-   if( channel > CH15 )
+   if( channel > CHANNEL_COUNT )
    {
       return;    
    }
    
-   
-   
    channel = ~channel;
    
-   channelState = ((channel & (0x08)) >> 3) | ((channel & (0x04)) >> 1) | ((channel & (0x02)) << 1) | ((channel & (0x01)) << 3);
+   channelState = (((channel & (0x08)) ? 1 : 0) << CHSELD) |
+                  (((channel & (0x04)) ? 1 : 0) << CHSELC) |
+                  (((channel & (0x02)) ? 1 : 0) << CHSELB) |
+                  (((channel & (0x01)) ? 1 : 0) << CHSELA);
+
    CHSELOUT = (CHSELOUT & ~(CHSELPINS)) | channelState;
    return;
 }
@@ -50,7 +48,7 @@ void SensorChannel(uint8_t channel)
 void SensorInputSelect(uint8_t newPort)
 {
    SensorSettings->SensorInputPort = newPort;
-   ADC12_SetupAddress(0, newPort);
+   ADC_SetupAddress(newPort);
 }
 
 uint8_t GetSensorInput(void)
@@ -73,17 +71,11 @@ void SetCrossTalkDelay(int16_t newCrosstalk)
 }
 
 
-
-
-
 uint16_t SensorPotValue(void)
 {
-   ADC12_SetupAddress(0, POT_INPUT);
-   uint16_t PotValue = (ADC12_Sample());
-   ADC12_SetupAddress(0, POT_INPUT); 
+   ADC_SetupAddress(POT_INPUT);
+   uint16_t PotValue = (ADC_Sample());
+   ADC_SetupAddress(POT_INPUT); 
 
 	return PotValue;
-		
 }
-
-

@@ -40,7 +40,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 INCLUDES = -I"M:\Robotics\Source\EdrumAVR\..\FuncLib" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Other" -I"M:\Robotics\Source\EdrumAVR\..\GenericEdrum" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Applications" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\External" -I"M:\Robotics\Source\EdrumAVR\." 
 
 ## Objects that must be built in order to link
-OBJECTS = main.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o MenuSettings.o Menu.o userFunctions.o midi.o SysEx.o profiles.o vumeter.o sample.o sensor.o 
+OBJECTS = main.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o sample.o sensor.o adc.o vumeter.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -73,31 +73,16 @@ uint8toa.o: ../../FuncLib/Other/mmculib/uint8toa.c
 UI_KP.o: ../UI_KP.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
-MenuSettings.o: ../../GenericEdrum/MenuSettings.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-Menu.o: ../../FuncLib/Applications/Menu/Menu.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-userFunctions.o: ../../GenericEdrum/UserFunctions/userFunctions.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-midi.o: ../../GenericEdrum/MIDI/midi.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-SysEx.o: ../../GenericEdrum/MIDI/SysEx/SysEx.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-profiles.o: ../../GenericEdrum/Profiles/profiles.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-vumeter.o: ../../FuncLib/External/VUMeter/vumeter.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
 sample.o: ../../GenericEdrum/Sample/sample.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 sensor.o: ../../GenericEdrum/Sensor/sensor.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+adc.o: ../../FuncLib/Peripherals/avrADC/adc.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+vumeter.o: ../../FuncLib/External/VUMeter/vumeter.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link

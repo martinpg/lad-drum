@@ -10,6 +10,7 @@
 
 #include "version.h"
 #include "hardUART/hardUart.h"
+#include "avrADC/adc.h"
 
 
 /* Interrupts */
@@ -40,20 +41,20 @@
 #define CHSELSEL  P4SEL
 #define CHSELIN   PINB
 
-#define CHSELA     (1<<0)
-#define CHSELB     (1<<1)
-#define CHSELC     (1<<2)
-#define CHSELD     (1<<3)
+#define CHSELA     (0)
+#define CHSELB     (1)
+#define CHSELC     (2)
+#define CHSELD     (3)
 
-#define CHSELPINS  ( CHSELA | CHSELB | CHSELC | CHSELD )
-
+#define CHSELPINS  ( (1 << CHSELA) | (1 << CHSELB) | (1 << CHSELC) | (1 << CHSELD) )
+#define CHANNEL_COUNT (15)
 
 /* Sensor Defines */
 #define SENSOR_OUTPUT	(0)
 
 /* Variable Output */
-#define SENSOR_OUTPUT2	(0)
-#define POT_INPUT			(1)
+#define SENSOR_OUTPUT2	(7)
+#define POT_INPUT			(6)
 
 
 /* Digital Input Section */
@@ -66,6 +67,14 @@
 #define DIGITAL_DDR1		(DDRA)
 #define DIGITAL_DDR2		(DDRC)
 
+/* ADC Defines */
+#define ADC_Init()       adcInitialise()     
+#define ADC_Sample()     adc10()
+#define ADC_SetupAddress(channel) adcSetPin(channel)
+
+
+#define ADC_REF_DEFAULT ADC_REF_AVCC
+#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV128
 
 /* Keypad Defines */
 /* Key Pad Inputs */
