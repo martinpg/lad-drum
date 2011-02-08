@@ -55,7 +55,7 @@ typedef struct _softTimer32
 #define SAMPLE_100US (F_CPU / 10000)
 
 /* 1ms Resoultion @ 8MHz*/
-#define SAMPLE_1MS   (F_CPU / 1000)
+#define SAMPLE_1MS   (F_CPU / 1000) / (1024)
 
 /* CCR1B associated timers */
 enum {  
@@ -84,6 +84,8 @@ enum {
 extern SoftTimer_16  SoftTimer1[];
 extern SoftTimer_16  SoftTimer2[];
 
+void SoftTimer_TimerInit(void);
 uint8_t SoftTimer_IsTimer2Active(void);
+void RunAuxTimers(void);
 
 #endif

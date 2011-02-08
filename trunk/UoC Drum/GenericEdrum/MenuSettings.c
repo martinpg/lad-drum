@@ -114,7 +114,7 @@ const MENU_TEXT  MT_VARIABLE_GAIN[] = "Variable Gain";
  * 1) Another Menu or
  * 2) A function
  * */
-const menu_list MenuState[] = {
+const menu_list MenuState[] MENU_SPACE = {
 
 	{ST_MAIN,	ST_CONTROLLER_MODE,  0},
    {ST_MAIN,   ST_OPTIONS,   1},
@@ -217,7 +217,7 @@ const menu_list MenuState[] = {
 };
 
 
-const menu_data MenuData[] = {
+const menu_data MenuData[] MENU_SPACE = {
    {ST_MAIN, 0, 0},
    {ST_CONTROLLER_MODE, MT_CONTROLLER_MODE, ControllerMode},
    {ST_PROFILES, MT_PROFILES, ShowProfile},   
@@ -319,7 +319,7 @@ const menu_data MenuData[] = {
    {0, 0, 0}
 };
   
-const menu_list AnalogueChannelSetupMenu[] = {
+const menu_list AnalogueChannelSetupMenu[] MENU_SPACE = {
    
    {ST_ANALOGUE_SETUP, ST_THRESHOLD, 3},
    {ST_ANALOGUE_SETUP, ST_RETRIGGER, 4},
@@ -328,14 +328,14 @@ const menu_list AnalogueChannelSetupMenu[] = {
    {0, 0, 0} 
 };
 
-const menu_list DigitalChannelSetupMenu[] = {
+const menu_list DigitalChannelSetupMenu[] MENU_SPACE = {
    
    {ST_DIGITAL_SETUP, ST_RETRIGGER, 3},
    {ST_DIGITAL_SETUP, ST_TRIGGER_TYPE, 4},  
    {0, 0, 0} 
 };
 
-const menu_data ChannelSetupMenu[] = {
+const menu_data ChannelSetupMenu[] MENU_SPACE = {
    
    {ST_ANALOGUE_SETUP, 0, HandleSubMenu},
    {ST_DIGITAL_SETUP, 0, HandleSubMenu},
@@ -348,12 +348,12 @@ const menu_data ChannelSetupMenu[] = {
 };  
   
 
-Menu_t primaryMenu = {ST_MAIN, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0, (const menu_list*)&MenuState, (const menu_data*)&MenuData};
+Menu_t primaryMenu = {ST_MAIN, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0, (menu_list*)MenuState, (menu_data*)MenuData};
 Menu_t analogueMenu = {ST_ANALOGUE_SETUP, 0, 3, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0, 
-                       (const menu_list*)&AnalogueChannelSetupMenu, (const menu_data*)&ChannelSetupMenu};
+                       (menu_list*)AnalogueChannelSetupMenu, (menu_data*)ChannelSetupMenu};
                        
 Menu_t digitalMenu = {ST_DIGITAL_SETUP, 0, 3, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0,
-                       (const menu_list*)&DigitalChannelSetupMenu, (const menu_data*)&ChannelSetupMenu};                       
+                       (menu_list*)DigitalChannelSetupMenu, (menu_data*)ChannelSetupMenu};                       
 
 Menu_t* ActiveMenu = &primaryMenu;
 Menu_t* SelectedSubMenu = &primaryMenu;
@@ -396,7 +396,7 @@ void  MenuLCD_String_P(const char* string)
    UI_LCD_String_P(&PrimaryDisplay, string);
 }
 
-void MenuLCD_Char(char data)
+void MenuLCD_Char(uint8_t data)
 {
    UI_LCD_Char(&PrimaryDisplay , data);
 }

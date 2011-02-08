@@ -10,7 +10,7 @@
 #include "Menu/Menu.h"
 #include "MenuSettings.h"
 #include "mmculib/uint16toa.h"
-#include "Sample/sample.h"
+#include "SoftTimer/softtimer.h"
 #include "SysEx.h"
 
 static uint16_t DataCount = 0;
@@ -211,7 +211,7 @@ void SysExFlush(void)
    DataCount = 0;
    IsReceivingSysExData(!RECEIVING_SYSEX_DATA);
    ActiveProcess = DEFAULT_PROCESS;
-   TimerInit();
+   SoftTimer_TimerInit();
 }
 
 

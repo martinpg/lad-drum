@@ -100,8 +100,8 @@
 
 #define	UCSRCMASK		(0x7F)
 
-#define  TXBUFFER_SIZE   (8)
-#define  RXBUFFER_SIZE   (4)
+#define  TXBUFFER_SIZE   (16)
+#define  RXBUFFER_SIZE   (16)
 
 
 #define IS_TRANSMITTING (1)
@@ -119,7 +119,7 @@
 extern RINGBUFFER_T ReceiveBuffer;
 extern RINGBUFFER_T TransmitBuffer;
 
-void uartInit(uint8_t baudrate, uint8_t U2Xvalue);
+void uartInit(uint8_t U2Xvalue);
 
 
 
@@ -134,7 +134,7 @@ void uartDisable(void);
  * See the datasheet for more details on what the
  * Baudrate generation registers should be.
  */
-void uartSetBaud(uint8_t baudrateL, uint8_t baudrateH);
+void uartSetBaud(uint8_t baudrateH, uint8_t baudrateL);
 
 
 /** uartTxString:

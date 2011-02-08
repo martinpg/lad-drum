@@ -14,14 +14,17 @@
 #define BAUD_115200		(0x0045)
 #define BAUD_1M			(0x0008)
 #else*/
-#define BAUD_31250      (F_CPU / 31250)
-#define BAUD_38400      (F_CPU / 38400)
-#define BAUD_115200		(F_CPU / 115200)
-#define BAUD_1M			(F_CPU / 1000000)
+/* To be defined in hardwareSpecific */
+/*
+#define MIDI_BAUD_31250      (F_CPU / 31250)
+#define MIDI_BAUD_38400      (F_CPU / 38400)
+#define MIDI_BAUD_115200		(F_CPU / 115200)
+#define MIDI_BAUD_1M			(F_CPU / 1000000)
+*/
 //#endif
 
 
-#define DEFAULT_BAUD_RATE	BAUD_31250
+#define DEFAULT_BAUD_RATE	MIDI_BAUD_31250
 #define MAX_MIDI_CHANNEL (0x0F)
 #define MIDI_MANUFACTURER (0x7D) /* Educational Use */
 #define MIDI_DEVICE_CODE       (0x01)  /* LAD Drum */

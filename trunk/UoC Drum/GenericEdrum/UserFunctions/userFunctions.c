@@ -149,9 +149,9 @@ void aboutScroll(uint8_t nameIndex)
 			UF_MenuPrint_P(PSTR("   Inc. presents:") );
 			UF_MenuNewLine();	
 			UF_MenuChar(0x00);
-			UF_MenuPrint_P( PSTR(" L-A-D eDrum"));
+			UF_MenuPrint_P( PSTR(" L-A-D eDrum "));
 			UF_MenuChar(0x01);
-			UF_MenuPrint_P( PSTR(" 2008"));	
+			UF_MenuPrint_P( PSTR(" 2011"));	
 		   UF_MenuNewLine();
 			UF_MenuPrint_P(PSTR("Version:") );
 			UF_MenuPrint_P(VersionId);		   
@@ -439,6 +439,7 @@ void SetMIDIRate(void* data)
 	uint8_t* input = (uint8_t*)data;
 	//static uint8_t primaryMenu.firstEnter = 1;
 	
+   uint8_t outputString[5];
 		
 	if( primaryMenu.firstEnter != 1 )
    {     
@@ -453,6 +454,7 @@ void SetMIDIRate(void* data)
 				
 			case KB_ENTER:
 			case KP_ENTER:
+            //primaryMenu.firstEnter = 0;
 			   UF_executeState( primaryMenu.currentState);
 				return;	
 			break;
@@ -482,19 +484,19 @@ void PrintMIDIRate(void)
    
    switch(MIDI_GetBaud())
    {
-		case BAUD_31250:
+		case MIDI_BAUD_31250:
 			selectedBaud = B31250;
 		break;
 		
-		case BAUD_38400:
+		case MIDI_BAUD_38400:
 			selectedBaud = B38400;
 		break;
 		
-		case BAUD_115200:
+		case MIDI_BAUD_115200:
 			selectedBaud = B115200;
 		break;
 		
-		case BAUD_1M:
+		case MIDI_BAUD_1M:
 			selectedBaud = B1M;
 		break;				
 	
@@ -542,20 +544,20 @@ void EditMIDIRate(void* data)
          case KP_C:
 				   switch(MIDI_GetBaud())
 				   {
-						case BAUD_31250:
-							MIDI_SetBaud(BAUD_38400); 
+						case MIDI_BAUD_31250:
+							MIDI_SetBaud(MIDI_BAUD_38400); 
 						break;
 						
-						case BAUD_38400:
-							MIDI_SetBaud(BAUD_115200); 
+						case MIDI_BAUD_38400:
+							MIDI_SetBaud(MIDI_BAUD_115200); 
 						break;
 						
-						case BAUD_115200:
-							MIDI_SetBaud(BAUD_1M); 
+						case MIDI_BAUD_115200:
+							MIDI_SetBaud(MIDI_BAUD_1M); 
 						break;		
 						
-						case BAUD_1M:
-							MIDI_SetBaud(BAUD_31250);
+						case MIDI_BAUD_1M:
+							MIDI_SetBaud(MIDI_BAUD_31250);
 						break;
 					
 						default:
@@ -591,19 +593,19 @@ void EditMIDIRate(void* data)
    UF_MenuPrint_P( PSTR("Baud Rate:"));
    switch(MIDI_GetBaud())
    {
-		case BAUD_31250:
+		case MIDI_BAUD_31250:
 			selectedBaud = B31250;
 		break;
 		
-		case BAUD_38400:
+		case MIDI_BAUD_38400:
 			selectedBaud = B38400;
 		break;
 		
-		case BAUD_115200:
+		case MIDI_BAUD_115200:
 			selectedBaud = B115200;
 		break;		
 		
-		case BAUD_1M:
+		case MIDI_BAUD_1M:
 			selectedBaud = B1M;
 	
 		default:
@@ -1822,10 +1824,10 @@ void AmpInputSelect(void* data)
 void SensorInputChange(void* data)
 {
 	/* Corresponding to either SENSOR_OUT or SENSOR_OUT2 */
-	uint8_t SelectedState = ST_VARIABLE_GAIN - GetState(&primaryMenu);
+	uint8_t SelectedState = GetState(&primaryMenu);
 	
    SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
-	SensorInputSelect( (SelectedState == SENSOR_OUTPUT2) ? SENSOR_OUTPUT2 : SENSOR_OUTPUT );
+	SensorInputSelect( (SelectedState == ST_VARIABLE_GAIN) ? SENSOR_OUTPUT2 : SENSOR_OUTPUT );
 	SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
 
    UF_MenuSetInput(KP_BACK);

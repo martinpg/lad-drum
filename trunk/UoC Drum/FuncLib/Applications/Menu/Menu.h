@@ -23,7 +23,11 @@
 
 #define PRINT_FUNC   UI_LCD_String_P
 /* These should reside in the hardwareSpecific.h */
+//#define MENU_GET_PTR(x)  pgm_read_word(x)
+//#define MENU_GET_BYTE(x)  pgm_read_byte(x)
+//#define MENU_SPACE PROGMEM // for the AVR
 //#define MENU_TEXT    char //for the AVR use prog_char if you want strings in ROM
+//#define MENU_SPACE_PTR	PGM_P
 //#define PSTR(x)   (x) //for AVR include the pgmspace.h for this macro
 
 #define NO_STATE     0
@@ -112,15 +116,15 @@ typedef struct Menu_t
    
    uint8_t updateOptions;
    
-   const menu_list* states;
-   const menu_data* structure;
+   menu_list* states;
+   menu_data* structure;
    
    void (*MenuPrint)(char* string);
    /* For a string residing in FLASH */
    void (*MenuPrint_P)(const char* string);
    void (*MenuNewLine)(void);
    void (*MenuReset)(void);
-   void (*MenuChar)(char data);
+   void (*MenuChar)(uint8_t data);
    void (*MenuSetPos)(uint8_t row, uint8_t col);
       
 } Menu_t;

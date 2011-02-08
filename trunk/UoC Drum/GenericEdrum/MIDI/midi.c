@@ -10,10 +10,10 @@
 
 
 const char MIDI_NOTES[] = "C C#D D#E F F#G G#A A#B ";
-const char MIDI_BAUD[][11] = {"31.25k",
-									  "38.4k",
-									  "115.2kUSB",
-									  "1.0M USB"};
+const PROGRAM_CHAR MIDI_BAUD[][11] PROGRAM_SPACE = {"31.25k",
+									                         "38.4k",
+									                         "115.2kUSB",
+									                         "1.0M USB"};
 
 static uint16_t MIDI_LastMIDIValue[ANALOGUE_INPUTS];
 
@@ -36,10 +36,10 @@ void MIDI_Output(void)
 			if( conditionedSignal )
 			{
 	         /* Send a NOTE ON (default) | Channel */
-	         MIDI_Tx( (GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
+	         //MIDI_Tx( (GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
 	         
 	         /* Output the correct Closed or Open Key */
-	         if( GetDualMode(i) && 
+	         /*if( GetDualMode(i) && 
 					 GetDigitalState(GetDigitalTrigger(i)) == GetActiveState(GetDigitalTrigger(i)) )
 				{
 	         	MIDI_Tx(GetChannelKeyClosed(i));
@@ -47,9 +47,9 @@ void MIDI_Output(void)
 				else
 				{
 					MIDI_Tx(GetChannelKey(i));
-				}
+				}*/
 	         
-				if( conditionedSignal > MIDI_MAX_DATA )
+				/*if( conditionedSignal > MIDI_MAX_DATA )
 	         {
 					conditionedSignal = MIDI_MAX_DATA;
 	            MIDI_Tx( MIDI_MAX_DATA );   
@@ -60,7 +60,7 @@ void MIDI_Output(void)
 	         } 
 	         
 	         MIDI_LastMIDIValue[i] = conditionedSignal;
-	         
+	         */
 	         SoftTimerStart(RetriggerPeriod[i]); 
 	         
 				if( SoftTimer2[SC_VUMeterUpdate].timerEnable )
@@ -164,7 +164,7 @@ void MIDI_SetBaud(uint16_t newBaud)
 {
 
    MIDISettings->MIDI_BaudRate = newBaud; 
-   UART_SetBaudRate( newBaud >> 8, newBaud & 0xFF );
+   MIDI_SetBaudRate( newBaud >> 8, newBaud & 0xFF );
 }
 
 

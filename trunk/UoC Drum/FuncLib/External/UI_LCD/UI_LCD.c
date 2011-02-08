@@ -141,7 +141,7 @@ void UI_LCD_String_P(HD44780lcd_t* lcd, const char* string_P)
    uint8_t c;
    UI_LCD_SetData(lcd);
    
-   while( (c = *string_P++) )
+   while( (c = UI_LCD_GET_FLASHBYTE(string_P++)) )
    {
       UI_LCD_Write(lcd, c);
    }   

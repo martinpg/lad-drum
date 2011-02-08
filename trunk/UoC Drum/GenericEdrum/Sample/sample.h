@@ -166,7 +166,6 @@ void ResetValues(void);
 
 void UpdateActiveChannels(void);
 
-void TimerInit(void);
 void ObtainPeak(uint8_t channel, uint16_t sample);
 
 
