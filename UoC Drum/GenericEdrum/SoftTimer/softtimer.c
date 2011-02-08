@@ -68,7 +68,7 @@ void SoftTimer_TimerInit(void)
 }
 
 
-ISR(TIMER0_COMP_vect)
+ISR(TIMER0_COMP_vect, ISR_NOBLOCK)
 {
 	//cli(); 
 

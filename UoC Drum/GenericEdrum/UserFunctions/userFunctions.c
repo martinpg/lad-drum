@@ -688,7 +688,7 @@ void ChannelSetup(void* data)
 			case KP_ENTER:
 				UF_MenuReset();
 				ActiveMenu = &analogueMenu;
-				MenuSetInput( &analogueMenu, *input );
+            MenuSetInput( &analogueMenu, *input );
 				executeState(&analogueMenu, analogueMenu.currentState);
 				primaryMenu.firstEnter = 1;
 
@@ -762,6 +762,8 @@ void ChannelSetup(void* data)
    analogueMenu.updateOptions = SHOW_CHILDREN;
    SelectedSubMenu = &analogueMenu;
    MenuUpdate(&analogueMenu, !RESET_MENU);
+   /* Remember we're dealing with two menu's here */
+   MenuSetInput( &analogueMenu, KP_INVALID );
 }
 
 
@@ -769,7 +771,9 @@ void HandleSubMenu(void* data)
 {
    uint8_t* input = data;
    
-   /* This is effectively the KP Back routine */
+   /* This is effectively the KP Back routine which is invoked by
+    * the submenu functions via MenuUpOneLevel (provides a seamless UI
+    * going the up direction */
    if( *input == KP_UPDATE )
    {
       /* Stop looping from occuring */
@@ -786,6 +790,8 @@ void HandleSubMenu(void* data)
       return;
    }
    
+   /* Effectively passes the KP_ENTER from the parent menu to the sub menu
+      thus executing the submenu's function (seamless between primaryMenu & submenu) */
    if( *input != KP_BACK && !SelectedSubMenu->firstEnter )
    {
       stateMachine(SelectedSubMenu, SelectedSubMenu->currentState);
@@ -1365,7 +1371,6 @@ void DigitalChannelSettings(void* data)
             
             UF_MenuReset();
 				ActiveMenu = &digitalMenu;
-				MenuSetInput( &digitalMenu, *input );
 				executeState(&digitalMenu, digitalMenu.currentState);
 				primaryMenu.firstEnter = 1;
             
@@ -1437,7 +1442,8 @@ void DigitalChannelSettings(void* data)
    
    digitalMenu.updateOptions = SHOW_CHILDREN;
    SelectedSubMenu = &digitalMenu;
-   MenuUpdate(&digitalMenu, !RESET_MENU);    
+   MenuUpdate(&digitalMenu, !RESET_MENU);
+   MenuSetInput( &analogueMenu, KP_UPDATE );   
 }
 
 

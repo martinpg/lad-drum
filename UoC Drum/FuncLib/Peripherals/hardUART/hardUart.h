@@ -44,7 +44,7 @@
 #define	DEFAULT_SPD		8
 #define	U2X_BIT_STATUS	SET
 
-#define BAUD(rate) ((F_CPU) / (rate*16))
+#define BAUD(rate) ((F_CPU) / (rate*16) - 1)
 
 /** For a processor at 8MHz and U2X = 1
  */

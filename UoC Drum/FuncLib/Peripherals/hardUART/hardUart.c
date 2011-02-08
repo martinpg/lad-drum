@@ -16,6 +16,11 @@
 #include	"hardUart.h"
 #include "RingBuffer/ringbuffer.h"
 
+#include "LCDSettings.h"
+#include "mmculib/uint8toa.h"
+#include "UI_LCD/UI_LCD.h"
+
+
 static char txbuffer[TXBUFFER_SIZE];
 RINGBUFFER_T TransmitBuffer = {txbuffer, sizeof(txbuffer)};
 
@@ -24,7 +29,7 @@ RINGBUFFER_T ReceiveBuffer = {rxbuffer, sizeof(rxbuffer)};
 
 
 
-static uint8_t transmitState = 0;
+volatile uint8_t transmitState = 0;
 
 /* uartInit:
  * Initialises the baudrate, parity, stop bit generation and 8bit mode
@@ -100,44 +105,36 @@ void uartTx(uint8_t byte)
 
    while(ringbuffer_put((RINGBUFFER_T*)&TransmitBuffer, byte) == BUFFER_OVERFLOW)
    {
-      PORTD ^= (1 << 7);
       /* If this is the first byte */
-      if( transmitState != IS_TRANSMITTING )
+      if( transmitState == 0 )
       {
          if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
       	{
-            transmitState = IS_TRANSMITTING;
+            transmitState++;
          	UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
       	}	
    	}
-      /*PORTC |= (1<<4);
-      if( (UCSRA & (1<<UDRE)) )
-      {
-         if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
-      	{
-         	UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
-      	}	
-   	}*/
    }
 
    /* If this is the first byte */
-   if( transmitState != IS_TRANSMITTING )
+   if( transmitState == 0 )
    {
       if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
    	{
-         transmitState = IS_TRANSMITTING;
+         transmitState++;
       	UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
    	}	
 	}
 }
 
 /* Once a tx has completed, this is called */
-ISR(SIG_UART_TRANS)
+ISR(USART_TXC_vect, ISR_NOBLOCK)
 {
    //sei();
    /* Tx the next byte if there are still bytes in the buffer */
    if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
    {
+      transmitState--;
       UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
    }
    else

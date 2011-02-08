@@ -23,10 +23,11 @@
 /* MIDI Defines */
 #define MIDI_Tx(x)   uartTx(x)
 #define MIDI_SetBaudRate(high,low) uartSetBaud(high,low)
-#define MIDI_BAUD_31250      (F_CPU / 31250)
-#define MIDI_BAUD_38400      (F_CPU / 38400)
-#define MIDI_BAUD_115200		(F_CPU / 115200)
-#define MIDI_BAUD_1M			(F_CPU / 1000000)
+#define MIDI_BAUD(x)   (((F_CPU / (x)) / 16) - 1)
+#define MIDI_BAUD_31250      MIDI_BAUD(31250)
+#define MIDI_BAUD_38400      MIDI_BAUD(38400)
+#define MIDI_BAUD_115200		MIDI_BAUD(115200)
+#define MIDI_BAUD_1M			MIDI_BAUD(1000000)
 
 /* SPI Defines */
 #define SPI_DDR   (DDRB)
@@ -83,7 +84,7 @@
 
 
 #define ADC_REF_DEFAULT ADC_REF_AVCC
-#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV128
+#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV4
 
 /* Keypad Defines */
 /* Key Pad Inputs */

@@ -36,10 +36,10 @@ void MIDI_Output(void)
 			if( conditionedSignal )
 			{
 	         /* Send a NOTE ON (default) | Channel */
-	         //MIDI_Tx( (GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
+	         MIDI_Tx( (GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
 	         
 	         /* Output the correct Closed or Open Key */
-	         /*if( GetDualMode(i) && 
+	         if( GetDualMode(i) && 
 					 GetDigitalState(GetDigitalTrigger(i)) == GetActiveState(GetDigitalTrigger(i)) )
 				{
 	         	MIDI_Tx(GetChannelKeyClosed(i));
@@ -47,20 +47,20 @@ void MIDI_Output(void)
 				else
 				{
 					MIDI_Tx(GetChannelKey(i));
-				}*/
+				}
 	         
-				/*if( conditionedSignal > MIDI_MAX_DATA )
+				if( conditionedSignal > MIDI_MAX_DATA )
 	         {
 					conditionedSignal = MIDI_MAX_DATA;
 	            MIDI_Tx( MIDI_MAX_DATA );   
 	         }
 	         else
 	         {
-	            MIDI_Tx( conditionedSignal );
+	            MIDI_Tx( (uint8_t)conditionedSignal  );
 	         } 
 	         
 	         MIDI_LastMIDIValue[i] = conditionedSignal;
-	         */
+	         
 	         SoftTimerStart(RetriggerPeriod[i]); 
 	         
 				if( SoftTimer2[SC_VUMeterUpdate].timerEnable )
