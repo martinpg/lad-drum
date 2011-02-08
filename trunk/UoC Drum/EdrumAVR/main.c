@@ -39,6 +39,7 @@ int main(void)
    
    SPI_Init();
    SensorInit();
+   SensorInputSelect(GetSensorInput());
    //DigitalInputInit();
    /* Setup the communications module */   
    UART_Init(0);
@@ -54,8 +55,6 @@ int main(void)
    /* Update the Retrigger periods */
    UpdateChannelRetriggers();
 
-
-   
    /* ADC Module Init */
    ADC_Init();
    
@@ -98,20 +97,18 @@ int main(void)
 
    sei();
 
-
-   
    uint8_t SelectedChannel = 0;
    uint16_t sample;
 
    while (1)
    {   
+
+      
+
       uint8_t i = 0;
    
    	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
    	{
-      
-         UART_Tx('h');
-
          SelectedChannel = ActiveChannels[i++];
       
          if( !(RetriggerPeriod[ SelectedChannel ].timerEnable) )
@@ -122,7 +119,7 @@ int main(void)
             sample = ADC_Sample();
                            
             /* Obtain Peak */
-            //ObtainPeak(SelectedChannel, sample);
+            ObtainPeak(SelectedChannel, sample);
          } 
       }   
  
@@ -144,31 +141,29 @@ ISR(INT1_vect)
    _delay_ms(1);
    result2 = UI_KP_GetPress();
 
+   _delay_ms(40);
+
    if( result == result2 )
    {
       if( result != KP_INVALID )
       {
-         MenuSetInput(ActiveMenu, result);   
+         MenuSetInput(ActiveMenu, result);
+         GICR &= ~(1 << INT1);  
+         sei();
          MenuUpdate(ActiveMenu, RESET_MENU);
-
-
                /*UF_MenuPrint_P( PSTR("KP:") );
                uint8toa(result, outputString);
                UF_MenuPrint( outputString );*/
 
-         MenuSetInput(ActiveMenu, KP_UPDATE);   
-         MenuUpdate(ActiveMenu, RESET_MENU);
+         //MenuSetInput(ActiveMenu, KP_UPDATE);   
+         //MenuUpdate(ActiveMenu, RESET_MENU);
          //
          //SensorChannel(result);
       }
    }
-
-
-   _delay_ms(40);
-  LCD_BL_PORT ^= (1 << LCD_BL_PIN);
-
+   
    GIFR |= (1 << INTF1);
-
+   GICR |= (1 << INT1);
 }
 
 

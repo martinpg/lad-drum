@@ -75,7 +75,7 @@ uint16_t SensorPotValue(void)
 {
    ADC_SetupAddress(POT_INPUT);
    uint16_t PotValue = (ADC_Sample());
-   ADC_SetupAddress(POT_INPUT); 
+   ADC_SetupAddress(SENSOR_OUTPUT2); 
 
 	return PotValue;
 }
