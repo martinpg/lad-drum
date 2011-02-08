@@ -32,7 +32,7 @@ void MenuUpdate(Menu_t* menu, uint8_t options)
 
    /** Only switch Menu input IF we are in a menu item which has NO associated
     * function */
-   if( menu->structure[ GetIndex(menu, menu->currentState) ].function == 0 )
+   if( MENU_GET_PTR(menu->structure[ GetIndex(menu, menu->currentState) ].function) == 0 )
    {
       stateMachine(menu, menu->currentState ); 
    }
@@ -49,12 +49,12 @@ void MenuUpdate(Menu_t* menu, uint8_t options)
       
       /** Print out the menu's sub-menu's */   
       /* Ensures that the screen limits are not exceeded */
-      for( i = 0, sequenceIndex = 0;  menu->states[i].parent != 0 ; i++)
+      for( i = 0, sequenceIndex = 0;  MENU_GET_BYTE(menu->states[i].parent) != 0 ; i++)
       {  
          /* Find the current state's sub children. */        
-         if( menu->states[i].parent == menu->currentState )
+         if( MENU_GET_BYTE(menu->states[i].parent) == menu->currentState )
          {  
-            sequenceIndex = menu->states[i].sequence;
+            sequenceIndex = MENU_GET_BYTE(menu->states[i].sequence);
             
             
             if( menu->selectedItem > menu->upperLimit )
@@ -84,7 +84,7 @@ void MenuUpdate(Menu_t* menu, uint8_t options)
                
                //menu->MenuSetPos(menu->RowPosition, 0); 
                
-               if( menu->states[i].sequence == menu->selectedItem)
+               if( MENU_GET_BYTE(menu->states[i].sequence) == menu->selectedItem)
                {
    #if MENU_DEBUG == 1  
                   printf("*");    
@@ -102,7 +102,7 @@ void MenuUpdate(Menu_t* menu, uint8_t options)
                }
    #endif
                           
-               outputString = MenuDescriptor(menu, menu->states[i].child );
+               outputString = MenuDescriptor(menu, MENU_GET_BYTE(menu->states[i].child) );
                
    #if MENU_DEBUG == 1                  
                if( outputString )
@@ -111,7 +111,7 @@ void MenuUpdate(Menu_t* menu, uint8_t options)
                }
    #else
    
-               menu->MenuPrint((char*)outputString);
+               menu->MenuPrint_P(outputString);
                menu->MenuNewLine();            
    #endif            
             }
@@ -194,8 +194,8 @@ void stateMachine(Menu_t* menu, uint8_t state)
             menu->upperLimit = menu->windowSize;
             menu->lowerLimit = 0;
             
-            menu->currentState = menu->states[ parentIndex ].parent;
-            menu->selectedItem = menu->states[ parentIndex ].sequence; 
+            menu->currentState = MENU_GET_BYTE(menu->states[ parentIndex ].parent);
+            menu->selectedItem = MENU_GET_BYTE(menu->states[ parentIndex ].sequence); 
          }
       break;     
       
@@ -215,14 +215,14 @@ char* MenuDescriptor(Menu_t* menu, uint8_t menuItem)
 {
 
    uint8_t index;
-   static char buffer[21];
+   //static char buffer[21];
       
    index = GetIndex(menu, menuItem);
    
    if( index  != INVALID_STATE )
    {
-      strcpy(buffer, menu->structure[index].descriptor);
-      return buffer;
+      //strcpy(buffer, MENU_GET_PTR(&menu->structure[index].descriptor));
+      return (char *)MENU_GET_PTR(menu->structure[index].descriptor);
    }
    return 0;
 }
@@ -233,11 +233,11 @@ char* MenuDescriptor(Menu_t* menu, uint8_t menuItem)
 uint8_t GetMenuState(Menu_t* menu, uint8_t state, uint8_t Sequence)
 {
    int i;
-   for( i = 0; menu->states[i].parent; i++)
+   for( i = 0; MENU_GET_BYTE(menu->states[i].parent); i++)
    {
-      if( menu->states[i].parent == state
-       && menu->states[i].sequence == Sequence ){      
-         return menu->states[i].child;
+      if( MENU_GET_BYTE(menu->states[i].parent) == state
+       && MENU_GET_BYTE(menu->states[i].sequence) == Sequence ){      
+         return MENU_GET_BYTE(menu->states[i].child);
       }
    }
    return NO_STATE;
@@ -249,9 +249,9 @@ uint8_t GetParent(Menu_t* menu, uint8_t state)
 {
  
    int i;  
-   for( i = 0; menu->states[i].parent; i++)
+   for( i = 0; MENU_GET_BYTE(menu->states[i].parent); i++)
    {
-      if( menu->states[i].child == state) {      
+      if( MENU_GET_BYTE(menu->states[i].child) == state) {      
          return i;
       }
    }
@@ -274,9 +274,9 @@ void executeState(Menu_t* menu, uint8_t state)
    
    if(index != INVALID_STATE)
    {
-      if( menu->structure[index].function != 0)
+      if( MENU_GET_PTR(menu->structure[index].function) != 0)
       {
-         funcPtr = (void*)menu->structure[index].function;
+         funcPtr = (void*)MENU_GET_PTR(menu->structure[index].function);
          funcPtr(&menu->MenuInput);
       }
    }
@@ -288,9 +288,9 @@ void executeState(Menu_t* menu, uint8_t state)
 uint8_t GetIndex(Menu_t* menu, uint8_t parent)
 {
    uint8_t i;
-   for( i = 0; menu->structure[i].menu_item; i++)
+   for( i = 0; MENU_GET_BYTE(menu->structure[i].menu_item); i++)
    {
-      if( menu->structure[i].menu_item == parent)
+      if( MENU_GET_BYTE(menu->structure[i].menu_item) == parent)
       {
          return i;   
       } 
@@ -305,9 +305,9 @@ uint8_t SubItems(Menu_t* menu, uint8_t state)
 {
    int i;
    uint8_t StateItems = 0;    
-   for( i = 0; menu->states[i].parent; i++)
+   for( i = 0; MENU_GET_BYTE(menu->states[i].parent); i++)
    {
-      if( menu->states[i].parent == state)
+      if( MENU_GET_BYTE(menu->states[i].parent) == state)
       {
          StateItems++;
       }
@@ -320,14 +320,14 @@ uint8_t LargestSequence(Menu_t* menu, uint8_t state)
 {
    int i;
    uint8_t StateItem = 0;    
-   for( i = 0; menu->states[i].parent; i++)
+   for( i = 0; MENU_GET_BYTE(menu->states[i].parent); i++)
    {
-      if( menu->states[i].parent == state)
+      if( MENU_GET_BYTE(menu->states[i].parent) == state)
       {
          /* Obtain the number of Menu Items in the given state */
-         if( menu->states[i].sequence >= StateItem )
+         if( MENU_GET_BYTE(menu->states[i].sequence) >= StateItem )
          {
-            StateItem = menu->states[i].sequence;
+            StateItem = MENU_GET_BYTE(menu->states[i].sequence);
          } 
       }
    }
@@ -338,14 +338,14 @@ uint8_t SmallestSequence(Menu_t* menu, uint8_t state)
 {
    int i;
    uint8_t StateItem = 0xFF;    
-   for( i = 0; menu->states[i].parent; i++)
+   for( i = 0; MENU_GET_BYTE(menu->states[i].parent); i++)
    {
-      if( menu->states[i].parent == state)
+      if( MENU_GET_BYTE(menu->states[i].parent) == state)
       {
          /* Obtain the number of Menu Items in the given state */
-         if( menu->states[i].sequence <= StateItem )
+         if( MENU_GET_BYTE(menu->states[i].sequence) <= StateItem )
          {
-            StateItem = menu->states[i].sequence;
+            StateItem = MENU_GET_BYTE(menu->states[i].sequence);
          } 
       }
    }
@@ -362,12 +362,12 @@ uint8_t GetSequence(Menu_t* menu, uint8_t parent, uint8_t child)
    parentIndex = GetIndex(menu, parent);
    
 
-   for( i = 0; menu->states[i].parent; i++)
+   for( i = 0; MENU_GET_BYTE(menu->states[i].parent); i++)
    {
-      if( menu->states[i].parent == parent &&
-          menu->states[i].child  == child )
+      if( MENU_GET_BYTE(menu->states[i].parent) == parent &&
+          MENU_GET_BYTE(menu->states[i].child)  == child )
       {
-         return menu->states[i].sequence;     
+         return MENU_GET_BYTE(menu->states[i].sequence);     
       }
    }      
    return INVALID_SEQUENCE;

@@ -2,35 +2,26 @@
 #include "UI_LCD/UI_LCD.h"
 #include "UI_KP.h"
 #include "LCDSettings.h"
+#include "MenuSettings.h"
+#include "Profiles/profiles.h"
+#include "UserFunctions/userfunctions.h"
 
 #include "SPI/spi.h"
 #include "VUmeter/vumeter.h"
 #include "Sample/sample.h"
 #include "Sensor/sensor.h"
+
+#include "mmculib/uint8toa.h"
 #include <stdlib.h>
 
-const char VersionId[] = "1.4a 31/01/11";
+const prog_char VersionId[] = "1.4a 31/1/11";
+
 uint16_t BenchMarkCount = 0;
 
 uint8_t ActiveProcess = 0;
 
 int main(void)
 {
-
-
-   SPI_Init();
-   
-   LCD_BL_DDR |= (1<<LCD_BL_PIN);
-   
-   UI_LCD_HWInit();
-   _delay_ms(20);
-
-   UI_LCD_Init(&PrimaryDisplay);
-
-   UI_LCD_String(&PrimaryDisplay, "Hullo");
-
-   LCD_BL_PORT |= (1 << LCD_BL_PIN);
-
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);
 
@@ -41,54 +32,100 @@ int main(void)
    MCUCR |= ((1 << ISC11) | (1 << ISC10));
    GICR |= (1 << INT1);
 
-   UI_KP_Init();
+   ProfileInit();
+   
+   /* Make profile 1 the default profile on start up */
+   //Profile_Read(0);
+   
+   SPI_Init();
+   SensorInit();
+   //DigitalInputInit();
+   /* Setup the communications module */   
+   UART_Init(0);
 
+   /* Implement the changes */
+   MIDI_SetRate(MIDI_GetRate());
+   MIDI_SetBaud(MIDI_GetBaud());
+   MIDI_SetChannelCode( MIDI_GetChannelCode() );
+
+   /* Update Activated Analogue Channels */
+   UpdateActiveChannels();
+
+   /* Update the Retrigger periods */
+   UpdateChannelRetriggers();
+
+
+   
    /* ADC Module Init */
    ADC_Init();
-   ADC_SetupAddress(SENSOR_OUTPUT2);
+   
+   SoftTimer_TimerInit();
 
-   SensorInit();
-   SensorChannel(7);
+   /* Enable Keypad */
+   UI_KP_Init();   
 
-   /* Load the VU meter stuff */
+   /* Enable LCD */
+   UI_LCD_HWInit();
+   _delay_ms(20);
+   UI_LCD_Init(&PrimaryDisplay);
    UI_LCD_LoadDefaultChars();
+	
+   LCD_BL_DDR |= (1 << LCD_BL_PIN);
+   LCD_BL_PORT |= (1 << LCD_BL_PIN);
 
-   VUSetPosition(0,0);
-   VUSetRows(MAX_ROWS);
+   MenuSetDisplay(&primaryMenu, MENU_LCD);
+   MenuSetDisplay(&analogueMenu, MENU_LCD);
+   MenuSetDisplay(&digitalMenu, MENU_LCD);      
+   /* Menu Setup */
+   MenuSetInput(&primaryMenu, 0); 
+	
+	/* Menu must be Initialised first */
+	/* Backlight 'off' is at 5% */
+   //UI_LCD_BLInit(5);
+   //UI_LCD_BL_On();
+	
+   aboutScroll(MAIN_SCREEN);
+   //SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );	
+	
+
+	
+   _delay_ms(900);
+   _delay_ms(900);	
+   UI_LCD_LoadDefaultChars();					  
+   /* Reprint Menu */  
+   MenuUpdate(&primaryMenu, RESET_MENU);
 
 
    sei();
 
-   uint16_t k;
+
+   
+   uint8_t SelectedChannel = 0;
+   uint16_t sample;
 
    while (1)
    {   
+      uint8_t i = 0;
+   
+   	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
+   	{
+      
+         UART_Tx('h');
 
-      k++;
-      uint16_t result;
-      char outputString[6];
-      /* Do the VU Meter*/
-      uint16_t i;
-      uint8_t  VURows = GetVURows();
-
-
-      if( (k % 20) == 0 )
-      {
-         result = ADC_Sample();
-         VUSetLevel(0, result >> 3, VURows);
-      }
-
-
-
-		   			           
-      VUMeterPrint(SEQUENTIAL_METERS | 0x01, VURows);
-
-      if( (k % 10) == 0)
-      {
-         VULevelDecay(ALL_METERS);
-         //ResetVUValues();
-      }
-      _delay_ms(1);
+         SelectedChannel = ActiveChannels[i++];
+      
+         if( !(RetriggerPeriod[ SelectedChannel ].timerEnable) )
+         {
+            SensorChannel(SelectedChannel);
+            _delay_us(SensorSettings->CrosstalkDelay);
+            /* Take a sample */
+            sample = ADC_Sample();
+                           
+            /* Obtain Peak */
+            //ObtainPeak(SelectedChannel, sample);
+         } 
+      }   
+ 
    }
 
    return 0;
@@ -101,30 +138,34 @@ ISR(INT1_vect)
 
    char outputString[5];
    static uint8_t j;
-   uint8_t result = 0;
+   uint8_t result, result2;
 
-   result = UI_KP_ReturnID(UI_KP_GetPress());
-   
-   if( result != KP_INVALID )
+   result = UI_KP_GetPress();
+   _delay_ms(1);
+   result2 = UI_KP_GetPress();
+
+   if( result == result2 )
    {
-      UI_LCD_Clear(&PrimaryDisplay);
-      UI_LCD_Pos(&PrimaryDisplay, 1, 0);
-      utoa(result, outputString, 10);
-      UI_LCD_String(&PrimaryDisplay,"R:");
-      UI_LCD_String(&PrimaryDisplay,outputString);
-   
-      j++;
-      utoa(j, outputString, 10);
-      UI_LCD_Pos(&PrimaryDisplay, 2, 0);
-      UI_LCD_String(&PrimaryDisplay,"j=");
-      UI_LCD_String(&PrimaryDisplay,outputString);
+      if( result != KP_INVALID )
+      {
+         MenuSetInput(ActiveMenu, result);   
+         MenuUpdate(ActiveMenu, RESET_MENU);
 
-      SensorChannel(result);
+
+               /*UF_MenuPrint_P( PSTR("KP:") );
+               uint8toa(result, outputString);
+               UF_MenuPrint( outputString );*/
+
+         MenuSetInput(ActiveMenu, KP_UPDATE);   
+         MenuUpdate(ActiveMenu, RESET_MENU);
+         //
+         //SensorChannel(result);
+      }
    }
 
 
    _delay_ms(40);
-  
+  LCD_BL_PORT ^= (1 << LCD_BL_PIN);
 
    GIFR |= (1 << INTF1);
 

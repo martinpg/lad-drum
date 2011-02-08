@@ -16,9 +16,17 @@
 /* Interrupts */
 //#define ENABLE_INTERRUPT() (sei())
 //#define DISABLE_INTERRUPT() (cli())
+#define PROGRAM_SPACE PROGMEM
+#define PROGRAM_CHAR  prog_char
+#define PROGRAM_PTR   PGM_P
 
 /* MIDI Defines */
 #define MIDI_Tx(x)   uartTx(x)
+#define MIDI_SetBaudRate(high,low) uartSetBaud(high,low)
+#define MIDI_BAUD_31250      (F_CPU / 31250)
+#define MIDI_BAUD_38400      (F_CPU / 38400)
+#define MIDI_BAUD_115200		(F_CPU / 115200)
+#define MIDI_BAUD_1M			(F_CPU / 1000000)
 
 /* SPI Defines */
 #define SPI_DDR   (DDRB)
@@ -30,6 +38,7 @@
 
 
 /* Uart Defines */
+#define UART_Init(x) uartInit(x)
 #define UART_Tx   uartTx
 #define UART_TxDump   uartTxDump
 #define UART_TxString_P uartTxString_P
@@ -130,9 +139,13 @@
 #define LCD_BL_PIN   (7)
 #define LCD_BL_DDR   (DDRD)
 #define LCD_BL_SEL   (DDRD)
+#define UI_LCD_GET_FLASHBYTE(x) pgm_read_byte(x)
 
-
+#define MENU_SPACE PROGRAM_SPACE
+#define MENU_GET_PTR(x)  pgm_read_word(&x)
+#define MENU_GET_BYTE(x)  pgm_read_byte(&x)
 #define MENU_TEXT    prog_char //for the AVR use prog_char if you want strings in ROM
+#define MENU_SPACE_PTR	PGM_P
 //#define PSTR(x)   (x) //for AVR include the pgmspace.h for this macro
 
 

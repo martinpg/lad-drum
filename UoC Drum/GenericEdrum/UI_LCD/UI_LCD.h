@@ -23,6 +23,9 @@
 #include "version.h"
 #include "hardwareSpecific.h"
 
+/* defined in hardwarespecific.h
+#define	UI_LCD_GET_FLASHBYTE(x) pgm_read_byte(x)
+*/
 
 
 #define UI_LCD_RS_INSTRUCTION (0)

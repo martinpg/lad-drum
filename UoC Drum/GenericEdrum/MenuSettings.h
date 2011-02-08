@@ -126,7 +126,7 @@ void LCD_Reset(void);
 void MenuLCD_SetPos(uint8_t row, uint8_t col);
 void MenuLCD_String(char* string);
 void MenuLCD_String_P(const char* string);
-void MenuLCD_Char(char data);
+void MenuLCD_Char(uint8_t data);
 
 /* Menu Uart Functions */
 void MenuUart_NewLine(void);

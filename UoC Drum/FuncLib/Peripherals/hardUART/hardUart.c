@@ -1,7 +1,7 @@
 /* Serial Port routines for the AVR mpu's.
 *  These functions utilise the hardware UART registers
 *
-* Filename: harUart.c
+* Filename: hardUart.c
 * By Adrian Gin (amg94@student.canterbury.ac.nz)
 * Created: 16-06-06
 * 
@@ -33,7 +33,7 @@ static uint8_t transmitState = 0;
  * Interrupts are not set by default.
  *
  */
-void uartInit(uint8_t baudrate, uint8_t U2Xvalue)
+void uartInit(uint8_t U2Xvalue)
 {
 	/*Setup the U2X Bit*/
 	UCSRA	=	(UCSRA & (~(1<<U2X))) | (U2Xvalue << U2X);
@@ -53,8 +53,6 @@ void uartInit(uint8_t baudrate, uint8_t U2Xvalue)
 				|	(BIT8 << UCSZ0) 
 				|  (1<<URSEL);
 
-	/*Set the baud rate to the desired rate*/
-	uartSetBaud(baudrate, 0);
 }
 
 /* uartSetBaud:
@@ -62,7 +60,7 @@ void uartInit(uint8_t baudrate, uint8_t U2Xvalue)
  * See the datasheet for more details on what the
  * Baudrate generation registers should be.
  */
-void uartSetBaud(uint8_t baudrateL, uint8_t baudrateH)
+void uartSetBaud(uint8_t baudrateH, uint8_t baudrateL)
 {
 	UBRRH = 	baudrateH;
 	/* The lower 8bits must be written last as the baudrate generator
@@ -102,6 +100,7 @@ void uartTx(uint8_t byte)
 
    while(ringbuffer_put((RINGBUFFER_T*)&TransmitBuffer, byte) == BUFFER_OVERFLOW)
    {
+      PORTD ^= (1 << 7);
       /* If this is the first byte */
       if( transmitState != IS_TRANSMITTING )
       {
@@ -135,7 +134,7 @@ void uartTx(uint8_t byte)
 /* Once a tx has completed, this is called */
 ISR(SIG_UART_TRANS)
 {
-   sei();
+   //sei();
    /* Tx the next byte if there are still bytes in the buffer */
    if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
    {
@@ -173,7 +172,6 @@ void uartTxString(uint8_t* outString)
 	{
 		uartTx(*outString++);
    }
-	
 }
 
 /* Usage: uartTxString_P( PSTR("hello!") ); */

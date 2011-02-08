@@ -546,24 +546,6 @@ void ObtainPeak(uint8_t channel, uint16_t sample)
 
 
 
-/* For SMCLK clocked at MCLK = fosc = 8MHz */
-void TimerInit(void)
-{
-   /* No Divider, 16bit operation @ SMCLK rate, activate Interrupts */
-//   TBCTL |= (TBSSEL_SMCLK | MC_CONT);
-     
-   /* 100us timer */
-   /*TBCCTL1 |= (CCIE);   
-   TBCCR1 = SAMPLE_100US;*/
-
-   /* 1ms Timer for Auxiliary use */
-//   TBCCTL2 |= (CCIE);
-//   TBCCR2 = SAMPLE_1MS;
-   
-   /* 1ms Playmode Timer */
-//  TBCCTL0 |= (CCIE);
-//   TBCCR0 = (SAMPLE_1MS);
-}
 
 
 

@@ -3,6 +3,7 @@
 
 #include "Menu/menu.h"
 #include "Profiles/profiles.h"
+#include "hardwareSpecific.h"
 
 #define GET (0xFF)
 #define ANALOGUE_ADJUST (0)

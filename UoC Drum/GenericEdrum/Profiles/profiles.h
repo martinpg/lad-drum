@@ -2,9 +2,11 @@
 #define PROFILES_H
 
 #include <stdint.h>
+#include "hardwareSpecific.h"
 #include "MIDI/midi.h"
 #include "Sample/sample.h"
 #include "Sensor/sensor.h"
+
 
 #define NUMBER_OF_PROFILES   (5)
 #define FLASH_BLOCK_SIZE      (512)

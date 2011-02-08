@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99        -DF_CPU=20000000UL -Os -fsigned-char
+CFLAGS += -Wall -gdwarf-2 -std=gnu99                      -DF_CPU=20000000UL -Os -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -40,7 +40,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 INCLUDES = -I"M:\Robotics\Source\EdrumAVR\..\FuncLib" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Other" -I"M:\Robotics\Source\EdrumAVR\..\GenericEdrum" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Applications" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\External" -I"M:\Robotics\Source\EdrumAVR\." 
 
 ## Objects that must be built in order to link
-OBJECTS = main.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o sample.o sensor.o adc.o vumeter.o 
+OBJECTS = main.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o uint16toa.o ControllerMode.o profiles.o SysEx.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -85,6 +85,33 @@ adc.o: ../../FuncLib/Peripherals/avrADC/adc.c
 vumeter.o: ../../FuncLib/External/VUMeter/vumeter.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
+MenuSettings.o: ../../GenericEdrum/MenuSettings.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+Menu.o: ../../FuncLib/Applications/Menu/Menu.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+userFunctions.o: ../../GenericEdrum/UserFunctions/userFunctions.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+softtimer.o: ../../GenericEdrum/SoftTimer/softtimer.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+midi.o: ../../GenericEdrum/MIDI/midi.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+uint16toa.o: ../../FuncLib/Other/mmculib/uint16toa.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+ControllerMode.o: ../../GenericEdrum/ControllerMode/ControllerMode.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+profiles.o: ../../GenericEdrum/Profiles/profiles.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+SysEx.o: ../../GenericEdrum/MIDI/SysEx/SysEx.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
 ##Link
 $(TARGET): $(OBJECTS)
 	 $(CC) $(LDFLAGS) $(OBJECTS) $(LINKONLYOBJECTS) $(LIBDIRS) $(LIBS) -o $(TARGET)
@@ -109,5 +136,5 @@ clean:
 
 
 ## Other dependencies
--include $(shell mkdir dep 2>/dev/null) $(wildcard dep/*)
+-include $(shell mkdir dep 2>NUL) $(wildcard dep/*)
 

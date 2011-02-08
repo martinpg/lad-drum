@@ -6,7 +6,6 @@
 #include "hardwareSpecific.h"
 #include "main.h"
 #include "Softtimer.h"
-#include "UI/UI.h"
 #include "MIDI/midi.h"
 #include "Sample/sample.h"
 #include "Menu/Menu.h"
@@ -38,16 +37,48 @@ SoftTimer_16  SoftTimer2[TIMER2B_COUNT] = {{110, 0, 0},  // Threshold Bar
 														 {10000, 10000, 0}}; //LCD Backlight
 
 
-ISR(TIMER0_OVF_vect, ISR_NOBLOCK)
+
+/* For SMCLK clocked at MCLK = fosc = 8MHz */
+void SoftTimer_TimerInit(void)
 {
-	cli(); 
+   /* No Divider, 16bit operation @ SMCLK rate, activate Interrupts */
+//   TBCTL |= (TBSSEL_SMCLK | MC_CONT);
+     
+   /* 100us timer */
+   /*TBCCTL1 |= (CCIE);   
+   TBCCR1 = SAMPLE_100US;*/
+
+   /* 1ms Timer for Auxiliary use */
+//   TBCCTL2 |= (CCIE);
+//   TBCCR2 = SAMPLE_1MS;
+   
+   /* 1ms Playmode Timer */
+//  TBCCTL0 |= (CCIE);
+//   TBCCR0 = (SAMPLE_1MS);
+
+   /* Primary Timer 1024 prescaler */
+   TCCR0 |= (0x05);
+   OCR0 = (SAMPLE_1MS);
+
+   TIMSK |= (1 << OCIE0);
+
+
+   
+
+}
+
+
+ISR(TIMER0_COMP_vect)
+{
+	//cli(); 
 
 //	TBCCR0 += (SAMPLE_1MS);
+   OCR0 += (SAMPLE_1MS);
    /* MIDI output is in 1ms steps */
 	if(SoftTimerInterrupt(SoftTimer1[SC_MIDIOutput]))
 	{
 		/* Update the Digital States */
-		ScanDigitalInputs();
+		//ScanDigitalInputs();
       MIDI_Output();
       MIDI_DigitalOutput();
       MIDI_MetronomeOutput();
@@ -77,13 +108,16 @@ ISR(TIMER0_OVF_vect, ISR_NOBLOCK)
       }
 	} 	
 
-	sei();
+   RunAuxTimers();
+
+	//sei();
 }
 
 
-ISR(TIMER1_COMPA_vect, ISR_NOBLOCK)
+//ISR(TIMER1_COMPA_vect, ISR_NOBLOCK)
+void RunAuxTimers(void)
 {
-   cli();   
+   //cli();   
    
 //   uint8_t intVec = TBIV;
 					
@@ -193,7 +227,7 @@ ISR(TIMER1_COMPA_vect, ISR_NOBLOCK)
 		}   
 	}
 	
-	sei();
+	//sei();
 }
 
 

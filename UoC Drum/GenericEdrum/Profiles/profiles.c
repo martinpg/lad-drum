@@ -191,64 +191,7 @@ void Profile_Write(Profile_t* profile, uint8_t profileIndex)
    uint16_t segmentPtr = 0;
    uint16_t profilePtr = 0;
    
-
-
-   for( i = 0 ; i < SEGMENTS_TO_USE; i++ )
-   {
-      flash_erase_segment( (uint16_t*)TEMPORARY_FLASH_BUFFER );  
-      
-      while( segmentPtr < FLASH_BLOCK_SIZE )
-      {
-         if( memPtr >= PROFILE(profileIndex) && memPtr < (PROFILE(profileIndex) + sizeof(Profile_t)) )
-         {
-            /* Write the start of the profile (because it overflows to the next segment */
-            if( segmentPtr + sizeof(Profile_t) > FLASH_BLOCK_SIZE )
-            {
-               flash_write((uint16_t*)(TEMPORARY_FLASH_BUFFER) + segmentPtr, 
-                            profile, 
-                            FLASH_BLOCK_SIZE - segmentPtr);
-                            
-               profilePtr = profilePtr + FLASH_BLOCK_SIZE - segmentPtr;                      
-               segmentPtr = FLASH_BLOCK_SIZE;
-               
-            }
-            else // Write the entire profile block or remainder
-            {
-               flash_write((uint16_t*)(TEMPORARY_FLASH_BUFFER), 
-                            profile + profilePtr, 
-                            sizeof(Profile_t) - profilePtr);
-                            
-               segmentPtr = segmentPtr + sizeof(Profile_t) - profilePtr;
-               memPtr = memPtr + sizeof(Profile_t) - profilePtr;
-               /* Reset the profile pointer now */
-               profilePtr = 0;
-            }
-         }
-         else
-         {
-            /* Write the rest of the block */
-            flash_write((uint16_t*)(TEMPORARY_FLASH_BUFFER), 
-                         (uint16_t*)memPtr, 
-                         FLASH_BLOCK_SIZE - segmentPtr);      
-
-
-            memPtr = memPtr + FLASH_BLOCK_SIZE - segmentPtr;                         
-            segmentPtr = FLASH_BLOCK_SIZE;
             
-         }
-      }
-      
-         if( segmentPtr == FLASH_BLOCK_SIZE )
-         {
-            flash_erase_segment( (uint16_t*)PROFILE_FLASH_ADDRESS(i)  );
-            /* Write the buffer segment to the profile segment */
-            flash_write((uint16_t*)PROFILE_FLASH_ADDRESS(i), 
-                         (uint16_t*)(TEMPORARY_FLASH_BUFFER), 
-                         FLASH_BLOCK_SIZE);   
-                          
-            segmentPtr = 0;      
-         }
-   }              
 }
 
 /* Reads the passed profileIndex into the settings */
