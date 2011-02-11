@@ -1,4 +1,3 @@
-
 #include <stdint.h>
 #include <string.h>
 #include "hardwareSpecific.h"
@@ -27,7 +26,7 @@ void MIDI_Output(void)
    {      
       if( GetChannelStatus(i) && 
           (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED) && 
-          (SignalPeak[i] > GetChannelThresh(i)) )
+          (SignalPeak[i]) )
       {
 			uint16_t conditionedSignal = (SignalPeak[i] - GetChannelThresh(i));
 			
