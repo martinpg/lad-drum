@@ -29,7 +29,7 @@ GainSettings_t* GainSettings;
 
 static uint16_t LastSampleValue[ANALOGUE_INPUTS];
 
-const char PresetGainStrings[][20] = {{"Exponential 1"},
+PROGRAM_CHAR PresetGainStrings[][20] PROGRAM_SPACE = {{"Exponential 1"},
 												  {"Logorithmic 1"},
 												  {"Exponential 2"},
 												  {"Logorithmic 2"},
@@ -150,13 +150,13 @@ void SetChannelThresh(uint8_t channel, int16_t thresh)
 {
    if( thresh > MAX_THRESHOLD)
    {
-      thresh = 0;  
+      thresh = MIN_THRESHOLD;  
    }
-   if( thresh < 0 )
+   if( thresh < MIN_THRESHOLD )
    {
 		thresh = MAX_THRESHOLD;	
 	}
-   ChannelSettings->ChannelThreshold[channel] = thresh + MIN_THRESHOLD;
+   ChannelSettings->ChannelThreshold[channel] = thresh;
 }
 
 /* Setup Channel Retrigger times */
@@ -420,7 +420,7 @@ uint16_t GainFunction(uint8_t channel, uint16_t signalValue)
 	return ApplyGain(signalValue, GetChannelGain(channel));		
 }
 
-/* The signal is multiplied by 2^ (gain - 12) */
+/* The signal is multiplied by 2^ (gain - ADCBitResolution) */
 uint16_t ApplyGain(uint16_t signalValue, int8_t gain)
 {
    int8_t gainToApply = gain - GAIN_OFFSET;
@@ -438,34 +438,6 @@ uint16_t ApplyGain(uint16_t signalValue, int8_t gain)
 	
 }
 
-
-
-void DigitalInputInit(void)
-{
-	/* Turn all associated pins to inputs */
-	DIGITAL_DDR1 &= ~(DIGITAL_0 | DIGITAL_1 | DIGITAL_2 | DIGITAL_3 | DIGITAL_4);
-	DIGITAL_DDR2 &= ~(DIGITAL_5 | DIGITAL_6 | DIGITAL_7);
-	
-	DIGITAL_PORT1 |= (DIGITAL_0 | DIGITAL_1 | DIGITAL_2 | DIGITAL_3 | DIGITAL_4);
-	DIGITAL_PORT2 |= (DIGITAL_5 | DIGITAL_6 | DIGITAL_7);
-	
-	/* Enable the pullup resistor */
-	DIGITAL_DDR2 |= DIGITAL_PULLUP;
-	DIGITAL_PORT2 |= DIGITAL_PULLUP;
-}
-
-/* Returns the state of the passed digital input channel */
-uint8_t GetDigitalState(uint8_t DigitalChannel)
-{
-	if( DigitalChannel >= D5 )
-	{
-		return ((DIGITAL_PIN2 & (1 << DigitalChannel)) != 0);
-	}
-	else
-	{
-		return ((DIGITAL_PIN1 & (1 << DigitalChannel)) != 0);	
-	}
-}
 
 /* Updates the SignalPeak Variable regardless of whether the Digital Input is
  * Active */

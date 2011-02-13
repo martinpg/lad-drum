@@ -78,7 +78,7 @@ ISR(TIMER0_COMP_vect, ISR_NOBLOCK)
 	if(SoftTimerInterrupt(SoftTimer1[SC_MIDIOutput]))
 	{
 		/* Update the Digital States */
-		//ScanDigitalInputs();
+		ScanDigitalInputs();
       MIDI_Output();
       MIDI_DigitalOutput();
       MIDI_MetronomeOutput();

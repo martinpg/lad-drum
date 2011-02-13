@@ -40,7 +40,7 @@ int main(void)
    SPI_Init();
    SensorInit();
    SensorInputSelect(GetSensorInput());
-   //DigitalInputInit();
+   DigitalInputInit();
    /* Setup the communications module */   
    UART_Init(0);
 

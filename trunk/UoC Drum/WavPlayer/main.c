@@ -20,7 +20,8 @@ int main(void)
 {  
    uint8_t ret;
 
-   uartInit(10,0);
+   uartInit(0);
+   uartSetBaud(0,10);
    sei(); 
 
    SPI_Init();

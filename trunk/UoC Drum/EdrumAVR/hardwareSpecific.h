@@ -45,6 +45,10 @@
 #define UART_TxString_P uartTxString_P
 #define UART_TxString uartTxString
 
+#define ANALOGUE_INPUTS	(16)
+#define METRONOME_INPUTS (8)
+#define DIGITAL_INPUTS	(8)
+
 /* Channel Select Defines */
 #define CHSELOUT  PORTB
 #define CHSELDIR  DDRB
@@ -68,23 +72,52 @@
 
 
 /* Digital Input Section */
-#define DIGITAL_PIN1	(PINA)
-#define DIGITAL_PIN2	(PINC)
+#define DIGITAL0_DDR DDRA
+#define DIGITAL1_DDR DDRA
+#define DIGITAL2_DDR DDRA
+#define DIGITAL3_DDR DDRC
+#define DIGITAL4_DDR DDRC
+#define DIGITAL5_DDR DDRD
+#define DIGITAL6_DDR DDRD
+#define DIGITAL7_DDR DDRC
 
-#define DIGITAL_PORT1	(PORTA)
-#define DIGITAL_PORT2	(PORTC)
+#define DIGITAL0_PORT PORTA
+#define DIGITAL1_PORT PORTA
+#define DIGITAL2_PORT PORTA
+#define DIGITAL3_PORT PORTC
+#define DIGITAL4_PORT PORTC
+#define DIGITAL5_PORT PORTD
+#define DIGITAL6_PORT PORTD
+#define DIGITAL7_PORT PORTC
 
-#define DIGITAL_DDR1		(DDRA)
-#define DIGITAL_DDR2		(DDRC)
+#define DIGITAL0_PIN PINA
+#define DIGITAL1_PIN PINA
+#define DIGITAL2_PIN PINA
+#define DIGITAL3_PIN PINC
+#define DIGITAL4_PIN PINC
+#define DIGITAL5_PIN PIND
+#define DIGITAL6_PIN PIND
+#define DIGITAL7_PIN PINC
+
+#define DIGITAL0 (1 << 5)
+#define DIGITAL1 (1 << 4)
+#define DIGITAL2 (1 << 3)
+#define DIGITAL3 (1 << 2)
+#define DIGITAL4 (1 << 1)
+#define DIGITAL5 (1 << 5)
+#define DIGITAL6 (1 << 4)
+#define DIGITAL7 (1 << 0)
+
 
 /* ADC Defines */
 #define ADC_Init()       adcInitialise()     
 #define ADC_Sample()     adc10()
 #define ADC_SetupAddress(channel) adcSetPin(channel)
 
-
 #define ADC_REF_DEFAULT ADC_REF_AVCC
-#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV4
+#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV16
+
+#define ADC_RESOLUTION (10)
 
 /* Keypad Defines */
 /* Key Pad Inputs */
@@ -181,5 +214,17 @@
 #define LCD_DISPLAY_DEFAULT   ((1<<LCD_DISPLAY) | (1<<LCD_ON_DISPLAY))
 
 /* END OF VERSION WITHOUT PE Defines */
+
+
+
+
+
+/* hardware Specific defines */
+void DigitalInputInit(void);
+uint8_t getDigitalState(uint8_t DigitalChannel);
+
+
+
+
 
 #endif

@@ -135,7 +135,6 @@ void aboutScroll(uint8_t nameIndex)
 	const uint8_t lightning[][8] = {{158,143,135,140,156,142,130,129},
 											  {143,158,156,134,135,142,136,144}};
 	
-	
 	switch( nameIndex )
 	{
 		case MAIN_SCREEN:
@@ -155,107 +154,7 @@ void aboutScroll(uint8_t nameIndex)
 		   UF_MenuNewLine();
 			UF_MenuPrint_P(PSTR("Version:") );
 			UF_MenuPrint_P(VersionId);		   
-		break;
-		
-		case CREATORS_SCREEN:
-			UF_MenuReset();		
-			UF_MenuPrint_P( PSTR("Designer: Adrian Gin"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("Supervised by:"));
-			UF_MenuNewLine();						
-			UF_MenuPrint_P( PSTR("Dr Larry Brackney"));
-			UF_MenuNewLine();				
-			UF_MenuPrint_P( PSTR("Jullada Homtientong"));								
-		break;
-		
-		case THANKS_SCREEN:
-			UF_MenuReset();		
-			UF_MenuPrint_P( PSTR("Special Thanks to:"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("Rowan 'Robot' Sinton"));
-			UF_MenuNewLine();						
-			UF_MenuPrint_P( PSTR("Shreejan Pandey"));
-			UF_MenuNewLine();				
-			UF_MenuPrint_P( PSTR("Tic-Sieu How"));									
-		break;
-		
-		case THANKS2_SCREEN:
-			UF_MenuReset();	
-			UF_MenuPrint_P( PSTR("Ma & Ba"));
-			UF_MenuNewLine();					
-			UF_MenuPrint_P( PSTR("Bus,Ry,Tim,DJ Doboy"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("Bob Sinclair"));
-			UF_MenuNewLine();						
-			UF_MenuPrint_P( PSTR("Elec. Eng Department"));									
 		break;			
-		
-		case THANKS3_SCREEN:
-			UF_MenuReset();		
-			UF_MenuPrint_P( PSTR("Phil Hof (DSL)"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("Malcolm Gordon"));
-			UF_MenuNewLine();							
-			UF_MenuPrint_P( PSTR("CAE2 Master"));
-			UF_MenuNewLine();						
-			UF_MenuPrint_P( PSTR("PCB Maker & Dudley B"));				
-		break;	
-		
-		case THANKS4_SCREEN:
-			UF_MenuReset();		
-			UF_MenuPrint_P( PSTR("Slinkee Minx"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("Special D"));
-			UF_MenuNewLine();							
-			UF_MenuPrint_P( PSTR("Cosmic Gate & JJ"));
-			UF_MenuNewLine();						
-			UF_MenuPrint_P( PSTR("Siria"));				
-		break;	
-		
-		case INSPIRATION_SCREEN:
-			UF_MenuReset();		
-			UF_MenuPrint_P( PSTR("Inspiration from:"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("eDrum.info"));
-			UF_MenuNewLine();							
-			UF_MenuPrint_P( PSTR("Megadrum, Toontrack"));
-			UF_MenuNewLine();						
-			UF_MenuPrint_P( PSTR("Smartie LCD"));			
-		break;
-		
-		case INSPIRATION2_SCREEN:
-			UF_MenuReset();		
-			UF_MenuPrint_P( PSTR("Winamp Plugin"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("for the VU Meters"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("Dr Hamish Laird for"));
-			UF_MenuNewLine();	
-			UF_MenuPrint_P( PSTR("ENEL427 Supervision"));																
-		break;
-		
-		case INFORMATION_SCREEN:
-			UF_MenuReset();		
-			UF_MenuPrint_P( PSTR("Built using:"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("Protel DXP"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("Dev-C++ 4.9.9.2"));
-			UF_MenuNewLine();	
-			UF_MenuPrint_P( PSTR("MSPGCC and MSPFET"));																
-		break;	
-		
-		case INFORMATION2_SCREEN:
-			UF_MenuReset();		
-			UF_MenuPrint_P( PSTR("Recommended Tools:"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("MIDI-OX"));
-			UF_MenuNewLine();
-			UF_MenuPrint_P( PSTR("FL Studio 7"));
-			UF_MenuNewLine();	
-			UF_MenuPrint_P( PSTR("RealTerm for Debug"));																	
-		break;												
-					
 	}
 }
 
@@ -821,7 +720,7 @@ void SetThreshold(void* data)
    input = data;
    
    //SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
-	uint16_t PotValue = SensorPotValue() >> THRESHOLD_LEVELS;
+	uint16_t PotValue = SensorPotValue() >> (THRESHOLD_ADJUST);
    //SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
    
 	SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
@@ -857,7 +756,7 @@ void SetThreshold(void* data)
 		
 	firstEnter = 0;
 
-	SetChannelThresh(SelectedChannel, GetChannelThresh(SelectedChannel) - lastPotValue + PotValue - MIN_THRESHOLD );
+	SetChannelThresh(SelectedChannel, GetChannelThresh(SelectedChannel) - lastPotValue + PotValue);
 	lastPotValue = PotValue;
 
 	uint8toa((GetChannelThresh(SelectedChannel) >> THRESHOLD_LEVELS), outputString);
@@ -868,7 +767,18 @@ void SetThreshold(void* data)
 	UF_MenuPrint_P(PSTR("Fine Tune:")); 
 	
 	UI_LCD_Pos(&PrimaryDisplay, 1, 10);         
-   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);	  
+   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);	 
+
+	UF_MenuNewLine();   
+	utoa(GetChannelThresh(SelectedChannel), outputString, 10);
+	UF_MenuPrint_P(PSTR("Threshold: "));
+	UF_MenuPrint(outputString); 
+   
+	UF_MenuNewLine();   
+	utoa(SensorPotValue(), outputString, 10);
+	UF_MenuPrint_P(PSTR("PotVal: "));
+	UF_MenuPrint(outputString);           
+    
 }
 
 
@@ -926,7 +836,6 @@ void SetRetrigger(void* data)
          case KP_BACK:
 				SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
 				adjustStyle = DIGITAL_ADJUST;
-				//SoftTimerStop(SC_AutoMenuUpdate);
 				if( SelectedChannel >= ANALOGUE_INPUTS )
 				{ 
          	   UF_MenuUpOneLevel(&digitalMenu); 
@@ -946,9 +855,6 @@ void SetRetrigger(void* data)
 		uint16_t PotValue = SensorPotValue();
 		SetChannelReTrig(SelectedChannel, PotValue >> 4);	
 	}
-
-	/*SetChannelThresh(SelectedChannel, GetChannelThresh(SelectedChannel) - lastPotValue + PotValue - MIN_THRESHOLD );
-	lastPotValue = PotValue;*/   
 
 	UF_MenuPrint_P(PSTR("Use # to change adj."));
 	UF_MenuNewLine();	
@@ -1371,6 +1277,7 @@ void DigitalChannelSettings(void* data)
             
             UF_MenuReset();
 				ActiveMenu = &digitalMenu;
+            MenuSetInput( &digitalMenu, *input );
 				executeState(&digitalMenu, digitalMenu.currentState);
 				primaryMenu.firstEnter = 1;
             
@@ -1443,7 +1350,8 @@ void DigitalChannelSettings(void* data)
    digitalMenu.updateOptions = SHOW_CHILDREN;
    SelectedSubMenu = &digitalMenu;
    MenuUpdate(&digitalMenu, !RESET_MENU);
-   MenuSetInput( &analogueMenu, KP_UPDATE );   
+   /* Remember we're dealing with two menu's here */
+   MenuSetInput( &digitalMenu, KP_INVALID );  
 }
 
 
