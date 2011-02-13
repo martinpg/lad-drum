@@ -26,7 +26,7 @@ char MIDIResponseMap[] = {
 
 
 
-/* Consider all the rest to be 1-Byte System Common Messages */
+/* Consider all the rest to be 1-Byte System Common Messages, CN defaults to 0 */
 uint8_t MIDILookupTable[] PROGMEM =
 {
    // Start of Voice Messages
@@ -143,12 +143,14 @@ uint8_t GetCINNumber(uint8_t messageIndex)
 
 uint8_t GetNumberOfBytesToRead(uint8_t messageIndex)
 {
+   /* If the message is undefined, return 1 byte to get (most likely RT message) */
+   /* Most system common messages are 1 byte long */
    if( messageIndex == UNKNOWN_SYS_MSG)
    {
         return 1;
    }
    uint8_t bytesToReturn = pgm_read_byte(&MIDILookupTable[messageIndex+1]);
-   /* Most system common messages are 1 byte long */
+   
    return bytesToReturn;
 }
  

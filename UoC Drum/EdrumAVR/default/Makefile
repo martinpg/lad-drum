@@ -40,7 +40,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 INCLUDES = -I"M:\Robotics\Source\EdrumAVR\..\FuncLib" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Other" -I"M:\Robotics\Source\EdrumAVR\..\GenericEdrum" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Applications" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\External" -I"M:\Robotics\Source\EdrumAVR\." 
 
 ## Objects that must be built in order to link
-OBJECTS = main.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o uint16toa.o ControllerMode.o profiles.o SysEx.o 
+OBJECTS = main.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o uint16toa.o ControllerMode.o profiles.o SysEx.o hardwareSpecific.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -110,6 +110,9 @@ profiles.o: ../../GenericEdrum/Profiles/profiles.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 SysEx.o: ../../GenericEdrum/MIDI/SysEx/SysEx.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+hardwareSpecific.o: ../hardwareSpecific.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link

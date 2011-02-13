@@ -16,10 +16,7 @@
 #include	"hardUart.h"
 #include "RingBuffer/ringbuffer.h"
 
-#include "LCDSettings.h"
 #include "mmculib/uint8toa.h"
-#include "UI_LCD/UI_LCD.h"
-
 
 static char txbuffer[TXBUFFER_SIZE];
 RINGBUFFER_T TransmitBuffer = {txbuffer, sizeof(txbuffer)};

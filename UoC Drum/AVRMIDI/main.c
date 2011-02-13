@@ -158,7 +158,7 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	9,			/* bLenght */
 	USBDESCR_ENDPOINT,	/* bDescriptorType = endpoint */
 	0x1,			/* bEndpointAddress OUT endpoint number 1 */
-	2,			/* bmAttributes: 2:Bulk, 3:Interrupt endpoint */ //This should be bulk for max speed
+	3,			/* bmAttributes: 2:Bulk, 3:Interrupt endpoint */ //This should be bulk for max speed
 	8, 0,			/* wMaxPacketSize */
 	2,			/* bIntervall in ms */
 	0,			/* bRefresh */
@@ -178,7 +178,7 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	9,			/* bLenght */
 	USBDESCR_ENDPOINT,	/* bDescriptorType = endpoint */
 	0x81,			/* bEndpointAddress IN endpoint number 1 */
-	2,			/* bmAttributes: 2: Bulk, 3: Interrupt endpoint */ // This should be bulk so that it is faster than the UART
+	3,			/* bmAttributes: 2: Bulk, 3: Interrupt endpoint */ // This should be bulk so that it is faster than the UART
 	8, 0,			/* wMaxPacketSize */
 	2,			/* bIntervall in ms */
 	0,			/* bRefresh */
@@ -316,18 +316,27 @@ ISR(SIG_UART_RECV)
    }
 }
  
- 
+
+void hardwareInit(void)
+{
+   /* Enable Pull up on UART Rx */
+   PORTD |= (1 << 0);
+
+}
 
 int main(void)
 {
    uint8_t midiReady = 0;
    uint8_t outputBuffer[8];
    
+   
+   hardwareInit();
    usbInit();
  
 /* Just use 31250 baud */
 /* Formula = ((Hz / Baud) / 16) - 1 */
-   uartInit(39, 0);
+   uartInit(0);
+   uartSetBaud(0, 39);
  
    sei();
 

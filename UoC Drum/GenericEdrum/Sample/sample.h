@@ -1,13 +1,14 @@
 #ifndef  SAMPLE_H
 #define  SAMPLE_H
 
+
+#include "hardwareSpecific.h"
 #include "SoftTimer/Softtimer.h"
 
-
-
-#define ANALOGUE_INPUTS	(16)
-#define METRONOME_INPUTS (8)
-#define DIGITAL_INPUTS	(8)
+/* Defined in Hardware Specific */
+//#define ANALOGUE_INPUTS	(16)
+//#define METRONOME_INPUTS (8)
+//#define DIGITAL_INPUTS	(8)
 #define NUMBER_OF_REAL_INPUTS (ANALOGUE_INPUTS + DIGITAL_INPUTS)
 #define NUMBER_OF_INPUTS   (ANALOGUE_INPUTS + DIGITAL_INPUTS + METRONOME_INPUTS)
 #define KEYPAD_INPUTS (16)
@@ -15,18 +16,22 @@
 #define LAST_CHANNEL_INDEX (0xFF)
 
 /* The number of bits in the ADC Reading */
-#define MAX_THRESHOLD      (4095)
-#define DEFAULT_THRESHOLD	(100)
+#define MAX_THRESHOLD      (1 << ADC_RESOLUTION)
+/* Set to 5% of the ADC input */
+#define DEFAULT_THRESHOLD	(MAX_THRESHOLD / 20)
 #define MIN_THRESHOLD      (0)
-#define THRESHOLD_LEVELS	(6)
+/* Number of levels actually equals 2^(ADC_RESOLUTION - THRESHOLD_LEVELS) */
+#define THRESHOLD_LEVELS	(ADC_RESOLUTION - 5)
+#define THRESHOLD_ADJUST   (ADC_RESOLUTION - THRESHOLD_LEVELS)
 
 #define MAX_VELOCITY			(127)
 #define DEFAULT_VELOCITY (0x64)
 
-/* Retrigger Defines */
+/* Retrigger Defines , in 10ms increments */
 #define MAX_RETRIGGER      (255)
 #define DEFAULT_RETRIGGER	(3)
 #define MIN_RETRIGGER         (0)
+#define RETRIGGER_ADJUST   (ADC_RESOLUTION - 8)
 
 #define ACTIVE_HIGH	(1)
 #define ACTIVE_LOW	(0)
@@ -46,15 +51,16 @@
 #define NON_LINEAR_GAIN	(1)
 
 /* Amplification */
-#define MAX_GAIN           (19)
-/* Most significant seven bits */
-#define DEFAULT_GAIN		(8)
+#define MAX_GAIN           (ADC_RESOLUTION + 7)
 /* Attenuation */
-#define MIN_GAIN				(0)
-#define GAIN_OFFSET        (12)
-#define MAX_CROSSOVER	(4095)
+#define MIN_GAIN				(1)
+#define GAIN_OFFSET        (ADC_RESOLUTION) //Effective number of bits of 
+#define MAX_CROSSOVER	(1 << ADC_RESOLUTION)
 #define MIN_CROSSOVER	(0)
 
+
+/* Most significant seven bits */
+#define DEFAULT_GAIN		(7)
 
 
 enum {
@@ -68,18 +74,6 @@ enum {
 	D7	
 } digitalPort1;
 
-/* In Digital Port 1 */
-#define DIGITAL_0		(1<<0)
-#define DIGITAL_1		(1<<1)
-#define DIGITAL_2		(1<<2)
-#define DIGITAL_3		(1<<3)
-#define DIGITAL_4		(1<<4)
-
-/* In Digital Port 2 */
-#define DIGITAL_PULLUP 	(1<<4)
-#define DIGITAL_5		(1<<5)
-#define DIGITAL_6		(1<<6)
-#define DIGITAL_7		(1<<7)
 
 #define INPUT_HAS_BEEN_CYCLED	(0)
 #define INPUT_IS_DOWN (1)
@@ -157,7 +151,7 @@ extern DigitalSettings_t* DigitalSettings;
 extern GainSettings_t*	 GainSettings;
 
 
-extern const char PresetGainStrings[][20];
+extern PROGRAM_CHAR PresetGainStrings[][20];
 extern const int8_t PresetGain1[];
 extern const int8_t PresetGain2[];
 extern const int16_t PresetGainCrossover[];
@@ -247,8 +241,7 @@ uint16_t GainFunction(uint8_t channel, uint16_t signalValue);
 /* The signal is multiplied by 2^ (gain) */
 uint16_t ApplyGain(uint16_t signalValue, int8_t gain);
 
-void DigitalInputInit(void);
-uint8_t GetDigitalState(uint8_t DigitalChannel);
+#define GetDigitalState(x) getDigitalState(x)
 void ScanDigitalInputs(void);
 
 void SetLastSampleValue(uint8_t channel, uint16_t value);
