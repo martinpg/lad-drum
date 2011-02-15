@@ -83,8 +83,8 @@ BOOTLOADER_SECTION void _flashmem_write(uint32_t address, uint8_t* buffer, int16
             if( isPGM )
             {
                boot_spm_busy_wait();
-               w = FLASH_GET_PGM_BYTE(baseAddr + i);
-               w += FLASH_GET_PGM_BYTE(baseAddr + i + 1) << 8;
+               w = FLASH_GET_PGM_BYTE(buffer+ i);
+               w += FLASH_GET_PGM_BYTE(buffer+ i + 1) << 8;
                buffer += 2;
             }
             else
