@@ -28,6 +28,10 @@ int main(void)
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
 
+//   page_write_P(0x6D20, 0x00, 30 );
+
+   page_write(0x6D40, (void*)&CurrentProfile, sizeof(Profile_t) );
+
    /*Activate Interrupt */
    MCUCR |= ((1 << ISC11) | (1 << ISC10));
    GICR |= (1 << INT1);

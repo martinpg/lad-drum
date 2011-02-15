@@ -6,11 +6,13 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/boot.h>
 #include <util/delay.h>
 
 #include "version.h"
 #include "hardUART/hardUart.h"
 #include "avrADC/adc.h"
+#include "flashmem.h"
 
 
 /* Interrupts */
@@ -215,9 +217,17 @@
 
 /* END OF VERSION WITHOUT PE Defines */
 
+/* Bootloader */
+#define BOOTLOADER_SIZE (4096)
 
-
-
+/* Profile FLASH saving defines */
+#define SET_SECTION(x) __attribute__ ((section ((x))))
+#define NUMBER_OF_PROFILES   (4)
+/* FLASH Page size in bytes */
+#define FLASH_BLOCK_SIZE      (SPM_PAGESIZE)
+/* Effective End of UserSpace Flash. Total Flash - Bootloader Flash Size*/
+#define FLASH_END             (FLASHEND - BOOTLOADER_SIZE)
+#define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
 
 /* hardware Specific defines */
 void DigitalInputInit(void);

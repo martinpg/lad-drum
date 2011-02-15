@@ -1754,7 +1754,6 @@ void SensorInputChange(void* data)
 
 
 /* Profiles */
-
 void ShowProfile(void* data)
 {
 	char outputString[3];
@@ -1846,7 +1845,7 @@ void LoadProfile(void* data)
 {
    uint8_t* input = 0;
    char  outputString[3];
-   uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_LOAD_PROFILE_1;
+   uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_LOAD_PROFILE_DEF;
 	uint8_t i;
 	
 	   
@@ -1872,32 +1871,48 @@ void LoadProfile(void* data)
       reset(0);
    }
 
+   if( ProfileSlot < NUMBER_OF_PROFILES )
+   {
 
-	Profile_Read(ProfileSlot);
-   /* Implement the changes */
-	MIDI_SetRate(MIDI_GetRate());
-	MIDI_SetBaud(MIDI_GetBaud());
-	MIDI_SetChannelCode( MIDI_GetChannelCode() );
+   	Profile_Read(ProfileSlot);
+      /* Implement the changes */
+   	MIDI_SetRate(MIDI_GetRate());
+   	MIDI_SetBaud(MIDI_GetBaud());
+   	MIDI_SetChannelCode( MIDI_GetChannelCode() );
 
-	/* Update the sensor select */
-	SensorInputSelect(GetSensorInput());
+   	/* Update the sensor select */
+   	SensorInputSelect(GetSensorInput());
 	
 
-   /* Update the Retrigger periods */
-   UpdateChannelRetriggers();
+      /* Update the Retrigger periods */
+      UpdateChannelRetriggers();
 
 
-	UF_MenuPrint_P( PSTR("Profile "));
-	uint8toa( ProfileSlot + 1, outputString );
-	UF_MenuPrint(outputString);				
-   UF_MenuNewLine();		
-	UF_MenuPrint_P( PSTR("successfully loaded!") );
+   	UF_MenuPrint_P( PSTR("Profile "));
+   	uint8toa( ProfileSlot + 1, outputString );
+   	UF_MenuPrint(outputString);				
+      UF_MenuNewLine();		
+   	UF_MenuPrint_P( PSTR("successfully loaded!") );
 
-	SelectedProfile = ProfileSlot;
-	for( i = 0; i < 4; i++ )
-	{	
-		_delay_ms(200);
-	}	
+   	SelectedProfile = ProfileSlot;
+   }
+   else
+   {
+   	UF_MenuPrint_P( PSTR("Only ("));
+   	uint8toa( NUMBER_OF_PROFILES, outputString );
+   	UF_MenuPrint(outputString);				
+      UF_MenuNewLine();		
+   	UF_MenuPrint_P( PSTR(") profile") );  
+      UF_MenuNewLine();		
+   	UF_MenuPrint_P( PSTR("available in this version") );     
+
+   }
+
+
+   for( i = 0; i < 4; i++ )
+   {	
+   	_delay_ms(200);
+   }	
 	
 	UF_MenuUpOneLevel(&primaryMenu);
 	UF_MenuReset();

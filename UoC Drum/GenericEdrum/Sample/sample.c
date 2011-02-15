@@ -29,11 +29,13 @@ GainSettings_t* GainSettings;
 
 static uint16_t LastSampleValue[ANALOGUE_INPUTS];
 
-PROGRAM_CHAR PresetGainStrings[][20] PROGRAM_SPACE = {{"Exponential 1"},
-												  {"Logorithmic 1"},
-												  {"Exponential 2"},
-												  {"Logorithmic 2"},
-												  {"Custom"}};
+PROGRAM_CHAR PRESET_1[] = "Exponential 1";
+PROGRAM_CHAR PRESET_2[] = "Logorithmic 1";
+PROGRAM_CHAR PRESET_3[] = "Exponential 2";
+PROGRAM_CHAR PRESET_4[] = "Logorithmic 2";
+PROGRAM_CHAR PRESET_5[] = "Custom";
+
+PROGRAM_PTR PresetGainStrings[] = {PRESET_1, PRESET_2, PRESET_3, PRESET_4, PRESET_5};
 
 const int8_t PresetGain1[NUMBER_OF_GAIN_PRESETS] = {8, 13 ,6, 14};
 const int8_t PresetGain2[NUMBER_OF_GAIN_PRESETS] = {10, 11 ,10, 13};
