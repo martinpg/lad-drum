@@ -27,7 +27,7 @@
 
 /* Erases one page */
 #define FLASH_PAGE_ERASE(address)         boot_page_erase_safe(address)
-#define FLASH_WORD_WRITE(address, data)  	boot_page_fill_safe(address, data)
+#define FLASH_WORD_WRITE(address, data)      boot_page_fill_safe(address, data)
 #define FLASH_FINALISE_WRITE(address)     boot_page_write_safe(address)
 
 #define FLASH_RELEASE()                   boot_rww_enable_safe()
@@ -40,6 +40,13 @@ void _page_write(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
 
 }
 
+void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
+{
+   _flashmem_write(FLASH_TEMP_BUFFER, buffer, len, isPGM);
+   _flashmem_write(address, FLASH_TEMP_BUFFER, len, 1); 
+}
+
+/* A raw write to anywhere */
 BOOTLOADER_SECTION void _flashmem_write(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
 {
    uint32_t i;
@@ -57,14 +64,14 @@ BOOTLOADER_SECTION void _flashmem_write(uint32_t address, uint8_t* buffer, int16
       overflow = address % (FLASH_BLOCK_SIZE);
       baseAddr = (address - overflow);
 
-      FLASH_PAGE_ERASE(FLASH_TEMP_BUFFER);
+      FLASH_PAGE_ERASE(baseAddr);
 
       /* Retain the bytes before */
       for(i = 0; i < overflow; i+=2)
       {
          uint16_t w = FLASH_GET_PGM_BYTE(baseAddr + i);
          w += FLASH_GET_PGM_BYTE(baseAddr + i + 1) << 8;
-         FLASH_WORD_WRITE((FLASH_TEMP_BUFFER + i), w);
+         FLASH_WORD_WRITE((baseAddr + i), w);
       }
       /* write the actual bytes, until the end of the block */
       for (; i < FLASH_BLOCK_SIZE; i+=2)
@@ -85,7 +92,7 @@ BOOTLOADER_SECTION void _flashmem_write(uint32_t address, uint8_t* buffer, int16
                w = (*buffer++);
                w += (*buffer++) << 8;
             }
-            FLASH_WORD_WRITE((FLASH_TEMP_BUFFER + i), w);
+            FLASH_WORD_WRITE((baseAddr + i), w);
             len = len - 2;
          }
          else
@@ -93,24 +100,13 @@ BOOTLOADER_SECTION void _flashmem_write(uint32_t address, uint8_t* buffer, int16
             boot_spm_busy_wait();
             uint16_t w = FLASH_GET_PGM_BYTE(baseAddr + i);
             w += FLASH_GET_PGM_BYTE(baseAddr + i + 1) << 8;
-            FLASH_WORD_WRITE((FLASH_TEMP_BUFFER + i), w);
+            FLASH_WORD_WRITE((baseAddr + i), w);
          }
       }
 
-      FLASH_FINALISE_WRITE(FLASH_TEMP_BUFFER);
-      boot_spm_busy_wait();
-
-      FLASH_PAGE_ERASE(baseAddr);
-      boot_spm_busy_wait();
-
-      for(i = 0; i < FLASH_BLOCK_SIZE; i+=2)
-      {
-         uint16_t w = FLASH_GET_PGM_BYTE(FLASH_TEMP_BUFFER + i);
-         w += FLASH_GET_PGM_BYTE(FLASH_TEMP_BUFFER + i + 1) << 8;
-         FLASH_WORD_WRITE(baseAddr + i, w);     // Store buffer in flash page.
-      }
       FLASH_FINALISE_WRITE(baseAddr);
       boot_spm_busy_wait();
+
       address = baseAddr + FLASH_BLOCK_SIZE;
    }
   
