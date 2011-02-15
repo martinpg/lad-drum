@@ -151,7 +151,7 @@ extern DigitalSettings_t* DigitalSettings;
 extern GainSettings_t*	 GainSettings;
 
 
-extern PROGRAM_CHAR PresetGainStrings[][20];
+extern PROGRAM_PTR PresetGainStrings[];
 extern const int8_t PresetGain1[];
 extern const int8_t PresetGain2[];
 extern const int16_t PresetGainCrossover[];

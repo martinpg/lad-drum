@@ -8,24 +8,10 @@
 #include "Sensor/sensor.h"
 
 
-#define NUMBER_OF_PROFILES   (5)
-#define FLASH_BLOCK_SIZE      (512)
 #define SEGMENTS_TO_USE       ((NUMBER_OF_PROFILES * sizeof(Profile_t) / FLASH_BLOCK_SIZE) + 1)
 /* Start after the Device Interrupts! */
-#define FLASH_END             (0xFE00)
-
-#define TEMPORARY_FLASH_BUFFER (FLASH_END - (FLASH_BLOCK_SIZE))
-
-
-#define PROFILE_FLASH_START (uint16_t)(TEMPORARY_FLASH_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
-//#define PROFILE_IMAGE_START (uint16_t)(TEMPORARY_FLASH_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
-
-
-#define PROFILE_FLASH_ADDRESS(x)  (PROFILE_FLASH_START + (FLASH_BLOCK_SIZE*x))
-#define PROFILE_IMAGE_ADDRESS(x)  (PROFILE_IMAGE_START + (FLASH_BLOCK_SIZE*x))
-
-#define PROFILE(x)    		(PROFILE_FLASH_ADDRESS(0) + (sizeof(Profile_t)*x))
-//#define IMAGE_PROFILE(x)	(PROFILE_IMAGE_ADDRESS(0) + (sizeof(Profile_t)*x))
+#define PROFILE_FLASH_START (FLASH_END - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
+#define PROFILE(x)    		(PROFILE_FLASH_START + (sizeof(Profile_t)*x))
 
 #define MIDI_SETTINGS(profile)		PROFILE(profile)
 #define CHANNEL_SETTINGS(profile)	(MIDI_SETTINGS(profile)+sizeof(MidiSettings_t))
@@ -33,21 +19,14 @@
 #define DIGITAL_SETTINGS(profile)	(GAIN_SETTINGS(profile)+sizeof(GainSettings_t))
 #define SENSOR_SETTINGS(profile) 	(DIGITAL_SETTINGS(profile) + sizeof(DigitalSettings_t))
 
-/*#define IMAGE_MIDI_SETTINGS(profile)		IMAGE_PROFILE(profile)
-#define IMAGE_CHANNEL_SETTINGS(profile)	(IMAGE_MIDI_SETTINGS(profile)+sizeof(MidiSettings_t))
-#define IMAGE_GAIN_SETTINGS(profile)		(IMAGE_CHANNEL_SETTINGS(profile)+sizeof(ChannelSettings_t))
-#define IMAGE_DIGITAL_SETTINGS(profile)	(IMAGE_GAIN_SETTINGS(profile)+sizeof(GainSettings_t))
-#define IMAGE_SENSOR_SETTINGS(profile) 	(IMAGE_DIGITAL_SETTINGS(profile) + sizeof(DigitalSettings_t))*/
-
-
-
+#define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
 
 enum {
-	PROFILE_1 = 0,
-	PROFILE_2 = 1,
-	PROFILE_3 = 2,
-	PROFILE_4 = 3,
-	DEFAULT_PROFILE = 4
+   DEFAULT_PROFILE = 0,
+	PROFILE_1 = 1,
+	PROFILE_2 = 2,
+	PROFILE_3 = 3,
+	PROFILE_4 = 4
 } profileIds;
 
 typedef struct {
@@ -75,6 +54,9 @@ extern Profile_t CurrentProfile;
 
 void ProfileInit(void);
 
+#define page_write(address, buffer, len) _page_write(address, buffer, len, 0)
+#define page_write_P(address, buffer, len) _page_write(address, buffer, len, 1)
+
 void Profile_Erase(uint8_t profileIndex);
 
 /* Writes profile data to the profile Index */
@@ -88,7 +70,7 @@ void Profile_Copy(void);
 /* Reads the passed profileIndex into the profile */
 void Profile_Read(uint8_t profileIndex);
 
-/* Export Local settings to the current profile
+/* Export Local setting s to the current profile
 void Profile_ExportLocal(void);
 void Profile_LoadLocal(void);*/
 
