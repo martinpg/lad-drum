@@ -10,7 +10,7 @@
 #define FLASH_TEMP_BUFFER_BASE (FLASH_TEMP_BUFFER & ~(FLASH_BLOCK_SIZE - 1))
 
 #define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
-#define FLASH_GET_PGM_BYTE(address) getPGMbyte(address)
+#define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
 
 /* Erases one page */
 #define FLASH_PAGE_ERASE(address)         boot_page_erase_safe(address)
@@ -23,7 +23,6 @@ void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint
 
 
 void _flashmem_erase(uint32_t address);
-uint8_t getPGMbyte(PGM_P address);
 
 void _page_write(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM);
 void _flashmem_write(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM);

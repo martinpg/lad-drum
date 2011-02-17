@@ -46,59 +46,33 @@ BOOTLOADER_SECTION void _flashmem_erase(uint32_t address)
 /* A raw write to anywhere */
 BOOTLOADER_SECTION void _flashmem_write(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
 {
-   volatile uint32_t i;
-   volatile uint16_t overflow;
-   volatile uint32_t baseAddr;
-
-   uint8_t sreg = SREG;
+   uint32_t i;
+   uint16_t overflow;
+   uint32_t baseAddr;
 
    cli();
 
-        //FLASH_PAGE_ERASE(address);
+   for (i=0; i<FLASH_BLOCK_SIZE; i+=2)
+   {
+      uint16_t w;
+      // Set up little-endian word.
+      if( isPGM )
+      {
+         w = FLASH_GET_PGM_BYTE(buffer + i);
+         w += FLASH_GET_PGM_BYTE(buffer + i + 1) << 8;
+      }
+      else
+      {
+         w = *buffer++;
+         w += (*buffer++) << 8;
+      }
+      FLASH_WORD_WRITE(address + i, w);
+   }
 
-
-        for (i=0; i<FLASH_BLOCK_SIZE; i+=2)
-        {
-            _delay_ms(5);
-            uint16_t w;
-            // Set up little-endian word.
-            if( isPGM )
-            {
-               //do{}while(boot_rww_busy());
-               w = FLASH_GET_PGM_BYTE(buffer + i);
-               
-               //UDR = w;
-               //while( (UCSRA & (1<<UDRE)) == 0 );
-
-               w += FLASH_GET_PGM_BYTE(buffer + i + 1) << 8;
-               //do{}while(boot_rww_busy());
-               //UDR = w >> 8;
-               //while( (UCSRA & (1<<UDRE)) == 0 );
-               //buffer += 2;
-            }
-            else
-            {
-               w = *buffer++;
-               w += (*buffer++) << 8;
-            }
-            //do{}while(boot_rww_busy());
-            FLASH_WORD_WRITE(address + i, w);
-            //do{}while(boot_rww_busy());
-        }
-
-        FLASH_FINALISE_WRITE (address);     // Store buffer in flash page.
-
-
-
+   FLASH_FINALISE_WRITE(address);     // Store buffer in flash page.
    FLASH_RELEASE();
-   SREG = sreg;
    sei();
 }
 
 
-
-uint8_t getPGMbyte(PGM_P address)
-{
-   return pgm_read_byte(address);
-}
 
