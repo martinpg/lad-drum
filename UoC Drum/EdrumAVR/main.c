@@ -28,9 +28,11 @@ int main(void)
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
 
-//   page_write_P(0x6D20, 0x00, 30 );
+   _delay_ms(100);
 
-   page_write(0x6D40, (void*)&CurrentProfile, sizeof(Profile_t) );
+   //_flashmem_write(0x6D10, (void*)0x10, 30, 1 );
+
+//   page_write(0x6D40, (void*)&CurrentProfile, sizeof(Profile_t) );
 
    /*Activate Interrupt */
    MCUCR |= ((1 << ISC11) | (1 << ISC10));
@@ -133,6 +135,49 @@ int main(void)
 
 }
 
+
+ISR(SIG_SPM_READY)
+{
+   uartTx('#');
+}
+
+ISR(SIG_UART_RECV)
+{
+   uint8_t buffer;
+
+   buffer = UDR;
+   sei();
+   //uartTx(buffer);
+   
+   if( buffer == 'A' )
+   {
+      uartTxDump_P( FLASH_TEMP_BUFFER, FLASH_BLOCK_SIZE);
+   }
+
+   if( buffer == 'E' )
+   {
+      _flashmem_erase(FLASH_TEMP_BUFFER);
+      uartTxString_P(PSTR("Erased"));
+   }
+
+   if( buffer == 'W' )
+   {
+      _flashmem_write((uint32_t)FLASH_TEMP_BUFFER, (void*)0x00, 30, 1 );
+      uartTxString_P(PSTR("Write Done"));
+   }
+
+   if( buffer == 'w' )
+   {
+      _flashmem_write((uint32_t)FLASH_TEMP_BUFFER, (void*)&CurrentProfile, 100, 0);
+      uartTxString_P(PSTR("Write Done"));
+   }
+
+   if( buffer == 'g' )
+   {
+      uartTxDump_P( (void*)0x00, FLASH_BLOCK_SIZE);
+   }
+
+}
 
 ISR(INT1_vect)
 {

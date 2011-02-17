@@ -14,23 +14,9 @@
 
 #include "hardwareSpecific.h"
 
-/* Both in Byte sizes */
-//Normally defined in hardwareSpecific.h
-//#define FLASH_END
-//#define FLASH_BLOCK_SIZE
+#include <util/delay.h>
+#include "flashmem.h"
 
-#define FLASH_TEMP_BUFFER  (FLASH_END - FLASH_BLOCK_SIZE + 1)
-#define FLASH_TEMP_BUFFER_BASE (FLASH_TEMP_BUFFER & ~(FLASH_BLOCK_SIZE - 1))
-
-#define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
-#define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
-
-/* Erases one page */
-#define FLASH_PAGE_ERASE(address)         boot_page_erase_safe(address)
-#define FLASH_WORD_WRITE(address, data)      boot_page_fill_safe(address, data)
-#define FLASH_FINALISE_WRITE(address)     boot_page_write_safe(address)
-
-#define FLASH_RELEASE()                   boot_rww_enable_safe()
 
 void _page_write(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
 {
@@ -42,78 +28,77 @@ void _page_write(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
 
 void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
 {
+   _flashmem_write(FLASH_TEMP_BUFFER, address, FLASH_BLOCK_SIZE, 1);
    _flashmem_write(FLASH_TEMP_BUFFER, buffer, len, isPGM);
+   _delay_ms(5);
    _flashmem_write(address, FLASH_TEMP_BUFFER, len, 1); 
 }
+
+BOOTLOADER_SECTION void _flashmem_erase(uint32_t address)
+{
+   cli();
+   FLASH_PAGE_ERASE(address);
+   FLASH_RELEASE();
+   sei();
+}
+
 
 /* A raw write to anywhere */
 BOOTLOADER_SECTION void _flashmem_write(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
 {
-   uint32_t i;
-   uint16_t overflow;
-   uint32_t baseAddr;
+   volatile uint32_t i;
+   volatile uint16_t overflow;
+   volatile uint32_t baseAddr;
+
+   uint8_t sreg = SREG;
+
+   cli();
+
+        //FLASH_PAGE_ERASE(address);
 
 
-   while( len > 0)
-   {
-      /* Do not try to write to invalid addresses */
-      if(address + len > FLASH_END)
-      {
-         return;
-      } 
-      overflow = address % (FLASH_BLOCK_SIZE);
-      baseAddr = (address - overflow);
-
-      FLASH_PAGE_ERASE(baseAddr);
-
-      /* Retain the bytes before */
-      for(i = 0; i < overflow; i+=2)
-      {
-         uint16_t w = FLASH_GET_PGM_BYTE(baseAddr + i);
-         w += FLASH_GET_PGM_BYTE(baseAddr + i + 1) << 8;
-         FLASH_WORD_WRITE((baseAddr + i), w);
-      }
-      /* write the actual bytes, until the end of the block */
-      for (; i < FLASH_BLOCK_SIZE; i+=2)
-      {
-         if( len > 0 )
-         {
-         // Set up little-endian word
+        for (i=0; i<FLASH_BLOCK_SIZE; i+=2)
+        {
+            _delay_ms(5);
             uint16_t w;
+            // Set up little-endian word.
             if( isPGM )
             {
-               boot_spm_busy_wait();
-               w = FLASH_GET_PGM_BYTE(buffer+ i);
-               w += FLASH_GET_PGM_BYTE(buffer+ i + 1) << 8;
-               buffer += 2;
+               //do{}while(boot_rww_busy());
+               w = FLASH_GET_PGM_BYTE(buffer + i);
+               
+               //UDR = w;
+               //while( (UCSRA & (1<<UDRE)) == 0 );
+
+               w += FLASH_GET_PGM_BYTE(buffer + i + 1) << 8;
+               //do{}while(boot_rww_busy());
+               //UDR = w >> 8;
+               //while( (UCSRA & (1<<UDRE)) == 0 );
+               //buffer += 2;
             }
             else
             {
-               w = (*buffer++);
+               w = *buffer++;
                w += (*buffer++) << 8;
             }
-            FLASH_WORD_WRITE((baseAddr + i), w);
-            len = len - 2;
-         }
-         else
-         {
-            boot_spm_busy_wait();
-            uint16_t w = FLASH_GET_PGM_BYTE(baseAddr + i);
-            w += FLASH_GET_PGM_BYTE(baseAddr + i + 1) << 8;
-            FLASH_WORD_WRITE((baseAddr + i), w);
-         }
-      }
+            //do{}while(boot_rww_busy());
+            FLASH_WORD_WRITE(address + i, w);
+            //do{}while(boot_rww_busy());
+        }
 
-      FLASH_FINALISE_WRITE(baseAddr);
-      boot_spm_busy_wait();
+        FLASH_FINALISE_WRITE (address);     // Store buffer in flash page.
 
-      address = baseAddr + FLASH_BLOCK_SIZE;
-   }
-  
+
+
    FLASH_RELEASE();
+   SREG = sreg;
+   sei();
 }
 
 
 
-
+uint8_t getPGMbyte(PGM_P address)
+{
+   return pgm_read_byte(address);
+}
 
