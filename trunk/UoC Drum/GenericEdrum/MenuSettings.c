@@ -303,11 +303,12 @@ const menu_data MenuData[] MENU_SPACE = {
    {ST_SAVE_PROFILE, MT_SAVE_PROFILE, 0},
    {ST_LOAD_PROFILE, MT_LOAD_PROFILE, 0},
    
+   {ST_LOAD_PROFILE_DEF, MT_PROFILE_DEF, LoadProfile},
    {ST_LOAD_PROFILE_1, MT_PROFILE_1, LoadProfile},
    {ST_LOAD_PROFILE_2, MT_PROFILE_2, LoadProfile},
    {ST_LOAD_PROFILE_3, MT_PROFILE_3, LoadProfile},
    {ST_LOAD_PROFILE_4, MT_PROFILE_4, LoadProfile},
-   {ST_LOAD_PROFILE_DEF, MT_PROFILE_DEF, LoadProfile},			   
+   
    
    {ST_SAVE_PROFILE_1, MT_PROFILE_1, SaveProfile},
    {ST_SAVE_PROFILE_2, MT_PROFILE_2, SaveProfile},

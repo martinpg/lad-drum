@@ -1797,7 +1797,7 @@ void ShowProfile(void* data)
 	else
 	{
 		UF_MenuPrint_P( PSTR("Profile ") );
-		uint8toa(SelectedProfile + 1, outputString );
+		uint8toa(SelectedProfile, outputString );
 		UF_MenuPrint(outputString);
 	}
    UF_MenuNewLine();	
@@ -1813,26 +1813,34 @@ void SaveProfile(void* data)
 	  
    input = data;
 
-	UF_MenuPrint_P( PSTR("Saving Data") );	
-   UF_MenuNewLine();		
-	UF_MenuPrint_P( PSTR("Please Wait...") );	
+   if( ProfileSlot < NUMBER_OF_PROFILES )
+   {
 
-	for( i = 0; i < 4; i++ )
-	{
-		UF_MenuPrint_P( PSTR(".") );		
-		_delay_ms(200);
-	}
+   	UF_MenuPrint_P( PSTR("Saving Data") );	
+      UF_MenuNewLine();		
+   	UF_MenuPrint_P( PSTR("Please Wait...") );	
+
+   	for( i = 0; i < 4; i++ )
+   	{
+   		UF_MenuPrint_P( PSTR(".") );		
+   		_delay_ms(200);
+   	}
 	
-   UF_MenuNewLine();
-	Profile_Write(&CurrentProfile, ProfileSlot);
-	UF_MenuPrint_P( PSTR("Profile successfully") );
-   UF_MenuNewLine();		
-	UF_MenuPrint_P( PSTR("saved to: ") );				
-	UF_MenuPrint_P( PSTR("Profile ") );	
-	uint8toa( ProfileSlot + 1, outputString );
-	UF_MenuPrint(outputString);
+      UF_MenuNewLine();
+   	Profile_Write(&CurrentProfile, ProfileSlot);
+   	UF_MenuPrint_P( PSTR("Profile successfully") );
+      UF_MenuNewLine();		
+   	UF_MenuPrint_P( PSTR("saved to: ") );				
+   	UF_MenuPrint_P( PSTR("Profile ") );	
+   	uint8toa( ProfileSlot + 1, outputString );
+   	UF_MenuPrint(outputString);
+   }
+   else
+   {
+      Profile_Error();
+   }
 
-	for( i = 0; i < 4; i++ )
+	for( i = 0; i < 10; i++ )
 	{	
 		_delay_ms(200);
 	}	
@@ -1855,8 +1863,6 @@ void LoadProfile(void* data)
    UF_MenuNewLine();		
 	UF_MenuPrint_P( PSTR("Please Wait") );	
 
-	
-
 	for( i = 0; i < 4; i++ )
 	{
 		UF_MenuPrint_P( PSTR(".") );		
@@ -1866,15 +1872,15 @@ void LoadProfile(void* data)
    UF_MenuNewLine();		
 
    /* Loading the default profile resets the device */
-	if( ProfileSlot == DEFAULT_PROFILE)
+	if( ProfileSlot == 0)
 	{
       reset(0);
    }
 
-   if( ProfileSlot < NUMBER_OF_PROFILES )
+   if( ProfileSlot <= NUMBER_OF_PROFILES )
    {
 
-   	Profile_Read(ProfileSlot);
+   	Profile_Read(ProfileSlot - 1);
       /* Implement the changes */
    	MIDI_SetRate(MIDI_GetRate());
    	MIDI_SetBaud(MIDI_GetBaud());
@@ -1889,7 +1895,7 @@ void LoadProfile(void* data)
 
 
    	UF_MenuPrint_P( PSTR("Profile "));
-   	uint8toa( ProfileSlot + 1, outputString );
+   	uint8toa( ProfileSlot, outputString );
    	UF_MenuPrint(outputString);				
       UF_MenuNewLine();		
    	UF_MenuPrint_P( PSTR("successfully loaded!") );
@@ -1898,18 +1904,10 @@ void LoadProfile(void* data)
    }
    else
    {
-   	UF_MenuPrint_P( PSTR("Only ("));
-   	uint8toa( NUMBER_OF_PROFILES, outputString );
-   	UF_MenuPrint(outputString);				
-      UF_MenuNewLine();		
-   	UF_MenuPrint_P( PSTR(") profile") );  
-      UF_MenuNewLine();		
-   	UF_MenuPrint_P( PSTR("available in this version") );     
-
+      Profile_Error();
    }
 
-
-   for( i = 0; i < 4; i++ )
+   for( i = 0; i < 10; i++ )
    {	
    	_delay_ms(200);
    }	
@@ -1919,7 +1917,18 @@ void LoadProfile(void* data)
 }
 
 
+void Profile_Error(void)
+{
+   char  outputString[3];
+   UF_MenuReset();
+	UF_MenuPrint_P( PSTR("Only ("));
+	uint8toa( NUMBER_OF_PROFILES, outputString );
+	UF_MenuPrint(outputString);				
 
+	UF_MenuPrint_P( PSTR(") profiles") );  
+   UF_MenuNewLine();		
+	UF_MenuPrint_P( PSTR("in this version!") );  
+}
 
 void AdjustCrosstalk(void* data)
 {

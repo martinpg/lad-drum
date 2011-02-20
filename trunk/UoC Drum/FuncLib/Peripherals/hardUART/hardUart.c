@@ -55,6 +55,9 @@ void uartInit(uint8_t U2Xvalue)
 				|	(BIT8 << UCSZ0) 
 				|  (1<<URSEL);
 
+   /*Enable the pull up on RXD */
+   PORTD |= (1 << PD0);
+
 }
 
 /* uartSetBaud:
@@ -145,7 +148,7 @@ ISR(USART_TXC_vect, ISR_NOBLOCK)
 
 
 /** Writes nbytes of buffer to the UART */
-void uartTxDump(uint8_t* buffer, uint8_t nbytes )
+void uartTxDump(uint8_t* buffer, uint16_t nbytes )
 {
 	uint16_t i = 0;
 	while( i++ < nbytes )
@@ -153,6 +156,19 @@ void uartTxDump(uint8_t* buffer, uint8_t nbytes )
 		uartTx(*buffer++);
 	}
 }
+
+/** Writes nbytes of buffer to the UART */
+void uartTxDump_P(PGM_P buffer, uint16_t nbytes )
+{
+	uint16_t i = 0;
+	while( i++ < nbytes )
+	{
+      uint8_t c;
+      c = pgm_read_byte(buffer++);
+		uartTx(c);
+	}
+}
+
 
 
 /* uartTxString:
