@@ -12,7 +12,7 @@
 #include "version.h"
 #include "hardUART/hardUart.h"
 #include "avrADC/adc.h"
-#include "flashmem.h"
+#include "flashmem/flashmem.h"
 
 
 /* Interrupts */
@@ -218,16 +218,24 @@
 /* END OF VERSION WITHOUT PE Defines */
 
 /* Bootloader */
-#define BOOTLOADER_SIZE (4096)
+#define BOOTLOADER_SIZE (2048)
 
 /* Profile FLASH saving defines */
 #define SET_SECTION(x) __attribute__ ((section ((x))))
-#define NUMBER_OF_PROFILES   (4)
+#define NUMBER_OF_PROFILES   (1)
 /* FLASH Page size in bytes */
 #define FLASH_BLOCK_SIZE      (SPM_PAGESIZE)
 /* Effective End of UserSpace Flash. Total Flash - Bootloader Flash Size*/
 #define FLASH_END             (FLASHEND - BOOTLOADER_SIZE)
 #define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
+
+#define FLASH_PAGE_ERASE(address)         boot_page_erase_safe(address)
+#define FLASH_WORD_WRITE(address, data)   boot_page_fill_safe(address, data)
+#define FLASH_FINALISE_WRITE(address)     boot_page_write_safe(address)
+#define FLASH_RELEASE()                   boot_rww_enable_safe()
+#define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
+#define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
+
 
 /* hardware Specific defines */
 void DigitalInputInit(void);

@@ -4,7 +4,7 @@
 #include "hardwareSpecific.h"
 #include "profiles.h"
 #include "MIDICodes/MIDICodes.h"
-
+#include "flashmem/flashmem.h"
 
 Profile_t CurrentProfile  = { 
 /* MIDISettings_t */
@@ -300,9 +300,12 @@ void Profile_Write(Profile_t* profile, uint8_t profileIndex)
 {
    uint16_t i;
    uint16_t unusedBytes = 0;
-   uint16_t memPtr = PROFILE(0);
+   uint32_t memPtr = PROFILE(0);
    uint16_t segmentPtr = 0;
    uint16_t profilePtr = 0;
+
+   flashmem_bufferedWrite(memPtr, (void*)profile, sizeof(Profile_t), 0 );
+
 }
 
 /* Reads the passed profileIndex into the settings */

@@ -30,10 +30,6 @@ int main(void)
 
    _delay_ms(100);
 
-   //_flashmem_write(0x6D10, (void*)0x10, 30, 1 );
-
-//   page_write(0x6D40, (void*)&CurrentProfile, sizeof(Profile_t) );
-
    /*Activate Interrupt */
    MCUCR |= ((1 << ISC11) | (1 << ISC10));
    GICR |= (1 << INT1);
@@ -154,6 +150,11 @@ ISR(SIG_UART_RECV)
       uartTxDump_P( FLASH_TEMP_BUFFER, FLASH_BLOCK_SIZE);
    }
 
+   if( buffer == 'a' )
+   {
+      uartTxDump_P( FLASH_TEMP_BUFFER - (FLASH_BLOCK_SIZE << 1), FLASH_BLOCK_SIZE << 1);
+   }
+
    if( buffer == 'E' )
    {
       _flashmem_erase(FLASH_TEMP_BUFFER);
@@ -162,19 +163,19 @@ ISR(SIG_UART_RECV)
 
    if( buffer == 'W' )
    {
-      _flashmem_write((uint32_t)FLASH_TEMP_BUFFER, (void*)0x00, 30, 1 );
+      flashmem_bufferedWrite((uint32_t)FLASH_TEMP_BUFFER - (FLASH_BLOCK_SIZE << 1) + 1, (void*)0x00, 3, 1 );
       uartTxString_P(PSTR("Write Done"));
    }
 
    if( buffer == 'w' )
    {
-      _flashmem_write((uint32_t)FLASH_TEMP_BUFFER, (void*)&CurrentProfile, 100, 0);
+      flashmem_bufferedWrite((uint32_t)FLASH_TEMP_BUFFER - (FLASH_BLOCK_SIZE << 1) + 3, (void*)0x00, 30, 1 );
       uartTxString_P(PSTR("Write Done"));
    }
 
    if( buffer == 'g' )
    {
-      uartTxDump_P( (void*)0x00, FLASH_BLOCK_SIZE);
+      uartTxDump_P( (void*)0x00, FLASH_BLOCK_SIZE << 1);
    }
 
 }

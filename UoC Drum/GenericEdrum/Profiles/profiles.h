@@ -10,7 +10,7 @@
 
 #define SEGMENTS_TO_USE       ((NUMBER_OF_PROFILES * sizeof(Profile_t) / FLASH_BLOCK_SIZE) + 1)
 /* Start after the Device Interrupts! */
-#define PROFILE_FLASH_START (FLASH_END - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
+#define PROFILE_FLASH_START (FLASH_TEMP_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
 #define PROFILE(x)    		(PROFILE_FLASH_START + (sizeof(Profile_t)*x))
 
 #define MIDI_SETTINGS(profile)		PROFILE(profile)

@@ -159,7 +159,9 @@ void uartTx(uint8_t byte); // Use this for interrupt based transmission
 /** uartTxDump:
  *  Prints out nbytes of buffer to the UART
  */
-void uartTxDump(uint8_t* buffer, uint8_t nbytes );
+void uartTxDump(uint8_t* buffer, uint16_t nbytes );
+
+void uartTxDump_P(PGM_P buffer, uint16_t nbytes );
 
 /* ISR(SIG_UART_RECV)
  *
