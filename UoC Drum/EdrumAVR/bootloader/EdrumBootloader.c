@@ -8,12 +8,19 @@
 #include "hardUart/hardUart.h"
 
 
-uint8_t RxBuffer[32];
+//Must be a power of two
+#define RX_BUFFER_SIZE (32)
+#define RX_BUFFER_MASK (RX_BUFFER_SIZE - 1)
+
+#define TX_BUFFER_SIZE (32)
+#define TX_BUFFER_MASK (TX_BUFFER_SIZE - 1)
+
+uint8_t RxBuffer[RX_BUFFER_SIZE];
 volatile uint8_t rxWritePtr;
 volatile uint8_t rxReadPtr;
 
 
-uint8_t TxBuffer[32];
+uint8_t TxBuffer[TX_BUFFER_SIZE];
 volatile uint8_t txWritePtr;
 volatile uint8_t txReadPtr;
 
@@ -21,7 +28,10 @@ volatile uint8_t txReadPtr;
 ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
+   if( rxWritePtr + 1 == rxReadPtr )
    RxBuffer[rxWritePtr++] = buffer;
+   rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
+
 }
 
 void bootloader_Init(void)
@@ -73,6 +83,7 @@ int main(void)
            if( rxReadPtr != rxWritePtr )
            {
               uint8_t nextByte = RxBuffer[rxReadPtr++];
+              rxReadPtr = (rxReadPtr & RX_BUFFER_MASK);
               ParseFirmwareUpgrade(nextByte);
            }
       }
