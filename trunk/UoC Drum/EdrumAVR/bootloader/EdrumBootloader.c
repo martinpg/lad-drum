@@ -1,5 +1,3 @@
-
-
 #include <avr/io.h>
 #include "hardwareSpecific.h"
 #include "EdrumBootloader.h"
@@ -12,7 +10,11 @@
 ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
-	uartTx(buffer);
+
+   if( ringbuffer_put( (RINGBUFFER_T*)&ReceiveBuffer, buffer) == BUFFER_OVERFLOW)
+   {
+   }
+
 }
 
 void bootloader_Init(void)
@@ -45,42 +47,38 @@ int main(void)
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
 
-   uartInit(0);
-   uartSetBaud(0, 39);
+
 
    sei();
-
-   while(1)
-   {
-      _delay_ms(1);
-   }
-
-
-   //bootloader_Init();
+   bootloader_Init();
 
    /* If bootloader condition */
    if( BOOTLOADER_CONDITION )
    {
-
-      //GICR = (1 << IVCE);
-      //GICR = (0 << IVSEL);
-
+      uartInit(0);
+      uartSetBaud(0, 39);
       
+      GICR = (1 << IVCE);
+      GICR = (0 << IVSEL);
       sei();
-
-      UDR = (0xAA);
 
       while(1)
       {
+           /* Process messages in the UART Rx buffer is there are any */
+           if( ringbuffer_len((RINGBUFFER_T*)&ReceiveBuffer) )
+           {
+              uint8_t nextByte = ringbuffer_get((RINGBUFFER_T*)&ReceiveBuffer);
+              ParseFirmwareUpgrade(nextByte);
+           }
       }
+
    }
    else
    {
-      //bootloader_leave();
+      bootloader_leave();
    }
 
 
    return 0;
 }
-
 
