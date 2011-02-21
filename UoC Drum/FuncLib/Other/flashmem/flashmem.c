@@ -15,12 +15,12 @@
 #include "hardwareSpecific.h"
 
 #include <util/delay.h>
-#include "flashmem.h"
+#include "flashmem/flashmem.h"
 
 
 
 // Writes data to the temporary buffer first
-BOOTLOADER_SECTION void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
+void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
 {
 
    uint16_t overflow;
@@ -48,7 +48,7 @@ BOOTLOADER_SECTION void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer
          // We can only write to the flash in WORDS (16 bits)
          if( i % 2 ) 
          {
-            FLASH_WORD_WRITE(baseAddr + i, data[0] | data[1] << 8);
+            _flashmem_writeWord(baseAddr + i, data[0] | data[1] << 8);
          }
       }
 
@@ -77,29 +77,43 @@ BOOTLOADER_SECTION void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer
          // We can only write to the flash in WORDS (16 bits)
          if( i % 2 ) 
          {
-            FLASH_WORD_WRITE(baseAddr + i, data[0] | data[1] << 8);
+            _flashmem_writeWord(baseAddr + i, data[0] | data[1] << 8);
          }
       }
    
-      
-      FLASH_FINALISE_WRITE(baseAddr);
+      _flashmem_finalise(baseAddr);
       address = baseAddr + FLASH_BLOCK_SIZE;
    }
 
-   FLASH_RELEASE();
+   _flashmem_release();
 
    sei();
 }
 
-BOOTLOADER_SECTION void _flashmem_erase(uint32_t address)
+void _flashmem_release()
+{
+   FLASH_RELEASE();
+}
+
+void _flashmem_writeWord(uint32_t address, uint16_t data)
+{
+   FLASH_WORD_WRITE(address, data);
+}
+
+void _flashmem_finalise(uint32_t address)
+{
+   FLASH_FINALISE_WRITE(address);
+   FLASH_RELEASE();
+}
+
+void _flashmem_erase(uint32_t address)
 {
    FLASH_PAGE_ERASE(address);
    FLASH_RELEASE();
 }
 
-
 /* A raw write to anywhere */
-BOOTLOADER_SECTION void _flashmem_write(uint32_t address, void* buffer, int16_t len, uint8_t isPGM)
+void _flashmem_write(uint32_t address, void* buffer, int16_t len, uint8_t isPGM)
 {
    uint32_t i;
    uint16_t overflow;

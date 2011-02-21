@@ -37,7 +37,7 @@ const CM_InputType_t InputModeData[] = {
 void CM_ChannelParse(void* data)
 {
 
-	uint8_t* input;
+/*	uint8_t* input;
 	static uint8_t lastInput = 0;
 	
 	input = (uint8_t*)data;
@@ -54,10 +54,10 @@ void CM_ChannelParse(void* data)
 		lastInput = 0;
 		*input = 0;
 		return;
-	}
+	}*/
 	
 	/* Update the channel display as it is entered */
-	if( (*input != 0) && (lastInput == 0) )
+/*	if( (*input != 0) && (lastInput == 0) )
 	{
 		lastChannel = *input;
 		lastInput = *input;
@@ -72,12 +72,12 @@ void CM_ChannelParse(void* data)
 	{
 		lastChannel = CM_MIN_CHANNEL;
 		lastInput = 0;
-	}
+	}*/
 }
 
 void printChannelInfo(void)
 {
-	uint8_t printChannel;
+/*	uint8_t printChannel;
 	printChannel = lastChannel;
 	if( lastChannel > ANALOGUE_INPUTS)
 	{
@@ -86,7 +86,7 @@ void printChannelInfo(void)
 	}
 	uint8toa(printChannel, outputString);
 	UF_MenuPrint(outputString);
-	UF_MenuNewLine();
+	UF_MenuNewLine();*/
 }
 
 

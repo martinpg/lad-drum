@@ -5,6 +5,8 @@
 #include "UserFunctions/userFunctions.h"
 #include "LCDSettings.h"
 
+#include "hardUart/hardUart.h"
+
 #if MENU_DEBUG == 0
 #include "UI_LCD/UI_LCD.h"
 #include "UI_KP/UI_KP.h"
@@ -35,6 +37,7 @@ const MENU_TEXT  MT_SYSTEM_ABOUT[] = "About";
 const MENU_TEXT  MT_SYSTEM_SYSEX[] = "System Exclusive";
 const MENU_TEXT  MT_SYSEX_DUMP[] = "Dump Current Setup";
 const MENU_TEXT  MT_SYSEX_RECEIVE[] = "Get SysEx Settings";
+const MENU_TEXT  MT_SYSTEM_UPGRADE[] = "Upgrade Firmware";
 
 const MENU_TEXT  MT_OPTIONS[] = "Options";
 const MENU_TEXT  MT_MIDI_OUTPUT_RATE[] = "MIDI Output Rate";
@@ -209,6 +212,7 @@ const menu_list MenuState[] MENU_SPACE = {
 	{ST_SYSTEM_SETUP, ST_SYSTEM_RESET, 0},
 	{ST_SYSTEM_SETUP, ST_SYSTEM_ABOUT, 1},
 	{ST_SYSTEM_SETUP, ST_SYSEX, 2},
+	{ST_SYSTEM_SETUP, ST_SYSTEM_UPGRADE, 3},
 	
 	{ST_SYSEX, ST_SYSEX_DUMP, 1},
 	{ST_SYSEX, ST_SYSEX_RECEIVE, 2},
@@ -228,6 +232,7 @@ const menu_data MenuData[] MENU_SPACE = {
 	{ST_SYSTEM_RESET, MT_SYSTEM_RESET, reset},
 	{ST_SYSTEM_ABOUT, MT_SYSTEM_ABOUT, about},
 	{ST_SYSEX, MT_SYSTEM_SYSEX, SysExDisplay},
+   {ST_SYSTEM_UPGRADE, MT_SYSTEM_UPGRADE, FirmwareUpgrade},
 	{ST_SYSEX_DUMP, MT_SYSEX_DUMP, DumpSysEx},
 	{ST_SYSEX_RECEIVE, MT_SYSEX_RECEIVE, GetSysEx},
 	

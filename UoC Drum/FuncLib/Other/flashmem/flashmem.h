@@ -26,6 +26,10 @@
 void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM);
 
 void _flashmem_erase(uint32_t address);
+void _flashmem_finalise(uint32_t address);
+void _flashmem_release(void);
+void _flashmem_writeWord(uint32_t address, uint16_t data);
+
 void _flashmem_write(uint32_t address, void* buffer, int16_t len, uint8_t isPGM);
 
 
