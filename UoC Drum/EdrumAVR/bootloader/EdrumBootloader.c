@@ -7,14 +7,21 @@
 
 #include "hardUart/hardUart.h"
 
+
+uint8_t RxBuffer[32];
+volatile uint8_t rxWritePtr;
+volatile uint8_t rxReadPtr;
+
+
+uint8_t TxBuffer[32];
+volatile uint8_t txWritePtr;
+volatile uint8_t txReadPtr;
+
+
 ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
-
-   if( ringbuffer_put( (RINGBUFFER_T*)&ReceiveBuffer, buffer) == BUFFER_OVERFLOW)
-   {
-   }
-
+   RxBuffer[rxWritePtr++] = buffer;
 }
 
 void bootloader_Init(void)
@@ -47,8 +54,6 @@ int main(void)
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
 
-
-
    sei();
    bootloader_Init();
 
@@ -65,9 +70,9 @@ int main(void)
       while(1)
       {
            /* Process messages in the UART Rx buffer is there are any */
-           if( ringbuffer_len((RINGBUFFER_T*)&ReceiveBuffer) )
+           if( rxReadPtr != rxWritePtr )
            {
-              uint8_t nextByte = ringbuffer_get((RINGBUFFER_T*)&ReceiveBuffer);
+              uint8_t nextByte = RxBuffer[rxReadPtr++];
               ParseFirmwareUpgrade(nextByte);
            }
       }
