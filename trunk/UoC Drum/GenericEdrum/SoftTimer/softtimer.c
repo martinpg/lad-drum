@@ -4,7 +4,7 @@
 #include <stdlib.h>
 
 #include "hardwareSpecific.h"
-#include "main.h"
+#include "EDrumAVRMega.h"
 #include "Softtimer.h"
 #include "MIDI/midi.h"
 #include "Sample/sample.h"

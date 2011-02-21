@@ -38,7 +38,7 @@ uint8_t ThanksIndex(uint8_t mode);
 void SysExDisplay(void* data);
 void DumpSysEx(void* data);
 void GetSysEx(void* data);
-uint8_t IsReceivingSysExData(uint8_t state);
+void FirmwareUpgrade(void* data);
 
 /* Play mode disables TimerB2 */
 void ControllerMode(void* data);
@@ -47,7 +47,7 @@ void ControllerMode(void* data);
 void SaveProfile(void* data);
 void LoadProfile(void* data);
 void ShowProfile(void* data);
-
+void Profile_Error(void);
 
 
 void SetMIDIRate(void* data);

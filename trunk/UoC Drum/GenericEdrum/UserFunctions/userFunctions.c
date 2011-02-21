@@ -6,7 +6,7 @@
 
 
 #include "hardwareSpecific.h"
-#include "main.h"
+#include "EDrumAVRMega.h"
 #include "Menu/Menu.h"
 #include "UI_KP/UI_KP.h"
 #include "UI_LCD/UI_LCD.h"
@@ -25,7 +25,7 @@
 #include "LCDSettings.h"
 #include "ControllerMode/ControllerMode.h"
 
-static uint8_t SelectedProfile = DEFAULT_PROFILE;
+static uint8_t SelectedProfile = PROFILE_1;
 static uint8_t SelectedChannel = 0;
 
 void reset(void* data)
@@ -116,7 +116,7 @@ uint8_t ThanksIndex(uint8_t mode)
 	static uint8_t nameIndex = MAIN_SCREEN;
 	if( mode == GET )
 	{
-		return 	nameIndex;
+		return nameIndex;
 	}
 	else
 	{
@@ -220,7 +220,7 @@ void DumpSysEx(void* data)
 	
    UF_MenuNewLine();		
 
-   SysexSend(&CurrentProfile);
+   SysexSend(&CurrentProfile, sizeof(Profile_t));
    
 	UF_MenuPrint_P( PSTR("Profile sucessfully"));			
    UF_MenuNewLine();		
@@ -287,6 +287,11 @@ void GetSysEx(void* data)
 	primaryMenu.firstEnter = 0;
 }
 
+
+void FirmwareUpgrade(void* data)
+{
+   ActiveProcess = FIRMWARE_UPGRADE;
+}
 
 /* Play mode disables TimerB2 */
 void ControllerMode(void* data)
@@ -1205,7 +1210,7 @@ void SetDualInput(void* data)
 
 
 
-/** Function to setup each individual digial channel */
+/** Function to setup each individual digital channel */
 void DigitalChannelSettings(void* data)
 {
    uint8_t* input = 0;

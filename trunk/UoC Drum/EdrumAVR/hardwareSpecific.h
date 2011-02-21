@@ -10,9 +10,10 @@
 #include <util/delay.h>
 
 #include "version.h"
-#include "hardUART/hardUart.h"
-#include "avrADC/adc.h"
-#include "flashmem/flashmem.h"
+//#include "hardUART/hardUart.h"
+//#include "avrADC/adc.h"
+//#include "flashmem/flashmem.h"
+
 
 
 /* Interrupts */

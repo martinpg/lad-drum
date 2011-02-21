@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99                                                -DF_CPU=20000000UL -Os -fsigned-char
+CFLAGS += -Wall -gdwarf-2 -std=gnu99                                                      -DF_CPU=20000000UL -Os -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -26,8 +26,9 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 ## Linker flags
 LDFLAGS = $(COMMON)
 LDFLAGS +=  -Wl,-Map=EdrumAVR.map
-LDFLAGS += -Wl,-section-start=.profile1=0x7b7e
+LDFLAGS += -Wl,-section-start=.profile1=0x7600
 LDFLAGS += -Wl,-section-start=.bootloader=0x7800
+LDFLAGS += -Wl,-section-start=.firmwareUpgrade=0x7a00
 
 
 ## Intel Hex file production flags
@@ -42,7 +43,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 INCLUDES = -I"M:\Robotics\Source\EdrumAVR\..\FuncLib" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Other" -I"M:\Robotics\Source\EdrumAVR\..\GenericEdrum" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Applications" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\External" -I"M:\Robotics\Source\EdrumAVR\." 
 
 ## Objects that must be built in order to link
-OBJECTS = main.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o uint16toa.o ControllerMode.o profiles.o SysEx.o hardwareSpecific.o flashmem.o 
+OBJECTS = EDrumAVRMega.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o uint16toa.o ControllerMode.o profiles.o SysEx.o hardwareSpecific.o flashmem.o firmwareUpdate.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -51,7 +52,7 @@ LINKONLYOBJECTS =
 all: $(TARGET) EdrumAVR.hex EdrumAVR.eep EdrumAVR.lss size
 
 ## Compile
-main.o: ../main.c
+EDrumAVRMega.o: ../EDrumAVRMega.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 hardUart.o: ../../FuncLib/Peripherals/hardUART/hardUart.c
@@ -118,6 +119,9 @@ hardwareSpecific.o: ../hardwareSpecific.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 flashmem.o: ../../FuncLib/Other/flashmem/flashmem.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+firmwareUpdate.o: ../../GenericEdrum/firmwareUpdate/firmwareUpdate.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link

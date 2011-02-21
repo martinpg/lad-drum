@@ -3,7 +3,7 @@
 
 
 #include <stdint.h>
-#include "main.h"
+#include "EDrumAVRMega.h"
 #include "hardwareSpecific.h"
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"
@@ -13,9 +13,11 @@
 #include "SoftTimer/softtimer.h"
 #include "SysEx.h"
 
+#include "hardUart/hardUart.h"
+
 static uint16_t DataCount = 0;
 
-void SysexSend(Profile_t* data)
+void SysexSend(void* data, uint16_t len)
 {
    uint16_t i = 0;
    uint8_t* buffer = (uint8_t*)data;
@@ -25,7 +27,7 @@ void SysexSend(Profile_t* data)
    MIDI_Tx(MIDI_DEVICE_CODE);
    
 
-	while( i++ < sizeof(Profile_t) )
+	while( i++ < len )
 	{
       /* Ensure all bytes sent are less than 128 or 0x7F */
       if( (*buffer & 0x80) )
