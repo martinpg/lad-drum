@@ -6,7 +6,10 @@
 #include "MIDICodes/MIDICodes.h"
 #include "flashmem/flashmem.h"
 
-Profile_t CurrentProfile = { 
+Profile_t CurrentProfile;
+
+#if 0
+ = { 
 /* MIDISettings_t */
 {	
 	/* 15ms output rate */
@@ -140,9 +143,9 @@ Profile_t CurrentProfile = {
 };
 
 
+#endif
 
-
-#if 1
+#if 0
 Profile_t Profile1 SET_SECTION(".profile1") = { 
 /* MIDISettings_t */
 {	
@@ -299,7 +302,7 @@ void ProfileInit(void)
 void Profile_Write(Profile_t* profile, uint8_t profileIndex)
 {
    uint32_t memPtr = PROFILE(0);
-   flashmem_bufferedWrite(memPtr, (void*)profile, sizeof(Profile_t), 0 );
+//   flashmem_bufferedWrite(memPtr, (void*)profile, sizeof(Profile_t), 0 );
 
 }
 

@@ -125,7 +125,7 @@ void ParseSysExData(uint8_t nextByte)
               
             primaryMenu.MenuPrint_P( PSTR("Download Successful!"));
       
-            uint16toa( DataCount, outputString, 0);
+            utoa( DataCount, outputString, 10);
       
             primaryMenu.MenuNewLine();
             

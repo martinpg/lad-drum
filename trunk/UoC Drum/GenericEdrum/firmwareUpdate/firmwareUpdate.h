@@ -10,8 +10,13 @@
 #define	RECEIVE_COMPLETE_BIT	RXC
 #define	UART_DATA_REG	UDR
 
-void ReceiveFirmware(void);
+void ReceiveFirmwareInit(void);
 void FirmwareUpdateError();
 void ParseFirmwareData(uint8_t nextByte);
+void FirmwareCheckForFinalise(void);
+
+
+
+
 
 #endif

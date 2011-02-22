@@ -23,7 +23,10 @@
 #include "VUMeter/vumeter.h"
 #include "MenuSettings.h"
 #include "LCDSettings.h"
+
+#if 0
 #include "ControllerMode/ControllerMode.h"
+#endif
 
 static uint8_t SelectedProfile = PROFILE_1;
 static uint8_t SelectedChannel = 0;
@@ -191,7 +194,7 @@ void SysExDisplay(void* data)
 	primaryMenu.firstEnter = 0;
 	
 	/* Since each byte is sent as 2x 7 bit SysEx 'bytes' */
-	uint16toa( sizeof(Profile_t) * 2, outputString, 0);
+	utoa( sizeof(Profile_t) * 2, outputString, 10);
 	
    UF_MenuPrint_P( PSTR("SysEx Size:") );
 
@@ -318,11 +321,11 @@ void ControllerMode(void* data)
 	}
 		
 	primaryMenu.firstEnter = 0;	
-	
+
+#if 0
 	CM_SetMenuMode(CM_SETTINGS_MODE);
-	
 	CM_printEnteredData();		
-	
+#endif	
 	/* Only used when KP inputs are buttons 
 	for( i = 0; i < ANALOGUE_INPUTS; i++)
 	{
@@ -382,7 +385,7 @@ void PrintMIDIRate(void)
 	
 	UF_MenuPrint_P( PSTR("MIDI Output Rate: ") );
    UF_MenuNewLine(); 	
-	uint16toa( (MIDI_GetRate()), outputString, 0);
+	utoa( (MIDI_GetRate()), outputString, 10);
 	UF_MenuPrint(outputString);
    UF_MenuPrint_P( PSTR(" ms @ "));
    
@@ -488,7 +491,7 @@ void EditMIDIRate(void* data)
    UF_MenuPrint_P( PSTR("Millisecond Delay:"));
 	UF_MenuNewLine();
 	
-	uint16toa( Delay, outputString, 0);
+	utoa( Delay, outputString, 10);
 	UF_MenuPrint(outputString);
 	UF_MenuPrint_P( PSTR(" milliseconds") );      
 	MIDI_SetRate( Delay );

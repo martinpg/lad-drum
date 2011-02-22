@@ -10,11 +10,11 @@
  * VUMeter, the upper 3 are used to denote how many rows are used */
 
 static uint8_t VULevel[MAX_METERS];
-static uint8_t VURowStart = 0;
-static uint8_t VUColStart = 0;
+static uint8_t VURowStart;
+static uint8_t VUColStart;
 
-static uint8_t VURow = 0;
-static uint8_t VUCol = 0;
+static uint8_t VURow;
+static uint8_t VUCol;
 
 static uint8_t VURows = 1;
 
