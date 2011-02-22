@@ -1,19 +1,23 @@
-#ifndef MAIN_H
-#define MAIN_H
+#ifndef EDRUM_AVRMEGA_H
+#define EDRUM_AVRMEGA_H
 
-
-
-#define DEFAULT_PROCESS (PLAY_MODE)
+#include <stdint.h>
 
 extern uint8_t ActiveProcess;
 extern uint16_t BenchMarkCount;
 
 extern const char VersionId[];
+
 enum {
    PLAY_MODE = 0,
    RECEIVE_SYSEX,
-   CONTROLLER_MODE
+   CONTROLLER_MODE,
+   FIRMWARE_UPGRADE
 } processes;
+
+
+#define DEFAULT_PROCESS (PLAY_MODE)
+
 void Play(void);
 void Benchmark(void);
 void MidiControllerMode(void);
