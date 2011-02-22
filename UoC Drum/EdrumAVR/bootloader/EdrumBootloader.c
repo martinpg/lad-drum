@@ -5,11 +5,9 @@
 
 #include "firmwareUpdate/firmwareUpdate.h"
 
-#include "hardUart/hardUart.h"
-
 
 //Must be a power of two
-#define RX_BUFFER_SIZE (32)
+#define RX_BUFFER_SIZE (128)
 #define RX_BUFFER_MASK (RX_BUFFER_SIZE - 1)
 
 #define TX_BUFFER_SIZE (32)
@@ -29,10 +27,64 @@ ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
    if( rxWritePtr + 1 == rxReadPtr )
+   {
+      UDR = '!';
+   }
+
    RxBuffer[rxWritePtr++] = buffer;
    rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
+   UDR = (rxWritePtr - rxReadPtr);
+}
+
+
+ISR(USART_TXC_vect)
+{
+   
+}
+
+ISR(SPM_RDY_vect)
+{
 
 }
+
+
+
+
+#define	PARITY_MASK		(0x30)
+#define	NOPARITY			(0x00)
+#define	EVEN				(0x02)
+#define	ODD				(0x03)
+
+#define	CHARSIZE_MASK	(0x06)
+#define 	BIT8				(0x03)
+#define	BIT7				(0x02)
+#define	BIT6				(0x01)
+#define	BIT5				(0x00)
+
+#define	UCSRCMASK		(0x7F)
+
+void uartInit(void)
+{
+	UCSRB |= (1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE);	/*Enable Rx and Tx modules*/
+	UCSRB &= ~(1<<UCSZ2);				/*Set to 8bit mode*/
+	
+
+	/*Select UCSRC to be written to*/	
+	/* Set to Asynchronous Mode
+	 *			 1 Stop-bit
+	 *			 No Parity
+	 *			 8-bit char mode
+	 */
+	UCSRC = (UCSRC & ~( UCSRCMASK ))
+				|  (NOPARITY<<UPM0)
+				|	(BIT8 << UCSZ0) 
+				|  (1<<URSEL);
+
+   /*Enable the pull up on RXD */
+   PORTD |= (1 << PD0);
+}
+
+
 
 void bootloader_Init(void)
 {
@@ -51,11 +103,13 @@ void bootloader_Init(void)
 
 void bootloader_leave(void)
 {
-    cli();
-    _flashmem_release();
+   cli();
+   _flashmem_release();
 
-    GICR = (1 << IVCE);     /* enable change of interrupt vectors */
-    GICR = (0 << IVSEL);    /* move interrupts to application flash section */
+   GICR = (1 << IVCE);     /* enable change of interrupt vectors */
+   GICR = (0 << IVSEL);    /* move interrupts to application flash section */
+
+   asm volatile("jmp 0"::);
 }
 
 
@@ -64,17 +118,21 @@ int main(void)
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
 
-   sei();
    bootloader_Init();
 
    /* If bootloader condition */
    if( BOOTLOADER_CONDITION )
    {
-      uartInit(0);
-      uartSetBaud(0, 39);
+      SPI_DDR |= ((1 << nSS) | (1 << MOSI) );
+      SPCR |= ((1 << SPE) | (1 << MSTR)); 
+      
+      uartInit();
+      UBRRL = 39;
+
+      ReceiveFirmwareInit();
       
       GICR = (1 << IVCE);
-      GICR = (0 << IVSEL);
+      GICR = (1 << IVSEL);
       sei();
 
       while(1)
@@ -84,7 +142,8 @@ int main(void)
            {
               uint8_t nextByte = RxBuffer[rxReadPtr++];
               rxReadPtr = (rxReadPtr & RX_BUFFER_MASK);
-              ParseFirmwareUpgrade(nextByte);
+              ParseFirmwareData(nextByte);
+              FirmwareCheckForFinalise();
            }
       }
 

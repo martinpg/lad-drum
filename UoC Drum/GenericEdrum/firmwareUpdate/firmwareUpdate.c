@@ -11,39 +11,25 @@ static uint32_t firmwareDataCount;
 static uint32_t firmwareByteCount;
 static uint32_t firmwareAddress;
 
-void ReceiveFirmware(void)
+void ReceiveFirmwareInit(void)
 {
-
-
-   /*Enable the pull up on RXD */
-   PORTD |= (1 << PD0);
-
-   UBRRL = 39;
-
-
    uint32_t address;
    /* Erase the entire application section */
    for(address = 0; address < FLASH_END ;address += FLASH_BLOCK_SIZE)
    {
       _flashmem_erase(address);
    }
-
    firmwareDataCount = 0;
+}
 
-   //_flashmem_write(0, "Hello", 4, 0);
 
-   while(1)
+void FirmwareCheckForFinalise(void)
+{
+   if( (firmwareAddress % FLASH_BLOCK_SIZE) == 0 &&
+       (firmwareAddress) && 
+       (firmwareByteCount % 4) == 0 )
    {
-      while(!(UART_STATUS_REG & (1 << RECEIVE_COMPLETE_BIT)));  // wait for data
-      //UART_DATA_REG = UART_DATA_REG;
-      ParseFirmwareData(UART_DATA_REG);
-      if( (firmwareAddress % FLASH_BLOCK_SIZE) == 0 &&
-          (firmwareAddress) && 
-          (firmwareByteCount % 4) == 0 )
-      {
-         UDR = 0xFE;
-         _flashmem_finalise(firmwareAddress-2);
-      }
+      _flashmem_finalise(firmwareAddress-2);
    }
 }
 
@@ -65,6 +51,8 @@ void ParseFirmwareData(uint8_t nextByte)
       case 0:
          if( nextByte != MIDI_SYSEX_START )
          {
+            UDR = 0xAA;
+            while( (UCSRA & (1<<UDRE)) == 0 );
             FirmwareUpdateError();
             return;
          }         
@@ -73,6 +61,8 @@ void ParseFirmwareData(uint8_t nextByte)
       case 1:
          if( nextByte != MIDI_MANUFACTURER )
          {
+            UDR = 0xAB;
+            while( (UCSRA & (1<<UDRE)) == 0 );
             FirmwareUpdateError();
             return;
          }   
@@ -81,9 +71,15 @@ void ParseFirmwareData(uint8_t nextByte)
       case 2:
          if( nextByte != MIDI_DEVICE_CODE )
          {
+            UDR = 0xAC;
+            while( (UCSRA & (1<<UDRE)) == 0 );
             FirmwareUpdateError();
             return;
          }
+      break;
+
+      case 3:
+         
       break;
 
       default:
