@@ -15,7 +15,7 @@ void ReceiveFirmwareInit(void)
 {
    uint32_t address;
    /* Erase the entire application section */
-   for(address = 0; address < FLASH_END ;address += FLASH_BLOCK_SIZE)
+   for(address = 0; address < APP_END ;address += FLASH_BLOCK_SIZE)
    {
       _flashmem_erase(address);
    }
@@ -51,8 +51,6 @@ void ParseFirmwareData(uint8_t nextByte)
       case 0:
          if( nextByte != MIDI_SYSEX_START )
          {
-            UDR = 0xAA;
-            while( (UCSRA & (1<<UDRE)) == 0 );
             FirmwareUpdateError();
             return;
          }         
@@ -61,8 +59,6 @@ void ParseFirmwareData(uint8_t nextByte)
       case 1:
          if( nextByte != MIDI_MANUFACTURER )
          {
-            UDR = 0xAB;
-            while( (UCSRA & (1<<UDRE)) == 0 );
             FirmwareUpdateError();
             return;
          }   
@@ -71,8 +67,6 @@ void ParseFirmwareData(uint8_t nextByte)
       case 2:
          if( nextByte != MIDI_DEVICE_CODE )
          {
-            UDR = 0xAC;
-            while( (UCSRA & (1<<UDRE)) == 0 );
             FirmwareUpdateError();
             return;
          }

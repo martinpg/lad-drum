@@ -26,14 +26,8 @@ volatile uint8_t txReadPtr;
 ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
-   if( rxWritePtr + 1 == rxReadPtr )
-   {
-      UDR = '!';
-   }
-
    RxBuffer[rxWritePtr++] = buffer;
    rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
-   UDR = (rxWritePtr - rxReadPtr);
 }
 
 

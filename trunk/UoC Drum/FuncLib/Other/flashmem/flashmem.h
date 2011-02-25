@@ -15,8 +15,7 @@
 #define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
 */
 
-/* The last page in the Flash is reserved for the temp buffer */
-#define FLASH_TEMP_BUFFER  (FLASH_END - FLASH_BLOCK_SIZE + 1)
+
 
 
 /* Erases one page */
