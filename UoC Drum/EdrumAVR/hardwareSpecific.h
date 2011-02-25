@@ -219,15 +219,17 @@
 /* END OF VERSION WITHOUT PE Defines */
 
 /* Bootloader */
-#define BOOTLOADER_SIZE (2048)
+#define BOOTLOADER_SIZE (4096)
 
 /* Profile FLASH saving defines */
 #define SET_SECTION(x) __attribute__ ((section ((x))))
 #define NUMBER_OF_PROFILES   (1)
 /* FLASH Page size in bytes */
 #define FLASH_BLOCK_SIZE      (SPM_PAGESIZE)
+/* The last page in the Flash is reserved for the temp buffer */
+#define FLASH_TEMP_BUFFER  (APP_END - FLASH_BLOCK_SIZE + 1)
 /* Effective End of UserSpace Flash. Total Flash - Bootloader Flash Size*/
-#define FLASH_END             (FLASHEND - BOOTLOADER_SIZE)
+#define APP_END             (FLASHEND - BOOTLOADER_SIZE)
 #define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
 
 #define FLASH_PAGE_ERASE(address)         boot_page_erase_safe(address)

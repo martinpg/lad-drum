@@ -6,9 +6,9 @@
 #include "MIDICodes/MIDICodes.h"
 #include "flashmem/flashmem.h"
 
-Profile_t CurrentProfile;
+Profile_t CurrentProfile
 
-#if 0
+#if 1
  = { 
 /* MIDISettings_t */
 {	
