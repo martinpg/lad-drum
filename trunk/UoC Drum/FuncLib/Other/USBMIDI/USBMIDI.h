@@ -1,18 +1,18 @@
 /* These functions convert 32bit USB data to MIDI data */
-
-
-
 #ifndef 	_USB_MIDI
 #define	_USB_MIDI
 
 #include <stdint.h>
 
+/* To be defined in hardwareSpecific.h */
+//#define PROGRAM_SPACE PROGMEM
+//#define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
+//#define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
 
  /* Needs to be a power of 2 */
-#define MIDI_OUT_BUFFER    (128)
+#define MIDI_OUT_BUFFER    (4)
 #define MIDI_OUT_MASK      (MIDI_OUT_BUFFER - 1)
 #define SYS_COMMON_MSG (22)
-
 #define NO_DATA_BYTE    (0xFF)
 
 typedef struct usbMIDIMessage
@@ -22,7 +22,6 @@ typedef struct usbMIDIMessage
 } usbMIDIMessage_t;
 
 
-extern char MIDIResponseMap[];
 /* Hold enough data for a few messages,
  */
 extern usbMIDIMessage_t MIDImsgComplete[];

@@ -3,9 +3,10 @@
 #include <string.h>
 #include <avr/pgmspace.h>
 #include <USBMIDI/USBMIDI.h>
+#include "hardwareSpecific.h"
 #include "MIDICodes/MIDICodes.h"
 
-char MIDIResponseMap[] = {
+uint8_t MIDIResponseMap[] PROGRAM_SPACE = {
    3, //CIN=0x0, MIDI Size = 1,2 or 3 (Misc)
    3, //CIN=0x1, MIDI Size = 1,2 or 3 (Cable Events)
    2, //CIN=0x2, MIDI Size = 2 (2 byte System Common Message)
@@ -27,7 +28,7 @@ char MIDIResponseMap[] = {
 
 
 /* Consider all the rest to be 1-Byte System Common Messages, CN defaults to 0 */
-uint8_t MIDILookupTable[] PROGMEM =
+uint8_t MIDILookupTable[] PROGRAM_SPACE =
 {
    // Start of Voice Messages
    0x80, 3, 0x08,
@@ -85,7 +86,7 @@ uint8_t usbMIDI_ParseData(uint8_t* data, uint8_t len)
       if( data[i] )
       {
          codeIndexNumber = data[i] & (0x0F);
-         messageSize = MIDIResponseMap[codeIndexNumber];
+         messageSize = FLASH_GET_PGM_BYTE(MIDIResponseMap[codeIndexNumber]);
          memcpy(data + byteCount, data+i+1 , messageSize);
          byteCount = byteCount + messageSize;
       }
