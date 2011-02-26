@@ -18,7 +18,7 @@
 #include "flashmem/flashmem.h"
 
 
-
+#if 0
 // Writes data to the temporary buffer first
 void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint8_t isPGM)
 {
@@ -89,6 +89,8 @@ void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint
 
    sei();
 }
+
+#endif
 
 void _flashmem_release()
 {

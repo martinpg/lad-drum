@@ -41,7 +41,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 INCLUDES = -I"M:\Robotics\Source\EdrumAVR\..\FuncLib" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Other" -I"M:\Robotics\Source\EdrumAVR\..\GenericEdrum" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Applications" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\External" -I"M:\Robotics\Source\EdrumAVR\." 
 
 ## Objects that must be built in order to link
-OBJECTS = EDrumAVRMega.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o UI_KP.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o profiles.o SysEx.o hardwareSpecific.o 
+OBJECTS = EDrumAVRMega.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o profiles.o SysEx.o hardwareSpecific.o UI_KP.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -69,9 +69,6 @@ spi.o: ../../FuncLib/Peripherals/SPI/spi.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 uint8toa.o: ../../FuncLib/Other/mmculib/uint8toa.c
-	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
-
-UI_KP.o: ../UI_KP.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 sample.o: ../../GenericEdrum/Sample/sample.c
@@ -108,6 +105,9 @@ SysEx.o: ../../GenericEdrum/MIDI/SysEx/SysEx.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 hardwareSpecific.o: ../hardwareSpecific.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+UI_KP.o: ../../GenericEdrum/UI_KP/UI_KP.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link
