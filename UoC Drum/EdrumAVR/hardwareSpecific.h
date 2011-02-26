@@ -239,6 +239,8 @@
 #define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
 #define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
 
+#define JUMP_TABLE_LOCATION (0x7FE0)
+
 
 /* hardware Specific defines */
 void DigitalInputInit(void);

@@ -18,6 +18,11 @@
 #include "avrADC/adc.h"
 
 #include "mmculib/uint8toa.h"
+
+#include "edrumAVRsharedfunctions.h"
+
+#include "USBMIDI/USBMIDI.h"
+
 #include <stdlib.h>
 
 const prog_char VersionId[] = "1.4a 31/1/11";
@@ -131,9 +136,16 @@ int main(void)
    /* Flush the buffer */
    UI_KP_GetPress();
 
+   usbMIDIMessage_t message;
+   message.header = 0x09;
+   message.MIDIData[0] = 0x99; 
+   message.MIDIData[1] = 0x55;
+   message.MIDIData[2] = 0x55;
+
    while (1)
    {   
-
+      usbPoll();
+      usbSetInterrupt(&message, 4);
       switch( ActiveProcess )
       {
          case PLAY_MODE:
@@ -204,7 +216,7 @@ ISR(SIG_UART_RECV)
    switch( ActiveProcess )
    {
       case PLAY_MODE:
-         if( buffer = 'D' )
+         if( buffer == 'D' )
          {
             
          }
@@ -233,8 +245,6 @@ ISR(INT1_vect)
    result = UI_KP_GetPress();
    _delay_ms(30);
    result2 = UI_KP_GetPress();
-
-   UDR = result;
 
    //_delay_ms(40);
 

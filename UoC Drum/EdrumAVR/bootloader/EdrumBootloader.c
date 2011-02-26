@@ -22,7 +22,7 @@
 static PROGMEM char deviceDescrMIDI[] = {	/* USB device descriptor */
 	18,			/* sizeof(usbDescriptorDevice): length of descriptor in bytes */
 	USBDESCR_DEVICE,	/* descriptor type */
-	0x10, 0x01,		/* USB version supported */
+	0x00, 0x02,		/* USB version supported */
 	0,			/* device class: defined at interface level */
 	0,			/* subclass */
 	0,			/* protocol */
@@ -188,10 +188,10 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 
 
 //Must be a power of two
-#define RX_BUFFER_SIZE (128)
+#define RX_BUFFER_SIZE (16)
 #define RX_BUFFER_MASK (RX_BUFFER_SIZE - 1)
 
-#define TX_BUFFER_SIZE (32)
+#define TX_BUFFER_SIZE (16)
 #define TX_BUFFER_MASK (TX_BUFFER_SIZE - 1)
 
 uint8_t RxBuffer[RX_BUFFER_SIZE];
@@ -226,7 +226,7 @@ ISR(USART_TXC_vect)
    
 }
 
-ISR(SPM_RDY_vect)
+ISR(SPM_RDY_vect, ISR_NOBLOCK)
 {
 
 }
@@ -267,6 +267,9 @@ void bootloader_Init(void)
 
    UI_ROW_DIR &= ~(UI_ROWS);
    UI_ROW_OUT &= ~(UI_ROWS); 
+
+   SPI_DDR |= ((1 << nSS) | (1 << MOSI) );
+   SPCR |= ((1 << SPE) | (1 << MSTR)); 
 }
 
 
@@ -370,7 +373,6 @@ void usbFunctionWriteOut(uchar * data, uchar len)
    while(byteCount--)
    {
       uint8_t buffer = *data++;
-//      uartTx(buffer);
       RxBuffer[rxWritePtr++] = buffer;
       rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
    }
@@ -381,7 +383,19 @@ void usbFunctionWriteOut(uchar * data, uchar len)
     * the buffer will be full (hence the 16).
     *
     * We shall re-enable the request in the main loop, not the interrupt.  */
-   if( (rxWritePtr + 1) == rxReadPtr )
+   uint8_t length;
+
+   if( rxReadPtr > rxWritePtr  )
+   {
+      length = rxWritePtr + RX_BUFFER_SIZE - rxReadPtr;
+   }
+   else
+   {
+      length = rxWritePtr - rxReadPtr;
+   }
+
+
+   if( (length + 8) > RX_BUFFER_SIZE-1)
    {
       usbDisableAllRequests();
    }
@@ -420,18 +434,15 @@ int main(void)
    MCUCSR = (1 << JTD);
 
    bootloader_Init();
+   GICR = (1 << IVCE);
+   GICR = (1 << IVSEL);
+
+   
    
    /* If bootloader condition */
    if( BOOTLOADER_CONDITION )
-   {
-      SPI_DDR |= ((1 << nSS) | (1 << MOSI) );
-      SPCR |= ((1 << SPE) | (1 << MSTR)); 
-      
-      GICR = (1 << IVCE);
-      GICR = (1 << IVSEL);
-
+   {  
       usbInit();
-
       uartInit();
 
       UBRRL = 39;
@@ -441,19 +452,35 @@ int main(void)
       while(1)
       {
          usbPoll();
-#if 1
+         uint8_t length;
+
+         if( rxReadPtr > rxWritePtr  )
+         {
+            length = rxWritePtr + RX_BUFFER_SIZE - rxReadPtr;
+         }
+         else
+         {
+            length = rxWritePtr - rxReadPtr;
+         }
+
+         if( (length + 8) < RX_BUFFER_SIZE-1)
+         {
+            length = 1;
+         }
+         else
+         {
+            length = 0;
+         }
          /* To save the UART output buffer from overflowing, due to a
           * UART Speed < USB Inspeed (likely under bulk mode, but unlikely under interrupt mode */
          /* To save the USB output buffer from overflowing, due to a
           * UART Speed > USB Outspeed (not likely under bulk mode, but likely under interrupt mode */
          if(  usbAllRequestsAreDisabled() 
             && usbMIDI_bufferIsReady()
-            && (rxWritePtr + 1 != rxReadPtr))
+            && (length))
          {
-           usbEnableAllRequests();
+            usbEnableAllRequests();
          }
-
-#endif
 
 #if 0
          /* Process messages in the UART Rx buffer is there are any */
