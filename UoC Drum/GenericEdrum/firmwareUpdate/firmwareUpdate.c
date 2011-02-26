@@ -11,15 +11,14 @@ static uint32_t firmwareDataCount;
 static uint32_t firmwareByteCount;
 static uint32_t firmwareAddress;
 
-void ReceiveFirmwareInit(void)
+void FirmwareCheckForErase(void)
 {
-   uint32_t address;
-   /* Erase the entire application section */
-   for(address = 0; address < APP_END ;address += FLASH_BLOCK_SIZE)
+
+   if( (firmwareAddress % FLASH_BLOCK_SIZE) == 0 &&
+       (firmwareByteCount % 4) == 0 )
    {
-      _flashmem_erase(address);
+      _flashmem_erase(firmwareAddress);
    }
-   firmwareDataCount = 0;
 }
 
 
@@ -35,8 +34,10 @@ void FirmwareCheckForFinalise(void)
 
 void FirmwareUpdateError()
 {
-
-   asm volatile("jmp 0"::);
+   firmwareDataCount = 0;
+   firmwareByteCount = 0;
+   firmwareAddress = 0;
+   //asm volatile("jmp 0"::);
 }
 
 void ParseFirmwareData(uint8_t nextByte) 
@@ -73,7 +74,7 @@ void ParseFirmwareData(uint8_t nextByte)
       break;
 
       case 3:
-         
+         //ReceiveFirmwareInit();
       break;
 
       default:
@@ -84,6 +85,9 @@ void ParseFirmwareData(uint8_t nextByte)
    
    if( firmwareDataCount >= 3 )
    {
+      /* See if we need to erase the current page */
+      FirmwareCheckForErase();
+
       /* On successful download */
       if( (nextByte == MIDI_SYSEX_STOP) )
       {
@@ -92,7 +96,7 @@ void ParseFirmwareData(uint8_t nextByte)
             _flashmem_finalise(firmwareAddress);
          }
          /* Finish here and restart */
-         FirmwareUpdateError();
+         //FirmwareUpdateError();
       }
       
       /* Check if Datacount is odd */    

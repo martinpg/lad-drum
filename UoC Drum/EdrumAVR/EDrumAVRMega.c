@@ -3,7 +3,7 @@
 #include "hardwareSpecific.h" 
 #include "MIDI/SysEx/SysEx.h"
 #include "UI_LCD/UI_LCD.h"
-#include "UI_KP.h"
+#include "UI_KP/UI_KP.h"
 #include "LCDSettings.h"
 #include "MenuSettings.h"
 #include "Profiles/profiles.h"
@@ -94,8 +94,6 @@ int main(void)
    /*Activate Interrupt */
    MCUCR |= ((1 << ISC11) | (1 << ISC10));
    GICR |= (1 << INT1);
-   GIFR |= (1 << INTF1);
-   GICR |= (1 << INT1);
 
    /* Enable LCD */
    UI_LCD_HWInit();
@@ -130,13 +128,16 @@ int main(void)
 
    sei();
 
+   /* Flush the buffer */
+   UI_KP_GetPress();
+
    while (1)
    {   
 
       switch( ActiveProcess )
       {
          case PLAY_MODE:
-            Play();
+            //Play();
             /*Benchmark();
             BenchMarkCount++;*/
          break;
@@ -230,14 +231,16 @@ ISR(INT1_vect)
    uint8_t result, result2;
 
    result = UI_KP_GetPress();
-   _delay_ms(1);
+   _delay_ms(30);
    result2 = UI_KP_GetPress();
 
-   _delay_ms(40);
+   UDR = result;
+
+   //_delay_ms(40);
 
    if( result == result2 )
    {
-      if( result != KP_INVALID )
+      if( result != KP_INVALID  )
       {
          MenuSetInput(ActiveMenu, result);
          GICR &= ~(1 << INT1);  

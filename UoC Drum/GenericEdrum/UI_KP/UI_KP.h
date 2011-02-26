@@ -20,10 +20,31 @@
 
 #include "version.h"
 
+/* KeyPad Defines */
+/* 1st Row */
+enum 
+{
+   KP_0 = 0x00,
+   KP_1,
+   KP_2,
+   KP_3,
+   KP_4,
+   KP_5,
+   KP_6,
+   KP_7,
+   KP_8,
+   KP_9,
+   KP_A,
+   KP_B,
+   KP_C,
+   KP_D,
+   KP_STAR,
+   KP_HASH,
+} keypad16;
 
 #define KP_ButtonCount  (16)
 #define KP_INVALID   (0xFF)
-#define KP_UPDATE    (0x0A)
+#define KP_UPDATE    (0xFE)
 
 
 void UI_KP_Init(void);

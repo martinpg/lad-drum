@@ -329,7 +329,6 @@ int main(void)
    uint8_t midiReady = 0;
    uint8_t outputBuffer[8];
    
-   
    hardwareInit();
    usbInit();
  
@@ -338,12 +337,16 @@ int main(void)
    uartInit(0);
    uartSetBaud(0, 39);
  
+
+
+
    sei();
 
    while(1)
    { /* main event loop */
       
        usbPoll();
+
 
        /* To save the UART output buffer from overflowing, due to a
         * UART Speed < USB Inspeed (likely under bulk mode, but unlikely under interrupt mode */
@@ -371,7 +374,9 @@ int main(void)
              }
           }
        }
- 
+
+
+
        /* If there is device => USB waiting to be sent */
        if( usbMIDI_bufferLen() && usbInterruptIsReady() )
        {
@@ -393,7 +398,7 @@ int main(void)
              rMIDImsgCount = (rMIDImsgCount + 2) & MIDI_OUT_MASK;
 
           }
-       }              
+       }                    
    }
    return 0;
 }

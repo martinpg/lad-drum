@@ -147,28 +147,28 @@
 
 /* KeyPad Defines */
 /* 1st Row */
-#define KP_1   (0x18)
-#define KP_2   (0x14)
-#define KP_3   (0x12)
-#define KP_A   (0x11)
+#define RAW_KP_1   (0x18)
+#define RAW_KP_2   (0x14)
+#define RAW_KP_3   (0x12)
+#define RAW_KP_A   (0x11)
 
 /* 2nd Row */
-#define KP_4   (0x28)
-#define KP_5   (0x24)
-#define KP_6   (0x22)
-#define KP_B   (0x21)
+#define RAW_KP_4   (0x28)
+#define RAW_KP_5   (0x24)
+#define RAW_KP_6   (0x22)
+#define RAW_KP_B   (0x21)
 
 /* 3rd Row */
-#define KP_7   (0x48)
-#define KP_8   (0x44)
-#define KP_9   (0x42)
-#define KP_C   (0x41)
+#define RAW_KP_7   (0x48)
+#define RAW_KP_8   (0x44)
+#define RAW_KP_9   (0x42)
+#define RAW_KP_C   (0x41)
 
 /* 4th Row */
-#define KP_STAR   (0x88)
-#define KP_0      (0x84)
-#define KP_HASH   (0x82)
-#define KP_D      (0x81)
+#define RAW_KP_STAR   (0x88)
+#define RAW_KP_0      (0x84)
+#define RAW_KP_HASH   (0x82)
+#define RAW_KP_D      (0x81)
 
 
 /* LCD Defines */

@@ -2025,15 +2025,16 @@ void AdjustCrosstalk(void* data)
 void ChangeChannelCode(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
-	static int8_t	code;
+	int8_t code;
 	char outputString[4];
 	
 	if( primaryMenu.firstEnter == 1)
 	{
-		code = MIDI_GetChannelCode();
+		
 	}
 	
-	
+	code = MIDI_GetChannelCode();
+
    if( primaryMenu.firstEnter == 0 )
    {     
       switch( *input )

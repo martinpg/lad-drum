@@ -16,7 +16,7 @@ Profile_t CurrentProfile
 	15,
 	DEFAULT_BAUD_RATE,
 	/* MIDI Channel Instrument # */
-	(0x09 | MIDI_NOTE_ON)
+	(0x09)
 },
 
 /* Channel Settings */
@@ -153,7 +153,7 @@ Profile_t Profile1 SET_SECTION(".profile1") = {
 	15,
 	DEFAULT_BAUD_RATE,
 	/* MIDI Channel Instrument # */
-	(0x09 | MIDI_NOTE_ON)
+	(0x09)
 },
 
 /* Channel Settings */
