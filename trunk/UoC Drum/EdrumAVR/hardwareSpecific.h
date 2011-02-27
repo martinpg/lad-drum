@@ -6,13 +6,14 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <avr/eeprom.h>
 #include <avr/boot.h>
 #include <util/delay.h>
 
 #include "version.h"
 
-//#include "hardUART/hardUart.h"
-//#include "avrADC/adc.h"
+#include "hardUART/hardUart.h"
+#include "avrADC/adc.h"
 //#include "flashmem/flashmem.h"
 
 
@@ -231,7 +232,7 @@
 #define FLASH_TEMP_BUFFER  (APP_END - FLASH_BLOCK_SIZE + 1)
 /* Effective End of UserSpace Flash. Total Flash - Bootloader Flash Size*/
 #define APP_END             (FLASHEND - BOOTLOADER_SIZE)
-#define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
+#define PROFILE_COPY(dest, src, len) eeprom_read_block(dest, src, len)
 
 #define FLASH_PAGE_ERASE(address)         boot_page_erase_safe(address)
 #define FLASH_WORD_WRITE(address, data)   boot_page_fill_safe(address, data)

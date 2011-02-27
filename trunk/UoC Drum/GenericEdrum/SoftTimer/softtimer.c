@@ -23,8 +23,8 @@
 
 /* These are the critical timers */
 SoftTimer_16  SoftTimer1[TIMER1B_COUNT] = {{100, 0, 0},  // Second Delay...
-														 {15, 0, 0},   // MIDI Output
-														 {10, 0, 0}};  // Retrigger Reset	 }; 
+														 {15, 0, 1},   // MIDI Output
+														 {10, 0, 1}};  // Retrigger Reset	 }; 
 
 
 
@@ -125,7 +125,6 @@ void RunAuxTimers(void)
    {
 //		TBCCR2 += SAMPLE_1MS;
 		
-#if 1
 		if(SoftTimerInterrupt(SoftTimer2[SC_AutoMenuUpdate]))
 		{
          /* Update the Threshold and Retrigger bar */
@@ -144,7 +143,6 @@ void RunAuxTimers(void)
    	   	VULevelDecay(ALL_METERS);
 			}
 		}
-#endif
 
 #if 0		
 		if( SoftTimerInterrupt(SoftTimer2[SC_LCD_BL_Period]) )

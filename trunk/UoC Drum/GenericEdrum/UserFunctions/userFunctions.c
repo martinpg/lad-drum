@@ -860,8 +860,8 @@ void SetRetrigger(void* data)
 
 	if( adjustStyle == ANALOGUE_ADJUST )
 	{
-		uint16_t PotValue = SensorPotValue() >> (THRESHOLD_ADJUST);
-		SetChannelReTrig(SelectedChannel, PotValue >> 4);	
+		uint16_t PotValue = SensorPotValue() >> (RETRIGGER_ADJUST);
+		SetChannelReTrig(SelectedChannel, PotValue);	
 	}
 
 	UF_MenuPrint_P(PSTR("Use # to change adj."));
@@ -1835,7 +1835,7 @@ void SaveProfile(void* data)
    	}
 	
       UF_MenuNewLine();
-   	Profile_Write(&CurrentProfile, ProfileSlot);
+   	Profile_Write(&CurrentProfile, ProfileSlot + 1);
    	UF_MenuPrint_P( PSTR("Profile successfully") );
       UF_MenuNewLine();		
    	UF_MenuPrint_P( PSTR("saved to: ") );				
@@ -1879,16 +1879,10 @@ void LoadProfile(void* data)
 	
    UF_MenuNewLine();		
 
-   /* Loading the default profile resets the device */
-	if( ProfileSlot == 0)
-	{
-      reset(0);
-   }
-
    if( ProfileSlot <= NUMBER_OF_PROFILES )
    {
 
-   	Profile_Read(ProfileSlot - 1);
+   	Profile_Read(ProfileSlot);
       /* Implement the changes */
    	MIDI_SetRate(MIDI_GetRate());
    	MIDI_SetBaud(MIDI_GetBaud());
@@ -1902,9 +1896,16 @@ void LoadProfile(void* data)
       UpdateChannelRetriggers();
 
 
-   	UF_MenuPrint_P( PSTR("Profile "));
-   	uint8toa( ProfileSlot, outputString );
-   	UF_MenuPrint(outputString);				
+      UF_MenuPrint_P( PSTR("Profile:"));
+      if( ProfileSlot == DEFAULT_PROFILE )
+      {
+   		UF_MenuPrint_P( PSTR("Default") );	
+   	}
+      else
+   	{
+         uint8toa( ProfileSlot, outputString );
+   	   UF_MenuPrint(outputString);				
+      } 
       UF_MenuNewLine();		
    	UF_MenuPrint_P( PSTR("successfully loaded!") );
 

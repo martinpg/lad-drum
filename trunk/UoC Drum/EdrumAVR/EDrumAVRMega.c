@@ -67,7 +67,7 @@ int main(void)
    ProfileInit();
    
    /* Make profile 1 the default profile on start up */
-   //Profile_Read(0);
+   Profile_Read(1);
    
    SPI_Init();
    SensorInit();

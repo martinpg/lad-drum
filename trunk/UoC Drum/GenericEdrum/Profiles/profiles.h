@@ -2,6 +2,7 @@
 #define PROFILES_H
 
 #include <stdint.h>
+
 #include "hardwareSpecific.h"
 #include "MIDI/midi.h"
 #include "Sample/sample.h"
@@ -10,8 +11,10 @@
 
 #define SEGMENTS_TO_USE       ((NUMBER_OF_PROFILES * sizeof(Profile_t) / FLASH_BLOCK_SIZE) + 1)
 /* Start after the Device Interrupts! */
-#define PROFILE_FLASH_START (FLASH_TEMP_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
-#define PROFILE(x)    		(PROFILE_FLASH_START + (sizeof(Profile_t)*x))
+// For devices which use FLASH memory, it's to be placed at the end of flash 
+//#define PROFILE_START (FLASH_TEMP_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
+#define PROFILE_START (0)
+#define PROFILE(x)    		(PROFILE_START + (sizeof(Profile_t)*x))
 
 #define MIDI_SETTINGS(profile)		PROFILE(profile)
 #define CHANNEL_SETTINGS(profile)	(MIDI_SETTINGS(profile)+sizeof(MidiSettings_t))
@@ -19,7 +22,8 @@
 #define DIGITAL_SETTINGS(profile)	(GAIN_SETTINGS(profile)+sizeof(GainSettings_t))
 #define SENSOR_SETTINGS(profile) 	(DIGITAL_SETTINGS(profile) + sizeof(DigitalSettings_t))
 
-#define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
+//#define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
+//#define PROFILE_COPY(dest, src, len) eeprom_read_block(dest, src, len)
 
 enum {
    DEFAULT_PROFILE = 0,
