@@ -9,4 +9,11 @@ Add your content here.
 
 27/02/2011 The bootloader now has the USB MIDI driver in it. Since Win7 and newer OSes don't support Bulk Transfers on low speed devices, I've had to change it to use interrupt transfers (which are about 8x slower :( )
 
-The effects of this are: #1 UART data comes in faster than the USB can deliver it. #2 USB Data coming from the PC will most likely always be processed without any buffer overflows. #3 Control Flow can be disabled. #4 USB data which comes in gets placed in a queue, if no-one 'gets' it, newer data will overwrite the queue. 
+The effects of this are: 
+#1 UART data comes in faster than the USB can deliver it. 
+
+#2 USB Data coming from the PC will most likely always be processed without any buffer overflows. 
+
+#3 Control Flow can be disabled. 
+
+#4 USB data which comes in gets placed in a queue, if no-one 'gets' it, newer data will overwrite the queue. 
