@@ -204,13 +204,19 @@ uint8_t RxBuffer[RX_BUFFER_SIZE];
 volatile uint8_t rxWritePtr;
 volatile uint8_t rxReadPtr;
 
+/* After 200 times to retry sending a message, we assume the USB is
+   disconnected */
+#define USB_CONNECT_TIMEOUT (5000)
 
+uint8_t USB_Connected;
 
-
-
+/* Firmware Update also via UART */
 ISR(SIG_UART_RECV)
 {
-   USBMIDI_PutByte(UDR);
+   uint8_t buffer = UDR;
+   //USBMIDI_PutByte(buffer);
+   RxBuffer[rxWritePtr++] = buffer;
+   rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
 }
 
 
@@ -289,6 +295,7 @@ void bootloader_leave(void)
  
 uchar usbFunctionDescriptor(usbRequest_t * rq)
 {
+   USB_Connected = 1;
 
    if (rq->wValue.bytes[1] == USBDESCR_DEVICE) 
    {
@@ -318,7 +325,7 @@ uchar usbFunctionDescriptor(usbRequest_t * rq)
 uchar usbFunctionSetup(uchar data[8])
 {
    usbRequest_t *rq = (void *) data;
-
+  
    if ((rq->bmRequestType & USBRQ_TYPE_MASK) == USBRQ_TYPE_CLASS) 
    { /* class request type */
  
@@ -436,20 +443,29 @@ uint8_t USBMIDI_GetByte(void)
 /* This here makes the process Buffer redundant */
 void USBMIDI_PutByte(uint8_t byte)
 {
-   uint8_t midiReady = 0;
-   /* Only process this stuff if we have enough room in the MIDI out buffer */
-   if( usbMIDI_bufferIsReady() )
+   uint8_t midiReady;
+   uint16_t retry;
+   /* Only process this stuff if we have enough room in the MIDI out buffer, we must block otherwise */
+   if( !usbMIDI_bufferIsReady() )
    {
-      midiReady = MIDIDataReady(byte, &MIDImsgComplete[wMIDImsgCount]);
-      /* Copy it out, so the tempbuffer is ready again */
-      if( midiReady == MIDI_DATA_READY)
+      /* Data will be lost here, so we send out the data, and BLOCK, but what if the USB is not connected?
+         We must exit after a timeout */
+      while(!usbMIDI_bufferIsReady() && USB_Connected)
       {
-         wMIDImsgCount = (wMIDImsgCount + 1) & MIDI_OUT_MASK;
+         if( retry++ > USB_CONNECT_TIMEOUT )
+         {
+            USB_Connected = 0;
+         }
+         usbPoll();
+         USBMIDI_OutputData();
       }
    }
-   else
+
+   midiReady = MIDIDataReady(byte, &MIDImsgComplete[wMIDImsgCount]);
+   /* Copy it out, so the tempbuffer is ready again */
+   if( midiReady == MIDI_DATA_READY)
    {
-      /* Data will be lost here */
+      wMIDImsgCount = (wMIDImsgCount + 1) & MIDI_OUT_MASK;
    }
 }
 

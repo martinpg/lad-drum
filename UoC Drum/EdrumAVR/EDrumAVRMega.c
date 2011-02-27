@@ -91,7 +91,7 @@ int main(void)
    /* ADC Module Init */
    ADC_Init();
    
-   //SoftTimer_TimerInit();
+   SoftTimer_TimerInit();
 
    /* Enable Keypad */
    UI_KP_Init();   
@@ -141,8 +141,6 @@ int main(void)
    while (1)
    {   
       usbPoll();
-      USBMIDI_EnableRequests();
-      USBMIDI_ProcessBuffer();
       USBMIDI_OutputData();
 
       switch( ActiveProcess )
@@ -206,6 +204,11 @@ ISR(SIG_UART_RECV)
    buffer = UDR;
    sei();
 
+   if( buffer == 0xFF )
+   {
+      PORTD ^= (1 << 7);
+   }
+
    USBMIDI_PutByte(buffer);
    uartTx(buffer);
 
@@ -214,7 +217,7 @@ ISR(SIG_UART_RECV)
       case PLAY_MODE:
          if( buffer == 'D' )
          {
-            
+            SysexSend(&CurrentProfile, sizeof(Profile_t));
          }
       break;
       
@@ -242,8 +245,9 @@ ISR(INT0_vect, ISR_NOBLOCK)
 
 
 
-ISR(INT1_vect)
+ISR(INT1_vect, ISR_NOBLOCK)
 {
+   GICR &= ~(1 << INT1);
 
    char outputString[5];
    static uint8_t j;
