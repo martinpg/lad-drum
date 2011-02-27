@@ -79,7 +79,19 @@ int main(void)
    while (1)
    {   
       usbPoll();
-      USBMIDI_ProcessBuffer();
+      USBMIDI_EnableRequests();
+      //USBMIDI_ProcessBuffer();
+
+      uint8_t nextByte;
+      nextByte = USBMIDI_GetByte();
+      if( nextByte != NO_DATA_BYTE )
+      {
+         USBMIDI_PutByte(nextByte);
+      }
+
       USBMIDI_OutputData();
+
+
+
    }
 }

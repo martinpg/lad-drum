@@ -9,6 +9,7 @@ typedef void (*PF_VOID)(void);
 typedef void (*PF_USBMIDI_PutByte)(uint8_t);
 typedef void (*PF_bootUartTx)(uint8_t);
 typedef void (*PF_usbSetInterrupt)(uint8_t*, uint8_t);
+typedef uint8_t (*PF_USBMIDI_GetByte)(void);
 
 #define JUMP_TABLE_FUNCTION(x) ((JUMP_TABLE_LOCATION + (4*x))/2)
 
@@ -22,7 +23,7 @@ typedef void (*PF_usbSetInterrupt)(uint8_t*, uint8_t);
 #define USBMIDI_ProcessBuffer()        ((PF_VOID)(JUMP_TABLE_FUNCTION(6)))()
 #define USBMIDI_OutputData()           ((PF_VOID)(JUMP_TABLE_FUNCTION(7)))()
 #define USBMIDI_EnableRequests()       ((PF_VOID)(JUMP_TABLE_FUNCTION(8)))()
-
+#define USBMIDI_GetByte()              ((PF_USBMIDI_GetByte)(JUMP_TABLE_FUNCTION(9)))()
 
 
 
