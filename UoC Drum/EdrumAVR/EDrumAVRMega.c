@@ -131,6 +131,8 @@ int main(void)
    /* Reprint Menu */  
    MenuUpdate(&primaryMenu, RESET_MENU);
 
+   usbInit();
+
    sei();
 
    /* Flush the buffer */
@@ -145,7 +147,10 @@ int main(void)
    while (1)
    {   
       usbPoll();
-      usbSetInterrupt(&message, 4);
+      USBMIDI_EnableRequests();
+      USBMIDI_ProcessBuffer();
+      USBMIDI_OutputData();
+
       switch( ActiveProcess )
       {
          case PLAY_MODE:
@@ -194,10 +199,6 @@ void Play(void)
 }
 
 
-ISR(INT0_vect)
-{
-
-}
 
 ISR(SIG_SPM_READY)
 {
@@ -211,6 +212,7 @@ ISR(SIG_UART_RECV)
    buffer = UDR;
    sei();
 
+   USBMIDI_PutByte(buffer);
    uartTx(buffer);
 
    switch( ActiveProcess )
@@ -232,8 +234,19 @@ ISR(SIG_UART_RECV)
 
    }
 
-
 }
+
+
+// This must be declared "naked" because we want to let the
+// bootloader function handle all of the register push/pops
+// and do the RETI to end the handler.
+void INT0_vect(void) __attribute__((naked));
+ISR(INT0_vect)
+{
+    asm("jmp 0x7004");
+}
+
+
 
 ISR(INT1_vect)
 {

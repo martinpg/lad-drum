@@ -3,11 +3,14 @@
 #define	_USB_MIDI
 
 #include <stdint.h>
+#include "MIDICodes/MIDICodes.h"
 
 /* To be defined in hardwareSpecific.h */
-//#define PROGRAM_SPACE PROGMEM
-//#define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
-//#define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
+#ifndef __HARDWARE_SPECIFIC
+#define PROGRAM_SPACE PROGMEM
+#define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
+#define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
+#endif
 
  /* Needs to be a power of 2 */
 #define MIDI_OUT_BUFFER    (4)

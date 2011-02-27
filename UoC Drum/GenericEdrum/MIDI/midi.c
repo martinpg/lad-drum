@@ -5,7 +5,7 @@
 #include "midi.h"
 #include "VUMeter/vumeter.h"
 
-
+#include "edrumAVRsharedfunctions.h"
 
 
 const char MIDI_NOTES[] = "C C#D D#E F F#G G#A A#B ";
@@ -17,6 +17,13 @@ const PROGRAM_CHAR MIDI_BAUD[][11] PROGRAM_SPACE = {"31.25k",
 static uint16_t MIDI_LastMIDIValue[ANALOGUE_INPUTS];
 
 MidiSettings_t* MIDISettings;
+
+
+void midiTx(uint8_t inbyte)
+{
+   USBMIDI_PutByte(inbyte);
+   uartTx(inbyte);
+}
 
 void MIDI_Output(void)
 {

@@ -206,9 +206,7 @@ volatile uint8_t txReadPtr;
 
 ISR(SIG_UART_RECV)
 {
-   uint8_t buffer = UDR;
-   RxBuffer[rxWritePtr++] = buffer;
-   rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
+   USBMIDI_PutByte(UDR);
 }
 
 
@@ -232,7 +230,7 @@ ISR(SPM_RDY_vect, ISR_NOBLOCK)
 }
 
 
-void uartInit(void)
+void bootuartInit(void)
 {
 	UCSRB |= (1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE);	/*Enable Rx and Tx modules*/
 	UCSRB &= ~(1<<UCSZ2);				/*Set to 8bit mode*/
@@ -267,9 +265,6 @@ void bootloader_Init(void)
 
    UI_ROW_DIR &= ~(UI_ROWS);
    UI_ROW_OUT &= ~(UI_ROWS); 
-
-   SPI_DDR |= ((1 << nSS) | (1 << MOSI) );
-   SPCR |= ((1 << SPE) | (1 << MSTR)); 
 }
 
 
@@ -395,8 +390,9 @@ void usbFunctionWriteOut(uchar * data, uchar len)
    }
 
 
-   if( (length + 8) > RX_BUFFER_SIZE-1)
+   if( (length + 8) > RX_BUFFER_MASK)
    {
+      UDR = 0xAA;
       usbDisableAllRequests();
    }
 
@@ -411,21 +407,110 @@ void usbFunctionWriteOut(uchar * data, uchar len)
     * DisableAllRequests on a bulk transfer. */
    if( !usbMIDI_bufferIsReady() )
    {
+      UDR = 0xCC;
       usbDisableAllRequests();
    }
 }
  
- 
+
+
+
+void USBMIDI_PutByte(uint8_t byte)
+{
+   RxBuffer[rxWritePtr++] = byte;
+   rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
+}
+
+
+void USBMIDI_EnableRequests(void)
+{
+   uint8_t length;
+
+   if( rxReadPtr > rxWritePtr  )
+   {
+      length = rxWritePtr + RX_BUFFER_SIZE - rxReadPtr;
+   }
+   else
+   {
+      length = rxWritePtr - rxReadPtr;
+   }
+
+   if( (length + 8) < RX_BUFFER_MASK)
+   {
+      length = 1;
+   }
+   else
+   {
+      length = 0;
+   }
+   /* To save the UART output buffer from overflowing, due to a
+    * UART Speed < USB Inspeed (likely under bulk mode, but unlikely under interrupt mode */
+   /* To save the USB output buffer from overflowing, due to a
+    * UART Speed > USB Outspeed (not likely under bulk mode, but likely under interrupt mode */
+   if(  usbAllRequestsAreDisabled() 
+      && usbMIDI_bufferIsReady()
+      && (length))
+   {
+      usbEnableAllRequests();
+   }
+
+}
+
+
+
+void USBMIDI_ProcessBuffer(void)
+{
+    uint8_t midiReady = 0;
+   /* Process messages in the "UART Rx" buffer is there are any */
+    while( rxReadPtr != rxWritePtr )
+    {
+       /* Only process this stuff if we have enough room in the MIDI out buffer */
+       if( usbMIDI_bufferIsReady() )
+       {
+          uint8_t nextByte = RxBuffer[rxReadPtr++];;
+          rxReadPtr &= RX_BUFFER_MASK;
+          midiReady = MIDIDataReady(nextByte, &MIDImsgComplete[wMIDImsgCount]);
+          /* Copy it out, so the tempbuffer is ready again */
+          if( midiReady == MIDI_DATA_READY)
+          {
+             wMIDImsgCount = (wMIDImsgCount + 1) & MIDI_OUT_MASK;
+          }
+       }
+    }
+}
 
 
 
 
 
+void USBMIDI_OutputData(void)
+{
+    uint8_t outputBuffer[8];
+    /* If there is device => USB waiting to be sent */
+    while( usbMIDI_bufferLen() && usbInterruptIsReady() )
+    {
+       usbPoll();
+    /* If the USB Interrupt isn't ready, then we have an issue
+     * of data coming from the UART quicker than it is going out, to keep up
+     * we need to send 2 data events sometimes */
+       if( usbMIDI_bufferLen() == 1 )
+       {
+          /* Send 1 byte */
+          usbSetInterrupt( (uint8_t*)&MIDImsgComplete[rMIDImsgCount], 4);
+          rMIDImsgCount = (rMIDImsgCount + 1) & MIDI_OUT_MASK;
+       }
+       else
+       {
+          /* Send 2 bytes */
+          memcpy(&outputBuffer, &MIDImsgComplete[rMIDImsgCount], sizeof(usbMIDIMessage_t));
+          memcpy(&outputBuffer[4], &MIDImsgComplete[(rMIDImsgCount+1) & MIDI_OUT_MASK], sizeof(usbMIDIMessage_t));
+          usbSetInterrupt( (uint8_t*)&outputBuffer, 8);
+          rMIDImsgCount = (rMIDImsgCount + 2) & MIDI_OUT_MASK;
 
+       }
+    }    
 
-
-
-
+}
 
 
 int main(void)
@@ -434,16 +519,18 @@ int main(void)
    MCUCSR = (1 << JTD);
 
    bootloader_Init();
+
+   SPI_DDR |= ((1 << nSS) | (1 << MOSI) );
+   SPCR |= ((1 << SPE) | (1 << MSTR)); 
+
    GICR = (1 << IVCE);
    GICR = (1 << IVSEL);
 
-   
-   
    /* If bootloader condition */
    if( BOOTLOADER_CONDITION )
    {  
       usbInit();
-      uartInit();
+      bootuartInit();
 
       UBRRL = 39;
 
@@ -452,79 +539,10 @@ int main(void)
       while(1)
       {
          usbPoll();
-         uint8_t length;
-
-         if( rxReadPtr > rxWritePtr  )
-         {
-            length = rxWritePtr + RX_BUFFER_SIZE - rxReadPtr;
-         }
-         else
-         {
-            length = rxWritePtr - rxReadPtr;
-         }
-
-         if( (length + 8) < RX_BUFFER_SIZE-1)
-         {
-            length = 1;
-         }
-         else
-         {
-            length = 0;
-         }
-         /* To save the UART output buffer from overflowing, due to a
-          * UART Speed < USB Inspeed (likely under bulk mode, but unlikely under interrupt mode */
-         /* To save the USB output buffer from overflowing, due to a
-          * UART Speed > USB Outspeed (not likely under bulk mode, but likely under interrupt mode */
-         if(  usbAllRequestsAreDisabled() 
-            && usbMIDI_bufferIsReady()
-            && (length))
-         {
-            usbEnableAllRequests();
-         }
-
-#if 0
-         /* Process messages in the UART Rx buffer is there are any */
-          if( ringbuffer_len((RINGBUFFER_T*)&ReceiveBuffer) )
-          {
-             /* Only process this stuff if we have enough room in the MIDI out buffer */
-             if( usbMIDI_bufferIsReady() )
-             {
-                uint8_t nextByte = ringbuffer_get((RINGBUFFER_T*)&ReceiveBuffer);
-                midiReady = MIDIDataReady(nextByte, &MIDImsgComplete[wMIDImsgCount]);
-                /* Copy it out, so the tempbuffer is ready again */
-                if( midiReady == MIDI_DATA_READY)
-                {
-                   wMIDImsgCount = (wMIDImsgCount + 1) & MIDI_OUT_MASK;
-                }
-             }
-          }
-#endif 
-
-#if 0
-          /* If there is device => USB waiting to be sent */
-          if( usbMIDI_bufferLen() && usbInterruptIsReady() )
-          {
-          /* If the USB Interrupt isn't ready, then we have an issue
-           * of data coming from the UART quicker than it is going out, to keep up
-           * we need to send 2 data events sometimes */
-             if( usbMIDI_bufferLen() == 1 )
-             {
-                /* Send 1 byte */
-                usbSetInterrupt( (uint8_t*)&MIDImsgComplete[rMIDImsgCount], 4);
-                rMIDImsgCount = (rMIDImsgCount + 1) & MIDI_OUT_MASK;
-             }
-             else
-             {
-                /* Send 2 bytes */
-                memcpy(&outputBuffer, &MIDImsgComplete[rMIDImsgCount], sizeof(usbMIDIMessage_t));
-                memcpy(&outputBuffer[4], &MIDImsgComplete[(rMIDImsgCount+1) & MIDI_OUT_MASK], sizeof(usbMIDIMessage_t));
-                usbSetInterrupt( (uint8_t*)&outputBuffer, 8);
-                rMIDImsgCount = (rMIDImsgCount + 2) & MIDI_OUT_MASK;
-
-             }
-          }    
-#endif  
-
+         USBMIDI_EnableRequests();
+         //USBMIDI_ProcessBuffer();
+         //USBMIDI_OutputData();
+#if 1
          /* Process messages in the UART Rx buffer is there are any */
          if( rxReadPtr != rxWritePtr )
          {
@@ -533,6 +551,8 @@ int main(void)
             ParseFirmwareData(nextByte);
             FirmwareCheckForFinalise();
          }
+#endif
+
       }
 
    }

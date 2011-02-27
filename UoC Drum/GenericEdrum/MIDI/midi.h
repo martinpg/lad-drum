@@ -53,6 +53,8 @@ typedef struct {
 
 extern MidiSettings_t* MIDISettings;
 
+void midiTx(uint8_t inbyte);
+
 void MIDI_Output(void);
 void MIDI_DigitalOutput(void);
 void MIDI_MetronomeOutput(void);
