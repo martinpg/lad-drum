@@ -18,10 +18,14 @@
 
 #define	UCSRCMASK		(0x7F)
 
+
 void bootuartInit(void);
-void bootloader_Init(void);
+void bootloader_enit(void);
+void bootloader_enter(void);
 void bootloader_leave(void);
 
+void bootuartTxString_P(PGM_P outString_P);
+void bootuartTx(uint8_t outbyte);
 
 void USBMIDI_PutByte(uint8_t byte);
 void USBMIDI_EnableRequests(void);

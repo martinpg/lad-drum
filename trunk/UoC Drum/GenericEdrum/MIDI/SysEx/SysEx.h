@@ -9,7 +9,6 @@
 
 void SysexSend(void* data, uint16_t len);
 uint8_t IsReceivingSysExData(uint8_t state);
-void ReceiveSysEx(void);
 void ParseSysExData(uint8_t nextByte);
 void SysExFlush(void);
 void SysEx_ReceiveError(void);

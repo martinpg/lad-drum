@@ -185,20 +185,11 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 };
 
 
-
+const PROGRAM_CHAR VersionID[] = "USB-MIDI Bootloader V1.0";
 
 //Must be a power of two
 #define RX_BUFFER_SIZE (32)
 #define RX_BUFFER_MASK (RX_BUFFER_SIZE - 1)
-
-/* Not used
-#define TX_BUFFER_SIZE (16)
-#define TX_BUFFER_MASK (TX_BUFFER_SIZE - 1)
-
-uint8_t TxBuffer[TX_BUFFER_SIZE];
-volatile uint8_t txWritePtr;
-volatile uint8_t txReadPtr;
-*/
 
 uint8_t RxBuffer[RX_BUFFER_SIZE];
 volatile uint8_t rxWritePtr;
@@ -219,12 +210,19 @@ ISR(SIG_UART_RECV)
    rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
 }
 
+void bootuartTxString_P(PGM_P outString_P)
+{
+   char c;
+   while( (c = pgm_read_byte(outString_P++)) )
+   {
+      bootuartTx(c);    
+   }
+}
 
-void uartTx(uint8_t outbyte)
+void bootuartTx(uint8_t outbyte)
 {
 	/*Wait until output shift register is empty*/	
 	while( (UCSRA & (1<<UDRE)) == 0 );
-		
 	/*Send byte to output buffer*/
 	UDR	= outbyte;
 }
@@ -240,58 +238,7 @@ ISR(SPM_RDY_vect, ISR_NOBLOCK)
 }
 
 
-void bootuartInit(void)
-{
-	UCSRB |= (1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE);	/*Enable Rx and Tx modules*/
-	UCSRB &= ~(1<<UCSZ2);				/*Set to 8bit mode*/
-	
 
-	/*Select UCSRC to be written to*/	
-	/* Set to Asynchronous Mode
-	 *			 1 Stop-bit
-	 *			 No Parity
-	 *			 8-bit char mode
-	 */
-	UCSRC = (UCSRC & ~( UCSRCMASK ))
-				|  (NOPARITY<<UPM0)
-				|	(BIT8 << UCSZ0) 
-				|  (1<<URSEL);
-
-   /*Enable the pull up on RXD */
-   PORTD |= (1 << PD0);
-}
-
-
-
-void bootloader_Init(void)
-{
-   /* Monitor the interrupt pin */
-   DDRD &= ~(1 << 3);
-   PORTD &= ~(1<<3);
-
-   /* Columns as outputs */  
-   UI_COL_DIR |= (UI_COLS);
-   UI_COL_OUT |= (UI_COLS);
-
-   UI_ROW_DIR &= ~(UI_ROWS);
-   UI_ROW_OUT &= ~(UI_ROWS); 
-}
-
-
-void bootloader_leave(void)
-{
-   cli();
-   _flashmem_release();
-
-   GICR = (1 << IVCE);     /* enable change of interrupt vectors */
-   GICR = (0 << IVSEL);    /* move interrupts to application flash section */
-
-   asm volatile("jmp 0"::);
-}
-
-
- 
- 
  
 uchar usbFunctionDescriptor(usbRequest_t * rq)
 {
@@ -548,52 +495,104 @@ void USBMIDI_OutputData(void)
 }
 
 
+
+
+void bootuartInit(void)
+{
+	UCSRB |= (1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE);	/*Enable Rx and Tx modules*/
+	UCSRB &= ~(1<<UCSZ2);				/*Set to 8bit mode*/
+	
+
+	/*Select UCSRC to be written to*/	
+	/* Set to Asynchronous Mode
+	 *			 1 Stop-bit
+	 *			 No Parity
+	 *			 8-bit char mode
+	 */
+	UCSRC = (UCSRC & ~( UCSRCMASK ))
+				|  (NOPARITY<<UPM0)
+				|	(BIT8 << UCSZ0) 
+				|  (1<<URSEL);
+
+   /*Enable the pull up on RXD */
+   PORTD |= (1 << PD0);
+}
+
+
+
+void bootloader_init(void)
+{
+   /* Monitor the interrupt pin */
+   DDRD &= ~(1 << 3);
+   PORTD &= ~(1<<3);
+
+   /* Columns as outputs */  
+   UI_COL_DIR |= (UI_COLS);
+   UI_COL_OUT |= (UI_COLS);
+
+   UI_ROW_DIR &= ~(UI_ROWS);
+   UI_ROW_OUT &= ~(UI_ROWS); 
+}
+
+
+void bootloader_leave(void)
+{
+   cli();
+   _flashmem_release();
+   GICR = (1 << IVCE);     /* enable change of interrupt vectors */
+   GICR = (0 << IVSEL);    /* move interrupts to application flash section */
+   asm volatile("jmp 0"::);
+}
+
+
+void bootloader_enter(void)
+{
+   GICR = (1 << IVCE);
+   GICR = (1 << IVSEL);
+   
+   DDRD |= (1 << 7);
+   
+   usbInit();
+   bootuartInit();
+   UBRRL = 39;
+   sei();
+
+   bootuartTxString_P(PSTR("Welcome to "));
+   bootuartTxString_P(&VersionID);
+   bootuartTx('\n');
+   bootuartTx('\r');
+   bootuartTxString_P(PSTR("by FuzzyJohn Inc. 2011"));
+
+   while(1)
+   {
+      usbPoll();
+      //USBMIDI_OutputData();
+      uint8_t nextByte;
+      nextByte = USBMIDI_GetByte();
+      if( nextByte != NO_DATA_BYTE )
+      {
+         ParseFirmwareData(nextByte);
+         FirmwareCheckForFinalise();
+      }
+   }
+}
+
 int main(void)
 {
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
 
-   bootloader_Init();
-
-   SPI_DDR |= ((1 << nSS) | (1 << MOSI) );
-   SPCR |= ((1 << SPE) | (1 << MSTR)); 
-
-   GICR = (1 << IVCE);
-   GICR = (1 << IVSEL);
+   bootloader_init();
 
    /* If bootloader condition */
    if( BOOTLOADER_CONDITION )
    {  
-      usbInit();
-      bootuartInit();
-
-      UBRRL = 39;
-
-      sei();
-
-      while(1)
-      {
-         usbPoll();
-         //USBMIDI_OutputData();
-#if 1
-         uint8_t nextByte;
-         nextByte = USBMIDI_GetByte();
-         if( nextByte != NO_DATA_BYTE )
-         {
-            ParseFirmwareData(nextByte);
-            FirmwareCheckForFinalise();
-         }
-#endif
-
-      }
-
+      bootloader_enter();
    }
    else
    {
       bootloader_leave();
    }
-
-
    return 0;
 }
 

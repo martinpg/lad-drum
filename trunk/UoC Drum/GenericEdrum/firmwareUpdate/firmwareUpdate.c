@@ -17,7 +17,6 @@ void FirmwareCheckForErase(void)
    if( (firmwareAddress % FLASH_BLOCK_SIZE) == 0 &&
        (firmwareByteCount % 4) == 0 )
    {
-      UDR = 0xEE;
       _flashmem_erase(firmwareAddress);
    }
 }
@@ -29,7 +28,8 @@ void FirmwareCheckForFinalise(void)
        (firmwareAddress) && 
        (firmwareByteCount % 4) == 0 )
    {
-      UDR = 0xBB;
+      PORTD ^= (1 << 7);
+
       _flashmem_finalise(firmwareAddress-2);
    }
 }

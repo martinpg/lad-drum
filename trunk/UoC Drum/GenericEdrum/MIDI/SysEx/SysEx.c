@@ -60,14 +60,6 @@ uint8_t IsReceivingSysExData(uint8_t state)
 }
 
 
-void ReceiveSysEx(void)
-{
-   while( ringbuffer_len((RINGBUFFER_T*)&ReceiveBuffer)  )
-   {
-      ParseSysExData(ringbuffer_get((RINGBUFFER_T*)&ReceiveBuffer));
-   }
-}
-
 void ParseSysExData(uint8_t nextByte)
 {
    

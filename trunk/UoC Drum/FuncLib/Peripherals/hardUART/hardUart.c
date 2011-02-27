@@ -188,9 +188,7 @@ void uartTxString(uint8_t* outString)
 /* Send a string which resides in the program memory */
 void uartTxString_P(PGM_P outString_P)
 {
-
    char c;
-
    while( (c = pgm_read_byte(outString_P++)) )
    {
       uartTx(c);    
