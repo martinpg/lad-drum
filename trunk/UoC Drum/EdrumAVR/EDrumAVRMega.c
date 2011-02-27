@@ -137,6 +137,7 @@ int main(void)
 
    /* Flush the buffer */
    UI_KP_GetPress();
+   uint8_t inByte;
 
    while (1)
    {   
@@ -152,7 +153,11 @@ int main(void)
          break;
              
          case RECEIVE_SYSEX:
-            ReceiveSysEx();
+            inByte = USBMIDI_GetByte();
+            if( inByte != NO_DATA_BYTE)
+            {
+               ParseSysExData(inByte);
+            }
          break;
 
          case FIRMWARE_UPGRADE:

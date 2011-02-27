@@ -224,7 +224,10 @@ void DumpSysEx(void* data)
 	
    UF_MenuNewLine();		
 
+   /* Stop output timers */
+   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
    SysexSend(&CurrentProfile, sizeof(Profile_t));
+   SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
 
 	UF_MenuPrint_P( PSTR("Profile sucessfully"));			
    UF_MenuNewLine();		
@@ -870,7 +873,6 @@ void SetRetrigger(void* data)
 	UF_MenuPrint_P(PSTR("Retrigger Level: "));
 	UF_MenuNewLine();	
 	uint8toa(GetChannelReTrig(SelectedChannel), outputString);
-	
 	UF_MenuPrint(outputString);
 	UF_MenuPrint_P(PSTR("0 ms "));	
    
@@ -880,7 +882,12 @@ void SetRetrigger(void* data)
 	    
 	UF_MenuNewLine(); 
 
-	UF_MenuPrint_P(PSTR("Default Retrig: 10ms"));	
+   UF_MenuPrint_P(PSTR("BPM: "));	
+   uint16_t BPM = (RETRIGGER_RESOLUTION / GetChannelReTrig(SelectedChannel));
+	utoa(BPM, outputString, 10);
+	UF_MenuPrint(outputString);
+   
+	//UF_MenuPrint_P(PSTR("Default Retrig: 10ms"));	
 	
    UpdateChannelRetriggers();
    	

@@ -29,6 +29,8 @@
 
 /* Retrigger Defines , in 10ms increments */
 #define MAX_RETRIGGER      (255)
+/* For BPM conversion */
+#define RETRIGGER_RESOLUTION (100*60)
 #define DEFAULT_RETRIGGER	(3)
 #define MIN_RETRIGGER         (0)
 #define RETRIGGER_ADJUST   (ADC_RESOLUTION - 8)
