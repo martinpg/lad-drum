@@ -237,6 +237,8 @@ void RunAuxTimers(void)
 }
 
 
+
+
 uint8_t SoftTimer_IsTimer2Active(void)
 {
    uint8_t i;
@@ -248,6 +250,5 @@ uint8_t SoftTimer_IsTimer2Active(void)
          return 1;  
       }
    }
-   
    return 0;
 }
