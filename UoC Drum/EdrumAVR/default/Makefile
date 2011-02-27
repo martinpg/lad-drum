@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99                                                                    -DF_CPU=20000000UL -Os -fsigned-char
+CFLAGS += -Wall -gdwarf-2 -std=gnu99                                                                          -DF_CPU=20000000UL -Os -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -26,8 +26,8 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 ## Linker flags
 LDFLAGS = $(COMMON)
 LDFLAGS +=  -Wl,-Map=EdrumAVR.map
-LDFLAGS += -Wl,-section-start=.profile1=0x7600
 LDFLAGS += -Wl,-section-start=.data=0x8000ff
+LDFLAGS += -Wl,-section-start=.profile1=0x810140
 
 
 ## Intel Hex file production flags
@@ -36,6 +36,7 @@ HEX_FLASH_FLAGS = -R .eeprom -R .fuse -R .lock -R .signature
 HEX_EEPROM_FLAGS = -j .eeprom
 HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"
 HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
+HEX_EEPROM_FLAGS += --change-section-lma .profile1=0x140
 
 
 ## Include Directories

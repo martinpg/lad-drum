@@ -6,10 +6,9 @@
 #include "MIDICodes/MIDICodes.h"
 #include "flashmem/flashmem.h"
 
-Profile_t CurrentProfile
+Profile_t CurrentProfile; 
 
-#if 1
- = { 
+Profile_t Profile0 EEMEM = { 
 /* MIDISettings_t */
 {	
 	/* 15ms output rate */
@@ -143,10 +142,7 @@ Profile_t CurrentProfile
 };
 
 
-#endif
-
-#if 0
-Profile_t Profile1 SET_SECTION(".profile1") = { 
+Profile_t Profile1 EEMEM = { 
 /* MIDISettings_t */
 {	
 	/* 15ms output rate */
@@ -279,7 +275,7 @@ Profile_t Profile1 SET_SECTION(".profile1") = {
 { SENSOR_OUTPUT2, DEFAULT_CROSSTALK }
 
 };
-#endif
+
 
 /* Sets up the clock with MCLK*/
 void ProfileInit(void)
@@ -301,7 +297,8 @@ void ProfileInit(void)
    Profile Index (0 -> 3) */
 void Profile_Write(Profile_t* profile, uint8_t profileIndex)
 {
-   uint32_t memPtr = PROFILE(0);
+   void* memPtr = (void*)PROFILE(profileIndex);
+   eeprom_update_block(&CurrentProfile, memPtr, sizeof(Profile_t));
 //   flashmem_bufferedWrite(memPtr, (void*)profile, sizeof(Profile_t), 0 );
 
 }

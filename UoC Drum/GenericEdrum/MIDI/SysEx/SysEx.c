@@ -3,13 +3,13 @@
 
 
 #include <stdint.h>
+#include <stdlib.h>
 #include "EDrumAVRMega.h"
 #include "hardwareSpecific.h"
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"
 #include "Menu/Menu.h"
 #include "MenuSettings.h"
-#include "mmculib/uint16toa.h"
 #include "SoftTimer/softtimer.h"
 #include "SysEx.h"
 
