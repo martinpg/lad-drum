@@ -189,10 +189,11 @@ void SysExDisplay(void* data)
 			break;
 		}	
 	}
-	
+
+
 	UF_MenuReset();
 	primaryMenu.firstEnter = 0;
-	
+
 	/* Since each byte is sent as 2x 7 bit SysEx 'bytes' */
 	utoa( sizeof(Profile_t) * 2, outputString, 10);
 	
@@ -201,7 +202,7 @@ void SysExDisplay(void* data)
    UF_MenuPrint(outputString);
    UF_MenuPrint_P( PSTR(" bytes") ); 
    
-   UF_MenuNewLine(); 
+   UF_MenuNewLine();
 }
 
 void DumpSysEx(void* data)
@@ -224,7 +225,7 @@ void DumpSysEx(void* data)
    UF_MenuNewLine();		
 
    SysexSend(&CurrentProfile, sizeof(Profile_t));
-   
+
 	UF_MenuPrint_P( PSTR("Profile sucessfully"));			
    UF_MenuNewLine();		
 	UF_MenuPrint_P( PSTR("uploaded!") );
@@ -233,7 +234,6 @@ void DumpSysEx(void* data)
 	{	
 		_delay_ms(200);
 	}	
-	
    UF_MenuUpOneLevel(&primaryMenu);  
 }
 
@@ -860,7 +860,7 @@ void SetRetrigger(void* data)
 
 	if( adjustStyle == ANALOGUE_ADJUST )
 	{
-		uint16_t PotValue = SensorPotValue();
+		uint16_t PotValue = SensorPotValue() >> (THRESHOLD_ADJUST);
 		SetChannelReTrig(SelectedChannel, PotValue >> 4);	
 	}
 

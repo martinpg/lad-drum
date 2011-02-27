@@ -86,7 +86,7 @@ int main(void)
       nextByte = USBMIDI_GetByte();
       if( nextByte != NO_DATA_BYTE )
       {
-         USBMIDI_PutByte(nextByte);
+         //USBMIDI_PutByte(nextByte);
       }
 
       USBMIDI_OutputData();
