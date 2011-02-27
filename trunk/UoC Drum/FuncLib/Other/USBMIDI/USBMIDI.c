@@ -2,9 +2,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <avr/pgmspace.h>
-#include <USBMIDI/USBMIDI.h>
-#include "hardwareSpecific.h"
-#include "MIDICodes/MIDICodes.h"
+#include "USBMIDI/USBMIDI.h"
+
 
 uint8_t MIDIResponseMap[] PROGRAM_SPACE = {
    3, //CIN=0x0, MIDI Size = 1,2 or 3 (Misc)
@@ -86,7 +85,7 @@ uint8_t usbMIDI_ParseData(uint8_t* data, uint8_t len)
       if( data[i] )
       {
          codeIndexNumber = data[i] & (0x0F);
-         messageSize = FLASH_GET_PGM_BYTE(MIDIResponseMap[codeIndexNumber]);
+         messageSize = FLASH_GET_PGM_BYTE(&MIDIResponseMap[codeIndexNumber]);
          memcpy(data + byteCount, data+i+1 , messageSize);
          byteCount = byteCount + messageSize;
       }
@@ -105,9 +104,9 @@ uint8_t LookupMIDIMessage(uint8_t MIDIStatusCode)
    /* System Common Message */
    if( MIDIStatusCode >= 0xF0 )
    {
-      for( i = SYS_COMMON_MSG; pgm_read_byte(&MIDILookupTable[i]) ; i = i + 3 )
+      for( i = SYS_COMMON_MSG; FLASH_GET_PGM_BYTE(&MIDILookupTable[i]) ; i = i + 3 )
       {
-         if( MIDIStatusCode == pgm_read_byte(&MIDILookupTable[i]) )
+         if( MIDIStatusCode == FLASH_GET_PGM_BYTE(&MIDILookupTable[i]) )
          {
             return i;
          }
@@ -117,9 +116,9 @@ uint8_t LookupMIDIMessage(uint8_t MIDIStatusCode)
    else
    {
       MIDIStatusCode = (MIDIStatusCode & 0xF0);
-      for( i = 0; pgm_read_byte(&MIDILookupTable[i]) ; i = i + 3 )
+      for( i = 0; FLASH_GET_PGM_BYTE(&MIDILookupTable[i]) ; i = i + 3 )
       {
-         if( MIDIStatusCode == pgm_read_byte(&MIDILookupTable[i]) )
+         if( MIDIStatusCode == FLASH_GET_PGM_BYTE(&MIDILookupTable[i]) )
          {
             return i;
          }
@@ -135,7 +134,7 @@ uint8_t GetCINNumber(uint8_t messageIndex)
    {
         return 0x05;
    }
-   uint8_t CIN = pgm_read_byte(&MIDILookupTable[messageIndex+2]);
+   uint8_t CIN = FLASH_GET_PGM_BYTE(&MIDILookupTable[messageIndex+2]);
    /* Most system common messages are 1 byte long and
     * therefore have a CIN of 0x05 */
    return CIN;
@@ -150,7 +149,7 @@ uint8_t GetNumberOfBytesToRead(uint8_t messageIndex)
    {
         return 1;
    }
-   uint8_t bytesToReturn = pgm_read_byte(&MIDILookupTable[messageIndex+1]);
+   uint8_t bytesToReturn = FLASH_GET_PGM_BYTE(&MIDILookupTable[messageIndex+1]);
    
    return bytesToReturn;
 }

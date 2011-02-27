@@ -10,6 +10,7 @@
 #include <util/delay.h>
 
 #include "version.h"
+
 //#include "hardUART/hardUart.h"
 //#include "avrADC/adc.h"
 //#include "flashmem/flashmem.h"
@@ -24,7 +25,7 @@
 #define PROGRAM_PTR   PGM_P
 
 /* MIDI Defines */
-#define MIDI_Tx(x)   uartTx(x)
+#define MIDI_Tx(x)   midiTx(x)
 #define MIDI_SetBaudRate(high,low) uartSetBaud(high,low)
 #define MIDI_BAUD(x)   (((F_CPU / (x)) / 16) - 1)
 #define MIDI_BAUD_31250      MIDI_BAUD(31250)
@@ -239,7 +240,7 @@
 #define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
 #define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
 
-#define JUMP_TABLE_LOCATION (0x7FE0)
+#define JUMP_TABLE_LOCATION (0x7FC0)
 
 
 /* hardware Specific defines */

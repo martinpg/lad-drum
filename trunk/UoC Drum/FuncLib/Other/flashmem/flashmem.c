@@ -114,6 +114,8 @@ void _flashmem_erase(uint32_t address)
    FLASH_RELEASE();
 }
 
+
+#if 0
 /* A raw write to anywhere */
 void _flashmem_write(uint32_t address, void* buffer, int16_t len, uint8_t isPGM)
 {
@@ -145,4 +147,4 @@ void _flashmem_write(uint32_t address, void* buffer, int16_t len, uint8_t isPGM)
 }
 
 
-
+#endif
