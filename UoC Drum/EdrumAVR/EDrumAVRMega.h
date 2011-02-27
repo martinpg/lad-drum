@@ -18,6 +18,7 @@ enum {
 
 #define DEFAULT_PROCESS (PLAY_MODE)
 
+void Shutdown(void);
 void Play(void);
 void Benchmark(void);
 void MidiControllerMode(void);

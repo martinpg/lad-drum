@@ -296,6 +296,13 @@ void GetSysEx(void* data)
 
 void FirmwareUpgrade(void* data)
 {
+	UF_MenuPrint_P( PSTR("Waiting for Firmware") );
+   UF_MenuNewLine(); 	
+	UF_MenuPrint_P( PSTR("Hold any key and ") );
+   UF_MenuNewLine();
+	UF_MenuPrint_P( PSTR("cycle power if the") );
+   UF_MenuNewLine();
+	UF_MenuPrint_P( PSTR("download fails") );
    ActiveProcess = FIRMWARE_UPGRADE;
 }
 

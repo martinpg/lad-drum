@@ -25,7 +25,7 @@
 
 #include <stdlib.h>
 
-const prog_char VersionId[] = "1.4a 31/1/11";
+const prog_char VersionId[] = "1.5 28/02/11";
 
 uint16_t BenchMarkCount = 0;
 
@@ -161,8 +161,11 @@ int main(void)
          break;
 
          case FIRMWARE_UPGRADE:
+            Shutdown();
             cli();
             //ReceiveFirmware();
+            
+            bootloader_enter();
          break;
       }      
    }
@@ -171,6 +174,11 @@ int main(void)
 
 }
 
+void Shutdown(void)
+{
+   GICR &= ~(1 << INT1);
+   TIMSK &= ~(1 << OCIE0);
+}
 
 void Play(void)
 {
