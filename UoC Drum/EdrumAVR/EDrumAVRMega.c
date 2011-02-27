@@ -91,7 +91,7 @@ int main(void)
    /* ADC Module Init */
    ADC_Init();
    
-   SoftTimer_TimerInit();
+   //SoftTimer_TimerInit();
 
    /* Enable Keypad */
    UI_KP_Init();   
@@ -137,12 +137,6 @@ int main(void)
 
    /* Flush the buffer */
    UI_KP_GetPress();
-
-   usbMIDIMessage_t message;
-   message.header = 0x09;
-   message.MIDIData[0] = 0x99; 
-   message.MIDIData[1] = 0x55;
-   message.MIDIData[2] = 0x55;
 
    while (1)
    {   
@@ -241,7 +235,7 @@ ISR(SIG_UART_RECV)
 // bootloader function handle all of the register push/pops
 // and do the RETI to end the handler.
 void INT0_vect(void) __attribute__((naked));
-ISR(INT0_vect)
+ISR(INT0_vect, ISR_NOBLOCK)
 {
     asm("jmp 0x7004");
 }

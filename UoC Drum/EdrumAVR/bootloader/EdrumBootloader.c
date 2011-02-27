@@ -188,20 +188,24 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 
 
 //Must be a power of two
-#define RX_BUFFER_SIZE (16)
+#define RX_BUFFER_SIZE (32)
 #define RX_BUFFER_MASK (RX_BUFFER_SIZE - 1)
 
+/* Not used
 #define TX_BUFFER_SIZE (16)
 #define TX_BUFFER_MASK (TX_BUFFER_SIZE - 1)
+
+uint8_t TxBuffer[TX_BUFFER_SIZE];
+volatile uint8_t txWritePtr;
+volatile uint8_t txReadPtr;
+*/
 
 uint8_t RxBuffer[RX_BUFFER_SIZE];
 volatile uint8_t rxWritePtr;
 volatile uint8_t rxReadPtr;
 
 
-uint8_t TxBuffer[TX_BUFFER_SIZE];
-volatile uint8_t txWritePtr;
-volatile uint8_t txReadPtr;
+
 
 
 ISR(SIG_UART_RECV)
@@ -372,6 +376,8 @@ void usbFunctionWriteOut(uchar * data, uchar len)
       rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
    }
 //   uartTxDump(data, byteCount);
+
+#if USB_CFG_HAVE_FLOWCONTROL
    /* Here if the TxBuffer cannot hold the new data, we should disable all 
     * USB requests and wait for the MIDI TxBuffer to catch up.
     * Since we need to process the next request, we have to disable BEFORE
@@ -388,7 +394,6 @@ void usbFunctionWriteOut(uchar * data, uchar len)
    {
       length = rxWritePtr - rxReadPtr;
    }
-
 
    if( (length + 8) > RX_BUFFER_MASK)
    {
@@ -410,20 +415,49 @@ void usbFunctionWriteOut(uchar * data, uchar len)
       UDR = 0xCC;
       usbDisableAllRequests();
    }
+#endif
 }
  
 
+/* This reads the MIDI data received from USB */
+uint8_t USBMIDI_GetByte(void)
+{
+   /* Process messages in the UART Rx buffer is there are any */
+   if( rxReadPtr != rxWritePtr )
+   {
+      uint8_t nextByte = RxBuffer[rxReadPtr++];
+      rxReadPtr = (rxReadPtr & RX_BUFFER_MASK);
+      return nextByte;
+   }
 
+   return NO_DATA_BYTE;
+}
 
+/* This here makes the process Buffer redundant */
 void USBMIDI_PutByte(uint8_t byte)
 {
-   RxBuffer[rxWritePtr++] = byte;
-   rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
+   uint8_t midiReady = 0;
+   /* Only process this stuff if we have enough room in the MIDI out buffer */
+   if( usbMIDI_bufferIsReady() )
+   {
+      midiReady = MIDIDataReady(byte, &MIDImsgComplete[wMIDImsgCount]);
+      /* Copy it out, so the tempbuffer is ready again */
+      if( midiReady == MIDI_DATA_READY)
+      {
+         wMIDImsgCount = (wMIDImsgCount + 1) & MIDI_OUT_MASK;
+      }
+   }
+   else
+   {
+      /* Data will be lost here */
+   }
 }
+
 
 
 void USBMIDI_EnableRequests(void)
 {
+#if USB_CFG_HAVE_FLOWCONTROL
    uint8_t length;
 
    if( rxReadPtr > rxWritePtr  )
@@ -447,36 +481,20 @@ void USBMIDI_EnableRequests(void)
     * UART Speed < USB Inspeed (likely under bulk mode, but unlikely under interrupt mode */
    /* To save the USB output buffer from overflowing, due to a
     * UART Speed > USB Outspeed (not likely under bulk mode, but likely under interrupt mode */
+
    if(  usbAllRequestsAreDisabled() 
       && usbMIDI_bufferIsReady()
       && (length))
    {
       usbEnableAllRequests();
    }
-
+#endif
 }
 
 
 
 void USBMIDI_ProcessBuffer(void)
 {
-    uint8_t midiReady = 0;
-   /* Process messages in the "UART Rx" buffer is there are any */
-    while( rxReadPtr != rxWritePtr )
-    {
-       /* Only process this stuff if we have enough room in the MIDI out buffer */
-       if( usbMIDI_bufferIsReady() )
-       {
-          uint8_t nextByte = RxBuffer[rxReadPtr++];;
-          rxReadPtr &= RX_BUFFER_MASK;
-          midiReady = MIDIDataReady(nextByte, &MIDImsgComplete[wMIDImsgCount]);
-          /* Copy it out, so the tempbuffer is ready again */
-          if( midiReady == MIDI_DATA_READY)
-          {
-             wMIDImsgCount = (wMIDImsgCount + 1) & MIDI_OUT_MASK;
-          }
-       }
-    }
 }
 
 
@@ -487,6 +505,7 @@ void USBMIDI_OutputData(void)
 {
     uint8_t outputBuffer[8];
     /* If there is device => USB waiting to be sent */
+
     while( usbMIDI_bufferLen() && usbInterruptIsReady() )
     {
        usbPoll();
@@ -539,15 +558,12 @@ int main(void)
       while(1)
       {
          usbPoll();
-         USBMIDI_EnableRequests();
-         //USBMIDI_ProcessBuffer();
          //USBMIDI_OutputData();
 #if 1
-         /* Process messages in the UART Rx buffer is there are any */
-         if( rxReadPtr != rxWritePtr )
+         uint8_t nextByte;
+         nextByte = USBMIDI_GetByte();
+         if( nextByte != NO_DATA_BYTE )
          {
-            uint8_t nextByte = RxBuffer[rxReadPtr++];
-            rxReadPtr = (rxReadPtr & RX_BUFFER_MASK);
             ParseFirmwareData(nextByte);
             FirmwareCheckForFinalise();
          }
