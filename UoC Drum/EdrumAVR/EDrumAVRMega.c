@@ -13,14 +13,13 @@
 #include "VUmeter/vumeter.h"
 #include "Sample/sample.h"
 #include "Sensor/sensor.h"
+#include "TimerCallbacks/TimerCallbacks.h"
 
 #include "hardUart/hardUart.h"
 #include "avrADC/adc.h"
 
 #include "mmculib/uint8toa.h"
-
 #include "edrumAVRsharedfunctions.h"
-
 #include "USBMIDI/USBMIDI.h"
 
 #include <stdlib.h>
@@ -123,8 +122,6 @@ int main(void)
    aboutScroll(MAIN_SCREEN);
    SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );	
 	
-
-	
    _delay_ms(900);
    _delay_ms(900);	
    UI_LCD_LoadDefaultChars();					  
@@ -147,16 +144,21 @@ int main(void)
       switch( ActiveProcess )
       {
          case PLAY_MODE:
-            //Play();
+            Play();
             /*Benchmark();
             BenchMarkCount++;*/
          break;
              
          case RECEIVE_SYSEX:
             inByte = USBMIDI_GetByte();
-            if( inByte != NO_DATA_BYTE)
+            if(inByte != NO_DATA_BYTE)
             {
-               ParseSysExData(inByte);
+               ringbuffer_put( (RINGBUFFER_T*)&ReceiveBuffer, inByte);
+            }
+
+            if( ringbuffer_len((RINGBUFFER_T*)&ReceiveBuffer)  )
+            {
+               ParseSysExData(ringbuffer_get((RINGBUFFER_T*)&ReceiveBuffer));
             }
          break;
 
@@ -176,8 +178,9 @@ int main(void)
 
 void Shutdown(void)
 {
-   GICR &= ~(1 << INT1);
-   TIMSK &= ~(1 << OCIE0);
+   DISABLE_KEYPAD();
+   DISABLE_PRIMARY_TIMER();
+   DISABLE_AUXILIARY_TIMER();
 }
 
 void Play(void)
@@ -200,14 +203,34 @@ void Play(void)
          ObtainPeak(SelectedChannel, sample);
       } 
    }
-
 }
+
+#if SET_BENCHMARK
+void Benchmark(void)
+{
+   uint8_t i = 0;
+   uint8_t SelectedChannel = 0;
+   uint16_t sample;
+   
+	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
+	{
+      
+      SelectedChannel = ActiveChannels[i++];
+      SensorChannel(SelectedChannel);
+   	_delay_us(SensorSettings->CrosstalkDelay);
+      /* Take a sample */
+      sample = ADC_Sample();
+                           
+      /* Obtain Peak */
+      ObtainPeak(SelectedChannel, sample);
+   }   
+}
+#endif
 
 
 
 ISR(SIG_SPM_READY)
 {
-   uartTx('#');
 }
 
 ISR(SIG_UART_RECV)
@@ -217,21 +240,13 @@ ISR(SIG_UART_RECV)
    buffer = UDR;
    sei();
 
-   if( buffer == 0xFF )
-   {
-      PORTD ^= (1 << 7);
-   }
-
-   USBMIDI_PutByte(buffer);
-   uartTx(buffer);
+/* Echo the data back out */
+   //USBMIDI_PutByte(buffer);
+   //uartTx(buffer);
 
    switch( ActiveProcess )
    {
       case PLAY_MODE:
-         if( buffer == 'D' )
-         {
-            SysexSend(&CurrentProfile, sizeof(Profile_t));
-         }
       break;
       
       case RECEIVE_SYSEX:
@@ -241,9 +256,7 @@ ISR(SIG_UART_RECV)
       case FIRMWARE_UPGRADE:
 //         ParseFirmwareData(buffer);
       break;
-
    }
-
 }
 
 
@@ -260,7 +273,7 @@ ISR(INT0_vect, ISR_NOBLOCK)
 
 ISR(INT1_vect, ISR_NOBLOCK)
 {
-   GICR &= ~(1 << INT1);
+   DISABLE_KEYPAD();
 
    char outputString[5];
    static uint8_t j;
@@ -277,22 +290,34 @@ ISR(INT1_vect, ISR_NOBLOCK)
       if( result != KP_INVALID  )
       {
          MenuSetInput(ActiveMenu, result);
-         GICR &= ~(1 << INT1);  
+         DISABLE_KEYPAD();
          sei();
          MenuUpdate(ActiveMenu, RESET_MENU);
-               /*UF_MenuPrint_P( PSTR("KP:") );
-               uint8toa(result, outputString);
-               UF_MenuPrint( outputString );*/
 
-         //MenuSetInput(ActiveMenu, KP_UPDATE);   
-         //MenuUpdate(ActiveMenu, RESET_MENU);
-         //
-         //SensorChannel(result);
+         /* Active the back light */
+         ENABLE_AUXILIARY_TIMER();
+         UI_LCD_BL_On();
+         SoftTimerStart(SoftTimer2[SC_LCD_BL_Period]);
       }
    }
    
    GIFR |= (1 << INTF1);
-   GICR |= (1 << INT1);
+   ENABLE_KEYPAD();
+}
+
+
+
+ISR(TIMER2_COMP_vect, ISR_NOBLOCK)
+{
+   OCR2 += (SAMPLE_1MS);
+   RunCriticalTimer(); 
+}
+
+
+ISR(TIMER0_COMP_vect, ISR_NOBLOCK)
+{  
+   OCR0 += (SAMPLE_1MS);
+   RunAuxTimers();
 }
 
 

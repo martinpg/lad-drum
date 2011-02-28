@@ -1,6 +1,7 @@
 #include "hardwareSpecific.h"
 
 
+
 typedef struct
 {
    volatile uint8_t* DDR; 
@@ -49,3 +50,17 @@ uint8_t getDigitalState(uint8_t DigitalChannel)
       return 0;
    }
 }
+
+
+
+void SoftTimer_TimerInit(void)
+{
+   /* Primary Timer 1024 prescaler (high priority) */
+   TCCR2 |= (0x07);
+   TIMSK |= (1 << OCIE2);   
+   /* Secondary Timer (non critical) */
+   TCCR0 |= (0x05);
+   TIMSK |= (1 << OCIE0);
+}
+
+

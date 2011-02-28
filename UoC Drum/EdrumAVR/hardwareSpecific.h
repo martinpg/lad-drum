@@ -42,6 +42,13 @@
 #define MOSI      (PB5)
 #define nSS       (PB4)
 
+/* Timer Related */
+#define ENABLE_PRIMARY_TIMER()      TIMSK |= (1 << OCIE2)
+#define ENABLE_AUXILIARY_TIMER()    TIMSK |= (1 << OCIE0)
+#define DISABLE_PRIMARY_TIMER()     TIMSK &= ~(1 << OCIE2)
+#define DISABLE_AUXILIARY_TIMER()   TIMSK &= ~(1 << OCIE0)
+#define DISABLE_KEYPAD()            GICR &= ~(1 << INT1)
+#define ENABLE_KEYPAD()             GICR |= (1 << INT1)
 
 /* Uart Defines */
 #define UART_Init(x) uartInit(x)
@@ -74,6 +81,7 @@
 /* Variable Output */
 #define SENSOR_OUTPUT2	(7)
 #define POT_INPUT			(6)
+
 
 
 /* Digital Input Section */
@@ -247,7 +255,7 @@
 /* hardware Specific defines */
 void DigitalInputInit(void);
 uint8_t getDigitalState(uint8_t DigitalChannel);
-
+void SoftTimer_TimerInit(void);
 
 
 

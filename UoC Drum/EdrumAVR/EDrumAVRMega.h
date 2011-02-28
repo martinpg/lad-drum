@@ -8,6 +8,9 @@ extern uint16_t BenchMarkCount;
 
 extern const char VersionId[];
 
+#define SET_BENCHMARK (1)
+#define HAS_CONTROLLER_MODE (0)
+
 enum {
    PLAY_MODE = 0,
    RECEIVE_SYSEX,
