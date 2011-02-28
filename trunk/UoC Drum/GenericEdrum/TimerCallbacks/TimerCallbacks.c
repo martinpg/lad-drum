@@ -10,6 +10,8 @@
 #include "MenuSettings.h"
 #include "UserFunctions/userFunctions.h"
 
+#include "LCDSettings.h"
+
 #include "TimerCallbacks/TimerCallbacks.h"
 
 
@@ -20,7 +22,7 @@ void Callback_MIDIOutput(void)
    MIDI_Output();
    MIDI_DigitalOutput();
    MIDI_MetronomeOutput();
-   ResetValues();	
+   //ResetValues();	
 
    /* Benchmark reporting */
    /*UART_Tx( (uint8_t)(BenchMarkCount>>8) );
@@ -68,7 +70,7 @@ void Callback_LCDBacklight(void)
 {
 
 	SoftTimerStop( SoftTimer2[SC_LCD_BL_Period] );
-	UI_LCD_BL_Off();
+	//UI_LCD_BL_Off();
 	
 	/* If no SoftTimer2's are enabled, then turn off the Timer2 module, Timer2 to be enabled
     * only after a keypress. */
@@ -145,4 +147,44 @@ void Callback_AboutUpdate(void)
 	}
 	ThanksIndex(nameIndex);
 	aboutScroll(nameIndex);
+}
+
+
+
+void Callback_Debug(void)
+{
+
+   uint8_t SelectedChannel = 0x0D;
+
+   UF_MenuReset();
+   uint8_t outputString[10];
+   itoa(GetLastMIDIValue(0x0D), outputString, 10);
+   UF_MenuPrint_P(PSTR("MIDI Code:"));
+   UF_MenuPrint(outputString);
+
+   UF_MenuNewLine();
+
+   itoa(SignalPeak[0x0D], outputString, 10);
+   UF_MenuPrint_P(PSTR("ADC Val: "));
+   UF_MenuPrint(outputString);
+   
+   UF_MenuNewLine();
+	/* Display the first slope channel 'gain' */
+	itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET) , outputString, 10);
+	UF_MenuPrint_P(PSTR("Gain1:"));
+	UF_MenuPrint(outputString);
+
+	/* Display the channel slope 2 'gain' */
+	itoa( (int8_t)(GetSlope2Gain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
+	UF_MenuPrint_P(PSTR(" Gain2:"));
+	UF_MenuPrint(outputString);
+   UF_MenuNewLine();   
+
+	/* Display the gain crossover point */
+	itoa(GetCrossover(SelectedChannel), outputString, 10);
+	UF_MenuPrint_P(PSTR("Gain Crossover:"));
+	UF_MenuPrint(outputString);
+   UF_MenuNewLine();			
+
+   ResetValues();
 }

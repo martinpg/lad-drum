@@ -43,6 +43,8 @@ uint8_t ActiveProcess = 0;
 
 */
 
+
+
 /* 19/10/2010 
    Update: USB MIDI to be incorporated using an external ATMEGA chip. 
    The next version of the LAD drum will be based off an ATMEGA32. 
@@ -53,10 +55,12 @@ uint8_t ActiveProcess = 0;
 
 */
 
+
 int main(void)
 {
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);
+
 
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
@@ -145,6 +149,9 @@ int main(void)
       {
          case PLAY_MODE:
             Play();
+
+
+
             /*Benchmark();
             BenchMarkCount++;*/
          break;
@@ -223,6 +230,7 @@ void Benchmark(void)
                            
       /* Obtain Peak */
       ObtainPeak(SelectedChannel, sample);
+
    }   
 }
 #endif
@@ -247,6 +255,21 @@ ISR(SIG_UART_RECV)
    switch( ActiveProcess )
    {
       case PLAY_MODE:
+         if( buffer <= '3' && buffer >= '0' )
+         {
+            buffer = buffer - '0';
+            SetGainType(0x0D, NON_LINEAR_GAIN);
+            SetChannelGain(0x0D, PresetGain1[buffer] );
+      		SetSlope2Gain(0x0D, PresetGain2[buffer] );
+      		SetCrossover(0x0D, PresetGainCrossover[buffer]);
+         }        
+
+         if( buffer == 'u' )
+         {
+            SoftTimerStop(SoftTimer2[SC_Debug]);
+         }
+
+
       break;
       
       case RECEIVE_SYSEX:

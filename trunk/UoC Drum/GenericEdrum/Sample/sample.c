@@ -7,6 +7,8 @@
 #include "Profiles/profiles.h"
 #include "SoftTimer/Softtimer.h"
 
+#include "mmculib/log2.h"
+
 /* Signal Peak also holds the value of the Digital State */
 uint16_t SignalPeak[NUMBER_OF_INPUTS];
 
@@ -29,17 +31,30 @@ GainSettings_t* GainSettings;
 
 static uint16_t LastSampleValue[ANALOGUE_INPUTS];
 
-PROGRAM_CHAR PRESET_1[] = "Exponential 1";
-PROGRAM_CHAR PRESET_2[] = "Logorithmic 1";
-PROGRAM_CHAR PRESET_3[] = "Exponential 2";
-PROGRAM_CHAR PRESET_4[] = "Logorithmic 2";
+PROGRAM_CHAR PRESET_1[] = "Exponential X";
+PROGRAM_CHAR PRESET_2[] = "Exponential";
+PROGRAM_CHAR PRESET_3[] = "Logorithmic";
+PROGRAM_CHAR PRESET_4[] = "Logorithmic X";
 PROGRAM_CHAR PRESET_5[] = "Custom";
 
 PROGRAM_PTR PresetGainStrings[] = {PRESET_1, PRESET_2, PRESET_3, PRESET_4, PRESET_5};
 
-const int8_t PresetGain1[NUMBER_OF_GAIN_PRESETS] = {8, 13 ,6, 14};
-const int8_t PresetGain2[NUMBER_OF_GAIN_PRESETS] = {10, 11 ,10, 13};
-const int16_t PresetGainCrossover[NUMBER_OF_GAIN_PRESETS] = {950, 150 ,1300, 50};
+
+#define EXPONENTIALX_CROSSOVER      (((1 << ADC_RESOLUTION)*24)/30)
+#define EXPONENTIAL_CROSSOVER       (((1 << ADC_RESOLUTION)*17)/30)
+#define LOGARITHMIC_CROSSOVER       (((1 << ADC_RESOLUTION)*10)/30)
+#define LOGARITHMIC_X_CROSSOVER     (((1 << ADC_RESOLUTION)*6)/30)
+
+const int8_t PresetGain1[] = {5, 5 , 8, 9};
+const int8_t PresetGain2[] = {9, 8 , 6, 5};
+
+const uint16_t PresetGainCrossover[] = 
+{
+   EXPONENTIALX_CROSSOVER, 
+   EXPONENTIAL_CROSSOVER,
+   LOGARITHMIC_CROSSOVER, 
+   LOGARITHMIC_X_CROSSOVER
+};
 
 
 void UpdateActiveChannels(void)
@@ -384,7 +399,7 @@ void SetGainType(uint8_t channel, uint8_t status)
 
 
 /* Gain Crossover Levels */
-uint16_t GetCrossover(uint8_t channel)
+int16_t GetCrossover(uint8_t channel)
 {
    return GainSettings->Crossover[channel];
 }
@@ -411,7 +426,8 @@ uint16_t GainFunction(uint8_t channel, uint16_t signalValue)
 	{
 		/* Signal > Crossover */
 		uint16_t crossover = GetCrossover(channel);
-		int16_t signalOffset = signalValue - crossover;
+		
+      int16_t signalOffset = signalValue - crossover;
 		if( (signalOffset > 0) )
 		{
 			return ApplyGain(signalOffset , GetSlope2Gain(channel)) +

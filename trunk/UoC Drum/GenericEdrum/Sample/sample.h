@@ -17,8 +17,8 @@
 
 /* The number of bits in the ADC Reading */
 #define MAX_THRESHOLD      (1 << ADC_RESOLUTION)
-/* Set to 5% of the ADC input */
-#define DEFAULT_THRESHOLD	(MAX_THRESHOLD / 20)
+/* Set to 1% of the ADC input */
+#define DEFAULT_THRESHOLD	(0)//(MAX_THRESHOLD / 100)
 #define MIN_THRESHOLD      (0)
 /* Number of levels actually equals 2^(ADC_RESOLUTION - THRESHOLD_LEVELS) */
 #define THRESHOLD_LEVELS	(ADC_RESOLUTION - 5)
@@ -115,7 +115,7 @@ typedef struct {
    int8_t	ChannelGain2[ANALOGUE_INPUTS];
    
    /* Crossover Level from Gain 1 to Gain 2*/
-   uint16_t  Crossover[ANALOGUE_INPUTS];
+   int16_t  Crossover[ANALOGUE_INPUTS];
 	
 	uint16_t   GainType;
 	
@@ -156,7 +156,7 @@ extern GainSettings_t*	 GainSettings;
 extern PROGRAM_PTR PresetGainStrings[];
 extern const int8_t PresetGain1[];
 extern const int8_t PresetGain2[];
-extern const int16_t PresetGainCrossover[];
+extern const uint16_t PresetGainCrossover[];
 
 void ResetValues(void);
 
@@ -234,7 +234,7 @@ void GainTypeToggle(uint8_t channel);
 void SetGainType(uint8_t channel, uint8_t status);
 
 /* Gain Settings */
-uint16_t GetCrossover(uint8_t channel);
+int16_t GetCrossover(uint8_t channel);
 void SetCrossover(uint8_t channel, int16_t  crossover);
 
 /* Returns the conditioned signal after being passed through the
