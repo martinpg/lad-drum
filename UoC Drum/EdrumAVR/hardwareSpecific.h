@@ -128,7 +128,7 @@
 #define ADC_SetupAddress(channel) adcSetPin(channel)
 
 #define ADC_REF_DEFAULT ADC_REF_AVCC
-#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV32
+#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV8
 
 #define ADC_RESOLUTION (10)
 
