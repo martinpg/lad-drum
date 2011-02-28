@@ -26,7 +26,8 @@ SoftTimer_16  SoftTimer2[TIMER2_COUNT] = {{110, 0, 0, Callback_AutoMenuUpdate}, 
                                            {70, 0, 0, Callback_DigitalVUUpdate},  // Digital VU Meter Update
 														 {25, 0, 0, Callback_VUDecay},  // VU Decay
 														 {2500,2500,0, Callback_AboutUpdate}, // AboutUpdate
-														 {10000, 10000, 0, Callback_LCDBacklight}}; //LCD Backlight
+														 {10000, 10000, 0, Callback_LCDBacklight},
+                                           {100, 0, 1, Callback_Debug}}; //LCD Backlight
 
 
 

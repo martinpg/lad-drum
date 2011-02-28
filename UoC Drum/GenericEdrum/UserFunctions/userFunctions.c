@@ -1136,18 +1136,18 @@ void SetGainCurves(void* data)
 		case KP_B:
 			if( ++presetSetting >= NUMBER_OF_GAIN_PRESETS )
 			{
-				presetSetting = EXPONENTIAL_1;
+				presetSetting = 0;
 			}
 		break;
 		
 		case KP_C:
-			if( --presetSetting < EXPONENTIAL_1 )
+			if( --presetSetting < 0 )
 			{
 				presetSetting = CUSTOM;
 			}
 		break; 
       
-      /* Digital Trigger Select */
+      
       case KP_2:
 			SetCrossover(SelectedChannel, (int16_t)GetCrossover(SelectedChannel)+50);
       break;
