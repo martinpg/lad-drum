@@ -269,6 +269,11 @@ ISR(SIG_UART_RECV)
             SoftTimerStop(SoftTimer2[SC_Debug]);
          }
 
+         if( buffer == 'U' )
+         {
+            SoftTimerStart(SoftTimer2[SC_Debug]);
+         }
+
 
       break;
       

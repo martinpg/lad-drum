@@ -137,7 +137,7 @@ void MIDI_MetronomeOutput(void)
 
 
 
-
+#if CONTROLLER_MODE
 void MIDI_KeypadOutput(uint8_t kpButton)
 {
    uint8_t i;
@@ -156,6 +156,7 @@ void MIDI_KeypadOutput(uint8_t kpButton)
 				}*/
 	}
 }
+#endif
 
 
 

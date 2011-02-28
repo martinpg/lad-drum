@@ -22,7 +22,7 @@ void Callback_MIDIOutput(void)
    MIDI_Output();
    MIDI_DigitalOutput();
    MIDI_MetronomeOutput();
-   //ResetValues();	
+   ResetValues();	
 
    /* Benchmark reporting */
    /*UART_Tx( (uint8_t)(BenchMarkCount>>8) );
@@ -184,7 +184,7 @@ void Callback_Debug(void)
 	itoa(GetCrossover(SelectedChannel), outputString, 10);
 	UF_MenuPrint_P(PSTR("Gain Crossover:"));
 	UF_MenuPrint(outputString);
-   UF_MenuNewLine();			
+   UF_MenuNewLine();
 
    ResetValues();
 }
