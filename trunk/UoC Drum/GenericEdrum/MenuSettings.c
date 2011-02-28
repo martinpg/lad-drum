@@ -14,7 +14,7 @@
 #endif
 
 
-const MENU_TEXT  MT_CONTROLLER_MODE[] = "Controller Mode";
+
 
 
 const MENU_TEXT  MT_PROFILES[] = "Profiles";
@@ -28,7 +28,7 @@ const MENU_TEXT  MT_PROFILE_4[] = "Profile 4";
 const MENU_TEXT  MT_PROFILE_DEF[] = "Default Profile";
 
 
-const MENU_TEXT  MT_VUMETER[] = "VU Meter";
+const MENU_TEXT  MT_VUMETER[] = "Analogue VU Meter";
 const MENU_TEXT  MT_DIGITAL_VUMETER[] = "Digital VU Meter";
 const MENU_TEXT  MT_SYSTEM_SETUP[] = "System Setup";
 
@@ -87,6 +87,8 @@ const MENU_TEXT  MT_METRONOME_6[] = "Metronome Input 6";
 const MENU_TEXT  MT_METRONOME_7[] = "Metronome Input 7";
 const MENU_TEXT  MT_METRONOME_8[] = "Metronome Input 8";
 
+#if HAS_CONTROLLER_MODE
+const MENU_TEXT  MT_CONTROLLER_MODE[] = "Controller Mode";
 const MENU_TEXT  MT_KEYPAD_1[] = "Key 0";
 const MENU_TEXT  MT_KEYPAD_2[] = "Key 1";
 const MENU_TEXT  MT_KEYPAD_3[] = "Key 2";
@@ -103,6 +105,7 @@ const MENU_TEXT  MT_KEYPAD_13[] = "Key C";
 const MENU_TEXT  MT_KEYPAD_14[] = "Key D";
 const MENU_TEXT  MT_KEYPAD_15[] = "Key *";
 const MENU_TEXT  MT_KEYPAD_16[] = "Key #";
+#endif
 
 const MENU_TEXT  MT_THRESHOLD[] = "Set Threshold";
 const MENU_TEXT  MT_TRIGGER_TYPE[] = "Switch Settings";
@@ -119,12 +122,22 @@ const MENU_TEXT  MT_VARIABLE_GAIN[] = "Variable Gain";
  * */
 const menu_list MenuState[] MENU_SPACE = {
 
+#if HAS_CONTROLLER_MODE
 	{ST_MAIN,	ST_CONTROLLER_MODE,  0},
    {ST_MAIN,   ST_OPTIONS,   1},
    {ST_MAIN,	ST_VUMETER,	  2},
    {ST_MAIN,   ST_DIGITAL_VUMETER, 3},
    {ST_MAIN, 	ST_PROFILES,  4},
    {ST_MAIN,   ST_SYSTEM_SETUP, 5},
+#else
+   {ST_MAIN,   ST_OPTIONS,   0},
+   {ST_MAIN,	ST_VUMETER,	  1},
+   {ST_MAIN,   ST_DIGITAL_VUMETER, 2},
+   {ST_MAIN, 	ST_PROFILES,  3},
+   {ST_MAIN,   ST_SYSTEM_SETUP, 4},
+#endif
+
+
 
    {ST_OPTIONS, ST_MIDI_OUTPUT_RATE,  0},
    {ST_OPTIONS, ST_CHANNEL_SETUP, 1},
@@ -134,14 +147,15 @@ const menu_list MenuState[] MENU_SPACE = {
 	
 	{ST_INPUT_SELECT, ST_FIXED_GAIN, 2},
 	{ST_INPUT_SELECT, ST_VARIABLE_GAIN, 3},		
-		
+   		
    {ST_MIDI_OUTPUT_RATE, ST_SET_RATE, 1},
 
    {ST_CHANNEL_SETUP, ST_ANALOGUE_INPUTS,  0},
    {ST_CHANNEL_SETUP, ST_DIGITAL_INPUTS,  1}, 
    {ST_CHANNEL_SETUP, ST_METRONOME_INPUTS, 2},
+#if HAS_CONTROLLER_MODE
 	{ST_CHANNEL_SETUP, ST_KEYPAD_INPUTS,  3},  
-
+#endif
    {ST_ANALOGUE_INPUTS, ST_CHANNEL_1,  0},
    {ST_ANALOGUE_INPUTS, ST_CHANNEL_2,  1},
    {ST_ANALOGUE_INPUTS, ST_CHANNEL_3,  2},
@@ -178,6 +192,7 @@ const menu_list MenuState[] MENU_SPACE = {
    {ST_METRONOME_INPUTS, ST_METRONOME_7, 6},                  
    {ST_METRONOME_INPUTS, ST_METRONOME_8, 7},
 
+#if HAS_CONTROLLER_MODE
    {ST_KEYPAD_INPUTS, ST_KEYPAD_1,  0},
    {ST_KEYPAD_INPUTS, ST_KEYPAD_2,  1},
    {ST_KEYPAD_INPUTS, ST_KEYPAD_3,  2},
@@ -194,6 +209,7 @@ const menu_list MenuState[] MENU_SPACE = {
    {ST_KEYPAD_INPUTS, ST_KEYPAD_14, 13},
    {ST_KEYPAD_INPUTS, ST_KEYPAD_15, 14}, 
    {ST_KEYPAD_INPUTS, ST_KEYPAD_16, 15},   
+#endif
    
    {ST_PROFILES, ST_LOAD_PROFILE, 2},
    {ST_PROFILES, ST_SAVE_PROFILE, 3},
@@ -223,7 +239,9 @@ const menu_list MenuState[] MENU_SPACE = {
 
 const menu_data MenuData[] MENU_SPACE = {
    {ST_MAIN, 0, 0},
+#if HAS_CONTROLLER_MODE
    {ST_CONTROLLER_MODE, MT_CONTROLLER_MODE, ControllerMode},
+#endif
    {ST_PROFILES, MT_PROFILES, ShowProfile},   
    {ST_OPTIONS, MT_OPTIONS, 0},
 	{ST_VUMETER, MT_VUMETER, VUMeterSetup},
@@ -245,8 +263,9 @@ const menu_data MenuData[] MENU_SPACE = {
    {ST_ANALOGUE_INPUTS, MT_ANALOGUE_INPUTS,  0},
    {ST_DIGITAL_INPUTS, MT_DIGITAL_INPUTS,  0},    	
    {ST_METRONOME_INPUTS, MT_METRONOME_INPUTS,  0},
+#if HAS_CONTROLLER_MODE
  	{ST_KEYPAD_INPUTS, MT_KEYPAD_INPUTS,  0},
- 	
+#endif 	
  	/* Analogue Menus */
    {ST_CHANNEL_1, MT_CHANNEL_1,   ChannelSetup},
    {ST_CHANNEL_2, MT_CHANNEL_2,   ChannelSetup},
@@ -284,7 +303,9 @@ const menu_data MenuData[] MENU_SPACE = {
    {ST_METRONOME_6, MT_METRONOME_6,   DigitalChannelSettings},
    {ST_METRONOME_7, MT_METRONOME_7,   DigitalChannelSettings},
    {ST_METRONOME_8, MT_METRONOME_8,   DigitalChannelSettings},
- 	/* Keypad Menus */
+
+#if HAS_CONTROLLER_MODE 	
+   /* Keypad Menus */
    {ST_KEYPAD_1, MT_KEYPAD_1,   KeypadButtonSettings},
    {ST_KEYPAD_2, MT_KEYPAD_2,   KeypadButtonSettings},
    {ST_KEYPAD_3, MT_KEYPAD_3,   KeypadButtonSettings},
@@ -301,6 +322,7 @@ const menu_data MenuData[] MENU_SPACE = {
    {ST_KEYPAD_14, MT_KEYPAD_14, KeypadButtonSettings},
    {ST_KEYPAD_15, MT_KEYPAD_15, KeypadButtonSettings}, 
    {ST_KEYPAD_16, MT_KEYPAD_16, KeypadButtonSettings},
+#endif
 	 
 	{ST_FIXED_GAIN, MT_FIXED_GAIN, SensorInputChange},
 	{ST_VARIABLE_GAIN, MT_VARIABLE_GAIN, SensorInputChange},
@@ -454,7 +476,7 @@ void Menu_UpOneLevel(Menu_t* menu)
 {	
    MenuSetInput(menu, KB_BACK);
    stateMachine(menu, menu->currentState);
-   MenuSetInput(menu, KP_UPDATE);   
+   MenuSetInput(menu, MENU_UPDATE);   
    executeState(menu, menu->currentState); 	
    //menu->firstEnter = 1;
    ActiveMenu = menu->parentMenu;

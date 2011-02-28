@@ -119,39 +119,21 @@ void UI_LCD_HWInit(void)
 void UI_LCD_BL_On(void)
 {
    uint8_t i;
-   
-   
    if( BL_State == LCD_BL_ON)
    {
       return;  
    }
    
-   for( i = Min_BL_State ; i < LCD_BL_MAX_BRIGHTNESS >> 2; i ++ )
-   {
-      _delay_ms(10);
-//      TACCR1 = i << 2;
-   }
-   
-//   TACCR1 = LCD_BL_MAX_BRIGHTNESS;
-   BL_State = LCD_BL_ON;
-   
-   //LCD_BL_PORT |= (1 << LCD_BL_PIN);   
+   BL_State = LCD_BL_ON; 
+   LCD_BL_PORT |= (1 << LCD_BL_PIN);  
 }
 
 void UI_LCD_BL_Off(void)
 {
    
    uint8_t i;
-   
-   for( i = LCD_BL_MAX_BRIGHTNESS >> 2 ; i >= Min_BL_State; i -- )
-   {
-      _delay_ms(10);
-//      TACCR1 = i << 2;
-   }
-   
-//   TACCR1 = Min_BL_State;
    BL_State = !LCD_BL_ON;   
-   //LCD_BL_PORT &= ~(1 << LCD_BL_PIN);  
+   LCD_BL_PORT &= ~(1 << LCD_BL_PIN);  
 }
 
 void UI_LCD_BL_Toggle(void)
@@ -162,15 +144,7 @@ void UI_LCD_BL_Toggle(void)
 
 void UI_LCD_BLInit(uint16_t MinBrightness)
 {
-   
    Min_BL_State = MinBrightness;
-   
-   /* Sets up the PWM frequency =  (fclk / LCD_BL_MAX_BRIGHTNESS) */
-//   TACCR0 = LCD_BL_MAX_BRIGHTNESS;
-   
-//   TACTL |= (TASSEL_SMCLK | MC_UPTO_CCR0);
-//  TACCTL1 |= (OUTMOD_RESET_SET);
-   
 }
 
 

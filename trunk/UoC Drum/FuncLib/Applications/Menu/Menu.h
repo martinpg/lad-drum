@@ -73,6 +73,9 @@
 #define KP_BACK  KP_4
 
 
+#define MENU_UPDATE  (0xFE)
+
+
 
 typedef struct
 {

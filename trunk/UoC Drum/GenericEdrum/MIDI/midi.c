@@ -5,6 +5,7 @@
 #include "midi.h"
 #include "VUMeter/vumeter.h"
 
+#include "TimerCallbacks/TimerCallbacks.h"
 #include "edrumAVRsharedfunctions.h"
 
 
@@ -226,5 +227,6 @@ uint8_t GetLastMIDIValue(uint8_t channel)
 {
    return MIDI_LastMIDIValue[channel];
 }
+
 
 
