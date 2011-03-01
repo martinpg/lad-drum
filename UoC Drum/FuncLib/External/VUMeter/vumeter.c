@@ -16,7 +16,7 @@ static uint8_t VUColStart;
 static uint8_t VURow;
 static uint8_t VUCol;
 
-static uint8_t VURows = 1;
+static uint8_t VURows = DEFAULT_VU_HEIGHT;
 
 uint16_t	VUValues[MAX_METERS];
 
@@ -60,20 +60,6 @@ uint16_t VUNormalise(uint16_t value, uint16_t maxVal, uint16_t rows)
 	
    value = value * (rows << 3);
    value = value / maxVal;
-   
-   return value;
-}
-
-/* Normalises the value to MIDI pixels
- * The return value is effectively the number of 
- * pixels to draw if each row has 8 pixels */
- 
-/* Max value and maxVal values are 2047 */ 
-uint16_t VUNormaliseMIDI(uint16_t value, uint16_t rows)
-{
-	
-   value = value * (rows << 3);
-   value = value >> 7;
    
    return value;
 }

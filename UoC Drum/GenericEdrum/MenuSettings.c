@@ -110,8 +110,9 @@ const MENU_TEXT  MT_KEYPAD_16[] = "Key #";
 const MENU_TEXT  MT_THRESHOLD[] = "Set Threshold";
 const MENU_TEXT  MT_TRIGGER_TYPE[] = "Switch Settings";
 const MENU_TEXT  MT_RETRIGGER[] = "Set Retrigger";
-const MENU_TEXT  MT_DUALINPUT[] = "Set Dual Triggering";
+const MENU_TEXT  MT_DUALINPUT[] = "Set Dual Trigger";
 const MENU_TEXT  MT_SETGAIN[] = "Set Gain Curves";
+const MENU_TEXT  MT_MONITORCHANNEL[] = "Monitor Channel";
 
 const MENU_TEXT  MT_FIXED_GAIN[] = "Fixed Gain (1x)";
 const MENU_TEXT  MT_VARIABLE_GAIN[] = "Variable Gain";
@@ -353,13 +354,14 @@ const menu_list AnalogueChannelSetupMenu[] MENU_SPACE = {
    {ST_ANALOGUE_SETUP, ST_RETRIGGER, 4},
    {ST_ANALOGUE_SETUP, ST_SETGAIN, 5},
    {ST_ANALOGUE_SETUP, ST_DUALINPUT, 6},
+   {ST_ANALOGUE_SETUP, ST_MONITORCHANNEL, 7},
    {0, 0, 0} 
 };
 
 const menu_list DigitalChannelSetupMenu[] MENU_SPACE = {
    
    {ST_DIGITAL_SETUP, ST_RETRIGGER, 3},
-   {ST_DIGITAL_SETUP, ST_TRIGGER_TYPE, 4},  
+   {ST_DIGITAL_SETUP, ST_TRIGGER_TYPE, 4}, 
    {0, 0, 0} 
 };
 
@@ -372,6 +374,7 @@ const menu_data ChannelSetupMenu[] MENU_SPACE = {
 	{ST_SETGAIN, MT_SETGAIN, SetGainCurves},	
 	{ST_DUALINPUT, MT_DUALINPUT, SetDualInput},
    {ST_TRIGGER_TYPE, MT_TRIGGER_TYPE, SetSwitchType},
+   {ST_MONITORCHANNEL, MT_MONITORCHANNEL, MonitorChannel},
    {0, 0, 0}
 };  
   

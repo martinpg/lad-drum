@@ -48,7 +48,7 @@ PROGRAM_PTR PresetGainStrings[] = {PRESET_1, PRESET_2, PRESET_3, PRESET_4, PRESE
 const int8_t PresetGain1[] = {5, 5 , 8, 9};
 const int8_t PresetGain2[] = {9, 8 , 6, 5};
 
-const uint16_t PresetGainCrossover[] = 
+const int16_t PresetGainCrossover[] = 
 {
    EXPONENTIALX_CROSSOVER, 
    EXPONENTIAL_CROSSOVER,

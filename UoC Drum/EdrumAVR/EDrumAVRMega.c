@@ -134,10 +134,12 @@ int main(void)
 
    usbInit();
 
-   sei();
-
    /* Flush the buffer */
    UI_KP_GetPress();
+
+   sei();
+
+
    uint8_t inByte;
 
    while (1)
@@ -255,25 +257,6 @@ ISR(SIG_UART_RECV)
    switch( ActiveProcess )
    {
       case PLAY_MODE:
-         if( buffer <= '3' && buffer >= '0' )
-         {
-            buffer = buffer - '0';
-            SetGainType(0x0D, NON_LINEAR_GAIN);
-            SetChannelGain(0x0D, PresetGain1[buffer] );
-      		SetSlope2Gain(0x0D, PresetGain2[buffer] );
-      		SetCrossover(0x0D, PresetGainCrossover[buffer]);
-         }        
-
-         if( buffer == 'u' )
-         {
-            SoftTimerStop(SoftTimer2[SC_Debug]);
-         }
-
-         if( buffer == 'U' )
-         {
-            SoftTimerStart(SoftTimer2[SC_Debug]);
-         }
-
 
       break;
       
@@ -301,36 +284,10 @@ ISR(INT0_vect, ISR_NOBLOCK)
 
 ISR(INT1_vect, ISR_NOBLOCK)
 {
+   /* Flag a MENU Update request */
+   SoftTimerStart(SoftTimer2[SC_Keypress]);
+   ENABLE_AUXILIARY_TIMER();
    DISABLE_KEYPAD();
-
-   char outputString[5];
-   static uint8_t j;
-   uint8_t result, result2;
-
-   result = UI_KP_GetPress();
-   _delay_ms(30);
-   result2 = UI_KP_GetPress();
-
-   //_delay_ms(40);
-
-   if( result == result2 )
-   {
-      if( result != KP_INVALID  )
-      {
-         MenuSetInput(ActiveMenu, result);
-         DISABLE_KEYPAD();
-         sei();
-         MenuUpdate(ActiveMenu, RESET_MENU);
-
-         /* Active the back light */
-         ENABLE_AUXILIARY_TIMER();
-         UI_LCD_BL_On();
-         SoftTimerStart(SoftTimer2[SC_LCD_BL_Period]);
-      }
-   }
-   
-   GIFR |= (1 << INTF1);
-   ENABLE_KEYPAD();
 }
 
 

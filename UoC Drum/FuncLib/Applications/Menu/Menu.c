@@ -264,6 +264,11 @@ void MenuSetInput(Menu_t* menu, uint8_t NewInput)
    menu->MenuInput = NewInput;    
 }
 
+uint8_t MenuGetInput(Menu_t* menu)
+{
+   return menu->MenuInput;
+}
+
 /** Calls the associated menu's function */
 void executeState(Menu_t* menu, uint8_t state)
 {

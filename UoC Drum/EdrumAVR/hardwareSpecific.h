@@ -9,6 +9,8 @@
 #include <avr/eeprom.h>
 #include <avr/boot.h>
 #include <util/delay.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 #include "version.h"
 

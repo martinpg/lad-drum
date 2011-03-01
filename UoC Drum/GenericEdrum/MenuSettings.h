@@ -108,7 +108,7 @@ enum {
    ST_RETRIGGER,
    ST_SETGAIN,
    ST_DUALINPUT,
-   
+   ST_MONITORCHANNEL,
    /* For digital sub menu */
    ST_TRIGGER_TYPE,
    

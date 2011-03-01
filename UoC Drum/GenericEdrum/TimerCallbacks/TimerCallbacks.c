@@ -9,10 +9,30 @@
 #include "EDrumAVRMega.h"
 #include "MenuSettings.h"
 #include "UserFunctions/userFunctions.h"
+#include "UI_KP/UI_KP.h"
 
 #include "LCDSettings.h"
 
 #include "TimerCallbacks/TimerCallbacks.h"
+
+
+/* These are the critical timers, 1ms resolution */
+SoftTimer_16  SoftTimer1[TIMER1_COUNT] = { {15, 0, 1, Callback_MIDIOutput},   // MIDI Output
+														 {10, 0, 1, Callback_RetriggerReset}};  // Retrigger Reset	 }; 
+
+
+
+/* These are non-critical timers, and dont really run during 'play time',
+   Functions which start these need to ensure they stop them for optimisation */
+SoftTimer_16  SoftTimer2[TIMER2_COUNT] = {{110, 0, 0, Callback_AutoMenuUpdate},  // Threshold Bar
+                                           {70, 0, 0, Callback_VUMeterUpdate},  // VU Meter Update 
+                                           {70, 0, 0, Callback_DigitalVUUpdate},  // Digital VU Meter Update
+														 {25, 0, 0, Callback_VUDecay},  // VU Decay
+														 {2500,2500,0, Callback_AboutUpdate}, // AboutUpdate
+														 {10000, 10000, 0, Callback_LCDBacklight}, //LCD Backlight
+                                           {150, 0, 0, Callback_MonitorChannel},
+                                           {10, 0, 0, Callback_Keypress}}; 
+
 
 
 void Callback_MIDIOutput(void)
@@ -101,7 +121,7 @@ void Callback_VUMeterUpdate(void)
 				conditionedSignal = GainFunction(i, conditionedSignal);
 				
             /* Normalise with x rows */
-            VUSetLevel(i, VUNormaliseMIDI(conditionedSignal, VURows), VURows);            
+            VUSetLevel(i, VUNormalise(conditionedSignal, MIDI_MAX_DATA, VURows), VURows);            
 			}
       }
 	}
@@ -126,7 +146,7 @@ void Callback_DigitalVUUpdate(void)
 		{	
 			if( VUValues[i] )
 			{
-				VUSetLevel(i, VUNormaliseMIDI(GetDigitalVelocity(i), VURows), VURows); 
+				VUSetLevel(i, VUNormalise(GetDigitalVelocity(i), MIDI_MAX_DATA, VURows), VURows); 
 			}
 		}
 	}
@@ -151,23 +171,22 @@ void Callback_AboutUpdate(void)
 
 
 
-void Callback_Debug(void)
+void Callback_MonitorChannel(void)
 {
-
-   uint8_t SelectedChannel = 0x0D;
+   MIDI_Output();
 
    UF_MenuReset();
-   uint8_t outputString[10];
-   itoa(GetLastMIDIValue(0x0D), outputString, 10);
+   char outputString[10];
+   itoa(GetLastMIDIValue(SelectedChannel), outputString, 10);
    UF_MenuPrint_P(PSTR("MIDI Code:"));
    UF_MenuPrint(outputString);
 
    UF_MenuNewLine();
 
-   itoa(SignalPeak[0x0D], outputString, 10);
+   itoa(SignalPeak[SelectedChannel], outputString, 10);
    UF_MenuPrint_P(PSTR("ADC Val: "));
    UF_MenuPrint(outputString);
-   
+
    UF_MenuNewLine();
 	/* Display the first slope channel 'gain' */
 	itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET) , outputString, 10);
@@ -187,4 +206,48 @@ void Callback_Debug(void)
    UF_MenuNewLine();
 
    ResetValues();
+}
+
+
+void Callback_Keypress(void)
+{
+   static uint8_t result = KP_INVALID;
+   uint8_t i;
+
+   if( result == KP_INVALID )
+   {
+      result = UI_KP_GetPress();
+      /* This will generate an interrupt flag */
+      GIFR |= (1 << INTF1);
+   }
+
+   UDR = result;
+
+   SoftTimerStop(SoftTimer2[SC_Keypress]);
+   if( (result != KP_INVALID) && SoftTimer_IsTimer2Active() )
+   {
+      /* We have (50ms to stop everything we're doing..) */
+      
+      for( i = 0; i < TIMER2_COUNT; i++)
+      {
+         if( SoftTimerIsEnabled(SoftTimer2[i]) )
+         {
+            SoftTimerStop(SoftTimer2[i]);
+         }
+      }
+      SoftTimerStart(SoftTimer2[SC_Keypress]);
+      return;
+   }
+
+   if( result != KP_INVALID )
+   {
+      MenuSetInput(ActiveMenu, result);
+      MenuUpdate(ActiveMenu, RESET_MENU);
+      /* Active the back light */
+      UI_LCD_BL_On();
+      SoftTimerStart(SoftTimer2[SC_LCD_BL_Period]);
+   }
+
+   result = KP_INVALID;
+   ENABLE_KEYPAD();
 }

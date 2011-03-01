@@ -31,7 +31,9 @@
 #endif
 
 static uint8_t SelectedProfile = PROFILE_1;
-static uint8_t SelectedChannel = 0;
+uint8_t SelectedChannel = 0;
+static char outputString[21];
+
 
 void reset(void* data)
 {
@@ -167,7 +169,6 @@ void aboutScroll(uint8_t nameIndex)
 void SysExDisplay(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
-	char outputString[15];
 		
 	if( primaryMenu.firstEnter != 1 )
    {     
@@ -355,7 +356,6 @@ void ControllerMode(void* data)
 void KeypadButtonSettings(void* data)
 {
    uint8_t* input = 0;
-   char outputString[21];
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 	uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
@@ -482,9 +482,6 @@ void KeypadButtonSettings(void* data)
 void SetMIDIRate(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
-	//static uint8_t primaryMenu.firstEnter = 1;
-	
-   uint8_t outputString[5];
 		
 	if( primaryMenu.firstEnter != 1 )
    {     
@@ -518,7 +515,6 @@ void SetMIDIRate(void* data)
 
 void PrintMIDIRate(void)
 {
-	char outputString[15];
 	uint8_t selectedBaud = 0;
 	
 	UF_MenuPrint_P( PSTR("MIDI Output Rate: ") );
@@ -557,7 +553,6 @@ void EditMIDIRate(void* data)
 	uint8_t* input = (uint8_t*)data;
 	static uint16_t	Delay;
 	uint8_t selectedBaud = 0;
-	char outputString[10];
 	
 	if( primaryMenu.firstEnter == 1)
 	{
@@ -669,7 +664,6 @@ void EditMIDIRate(void* data)
 void ChannelSetup(void* data)
 {
    uint8_t* input = data;
-   char outputString[21];
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 
@@ -723,7 +717,6 @@ void ChannelSetup(void* data)
 	      
 			case KB_BACK:
 			case KP_BACK:
-            UpdateActiveChannels();
             MenuSetInput( &analogueMenu, 0 );
 				primaryMenu.firstEnter = 1;
 				return;
@@ -800,7 +793,6 @@ void ChannelSetup(void* data)
 	UF_MenuPrint_P(PSTR("Gain: "));
 	itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
 	UF_MenuPrint(outputString);
-	
    UF_MenuNewLine();   
    
 //	Don't hide sub children.
@@ -809,6 +801,8 @@ void ChannelSetup(void* data)
    MenuUpdate(&analogueMenu, !RESET_MENU);
    /* Remember we're dealing with two menu's here */
    MenuSetInput( &analogueMenu, KP_INVALID );
+
+   UpdateActiveChannels();
 }
 
 
@@ -858,7 +852,6 @@ void HandleSubMenu(void* data)
 void SetThreshold(void* data)
 {
 	uint8_t* input;
-   char outputString[21];
    
    static uint16_t lastPotValue = 0;
 	static uint8_t firstEnter = 1;
@@ -930,7 +923,6 @@ void SetThreshold(void* data)
 void SetRetrigger(void* data)
 {
 	uint8_t* input;
-   char outputString[5];
    
    static uint8_t adjustStyle = DIGITAL_ADJUST;
 	static uint8_t firstEnter = 1;
@@ -1025,6 +1017,35 @@ void SetRetrigger(void* data)
    	
 }
 
+
+void MonitorChannel(void* data)
+{
+	uint8_t* input = data;
+   
+	switch( *input )
+	{
+      case KP_BACK:
+         /* Stop and restore timers */
+			SoftTimerStop(SoftTimer2[SC_MonitorChannel]);
+         SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
+			if( SelectedChannel >= ANALOGUE_INPUTS )
+			{ 
+      	   UF_MenuUpOneLevel(&digitalMenu); 
+         }
+         else
+         {
+            UF_MenuUpOneLevel(&analogueMenu); 
+         }
+      return;
+	}
+
+   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
+	SoftTimerStart(SoftTimer2[SC_MonitorChannel]);
+   
+}
+
+
+
 // progress bar defines
 #define PROGRESSPIXELS_PER_CHAR	6
 
@@ -1092,7 +1113,6 @@ void SetGainCurves(void* data)
 {
 
    uint8_t* input = 0;
-   char outputString[10];
    
    static int8_t presetSetting = CUSTOM;
 	input = data;
@@ -1236,7 +1256,6 @@ void SetGainCurves(void* data)
 void SetDualInput(void* data)
 {
    uint8_t* input = 0;
-   char outputString[10];
 	input = data;
 
 
@@ -1356,7 +1375,6 @@ void SetDualInput(void* data)
 void DigitalChannelSettings(void* data)
 {
    uint8_t* input = 0;
-   char outputString[21];
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 	uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
@@ -1615,7 +1633,7 @@ void VUMeterSetup(void* data)
 				UF_MenuUpOneLevel(&primaryMenu);
             firstEnter = 1;
             /* Reset the VU Height */
-            VUSetRows(1);
+            VUSetRows(DEFAULT_VU_HEIGHT);
          return;
 	}
 	firstEnter = 0;
@@ -1724,7 +1742,6 @@ void SensorInputChange(void* data)
 /* Profiles */
 void ShowProfile(void* data)
 {
-	char outputString[3];
 	uint8_t* input = (uint8_t*)data;
 	static uint8_t firstEnter = 1;
 	
@@ -1775,7 +1792,6 @@ void ShowProfile(void* data)
 void SaveProfile(void* data)
 {
    uint8_t* input = 0;
-   char  outputString[3];
    uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_SAVE_PROFILE_1;
  	uint8_t i;
 	  
@@ -1820,7 +1836,6 @@ void SaveProfile(void* data)
 void LoadProfile(void* data)
 {
    uint8_t* input = 0;
-   char  outputString[3];
    uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_LOAD_PROFILE_DEF;
 	uint8_t i;
 	
@@ -1888,7 +1903,6 @@ void LoadProfile(void* data)
 
 void Profile_Error(void)
 {
-   char  outputString[3];
    UF_MenuReset();
 	UF_MenuPrint_P( PSTR("Only ("));
 	uint8toa( NUMBER_OF_PROFILES, outputString );
@@ -1903,7 +1917,7 @@ void AdjustCrosstalk(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
 	int16_t crosstalk;
-	char outputString[5];
+
 	
 	crosstalk = GetCrossTalkDelay();
 	
@@ -1987,7 +2001,6 @@ void ChangeChannelCode(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
 	int8_t code;
-	char outputString[4];
 	
 	if( primaryMenu.firstEnter == 1)
 	{

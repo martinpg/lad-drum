@@ -18,6 +18,7 @@
 
 #define MAX_ROWS	(4)
 #define FULL_BLOCK	(0xFF)
+#define DEFAULT_VU_HEIGHT (MAX_ROWS - 1)
 extern uint16_t	VUValues[];
 
 
@@ -27,8 +28,6 @@ void UpdateVUValues(void* src);
 void ResetVUValues(void);
 
 uint16_t VUNormalise(uint16_t value, uint16_t maxVal, uint16_t rows);
-uint16_t VUNormaliseMIDI(uint16_t value, uint16_t rows);
-
 
 void VUMeterPrint(uint8_t column, uint8_t rows );
 void VUSetPosition(uint8_t row, uint8_t column);
