@@ -1,5 +1,4 @@
 
-
 #include "hardwareSpecific.h"
 #include "sample/sample.h"
 #include "VUMeter/vumeter.h"
@@ -18,20 +17,20 @@
 
 /* These are the critical timers, 1ms resolution */
 SoftTimer_16  SoftTimer1[TIMER1_COUNT] = { {15, 0, 1, Callback_MIDIOutput},   // MIDI Output
-														 {10, 0, 1, Callback_RetriggerReset}};  // Retrigger Reset	 }; 
+                                           {10, 0, 1, Callback_RetriggerReset}};  // Retrigger Reset    };
 
 
 
 /* These are non-critical timers, and dont really run during 'play time',
    Functions which start these need to ensure they stop them for optimisation */
 SoftTimer_16  SoftTimer2[TIMER2_COUNT] = {{110, 0, 0, Callback_AutoMenuUpdate},  // Threshold Bar
-                                           {70, 0, 0, Callback_VUMeterUpdate},  // VU Meter Update 
+                                           {70, 0, 0, Callback_VUMeterUpdate},  // VU Meter Update
                                            {70, 0, 0, Callback_DigitalVUUpdate},  // Digital VU Meter Update
-														 {25, 0, 0, Callback_VUDecay},  // VU Decay
-														 {2500,2500,0, Callback_AboutUpdate}, // AboutUpdate
-														 {10000, 10000, 0, Callback_LCDBacklight}, //LCD Backlight
+                                           {25, 0, 0, Callback_VUDecay},  // VU Decay
+                                           {2500,2500,0, Callback_AboutUpdate}, // AboutUpdate
+                                           {10000, 10000, 0, Callback_LCDBacklight}, //LCD Backlight
                                            {150, 0, 0, Callback_MonitorChannel},
-                                           {10, 0, 0, Callback_Keypress}}; 
+                                           {10, 0, 0, Callback_Keypress}};
 
 
 
@@ -42,7 +41,7 @@ void Callback_MIDIOutput(void)
    MIDI_Output();
    MIDI_DigitalOutput();
    MIDI_MetronomeOutput();
-   ResetValues();	
+   ResetValues();   
 
    /* Benchmark reporting */
    /*UART_Tx( (uint8_t)(BenchMarkCount>>8) );
@@ -54,7 +53,7 @@ void Callback_MIDIOutput(void)
 
 void Callback_RetriggerReset(void)
 {
-	uint8_t i;      
+   uint8_t i;      
    /* Each increment of Retrigger increases the time by 1ms */
    for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
    {
@@ -78,10 +77,10 @@ void Callback_AutoMenuUpdate(void)
 
 void Callback_VUDecay(void)
 {
-	/* Decay the VU Meters here */
-	if( ActiveProcess == PLAY_MODE )
-	{
-   	VULevelDecay(ALL_METERS);
+   /* Decay the VU Meters here */
+   if( ActiveProcess == PLAY_MODE )
+   {
+      VULevelDecay(ALL_METERS);
    }
 }
 
@@ -89,13 +88,13 @@ void Callback_VUDecay(void)
 void Callback_LCDBacklight(void)
 {
 
-	SoftTimerStop( SoftTimer2[SC_LCD_BL_Period] );
-	//UI_LCD_BL_Off();
-	
-	/* If no SoftTimer2's are enabled, then turn off the Timer2 module, Timer2 to be enabled
+   SoftTimerStop( SoftTimer2[SC_LCD_BL_Period] );
+   //UI_LCD_BL_Off();
+   
+   /* If no SoftTimer2's are enabled, then turn off the Timer2 module, Timer2 to be enabled
     * only after a keypress. */
-	if( !SoftTimer_IsTimer2Active() )
-	{
+   if( !SoftTimer_IsTimer2Active() )
+   {
       /* Stop the Auxuliary Timer */
       DISABLE_AUXILIARY_TIMER();
    }
@@ -109,22 +108,22 @@ void Callback_VUMeterUpdate(void)
 /* Do the VU Meter*/
    uint16_t i;
    uint8_t  VURows = GetVURows();
-	   			           
+                          
    for( i = 0 ; i < ANALOGUE_INPUTS; i++ )
    {
-		if( GetChannelStatus(i) )
-		{
-			if( VUValues[i] > GetChannelThresh(i) )
-			{
-				uint16_t conditionedSignal = (VUValues[i] - GetChannelThresh(i));
-				
-				conditionedSignal = GainFunction(i, conditionedSignal);
-				
+      if( GetChannelStatus(i) )
+      {
+         if( VUValues[i] > GetChannelThresh(i) )
+         {
+            uint16_t conditionedSignal = (VUValues[i] - GetChannelThresh(i));
+            
+            conditionedSignal = GainFunction(i, conditionedSignal);
+            
             /* Normalise with x rows */
             VUSetLevel(i, VUNormalise(conditionedSignal, MIDI_MAX_DATA, VURows), VURows);            
-			}
+         }
       }
-	}
+   }
    VUMeterPrint(SEQUENTIAL_METERS | 0x0F, VURows);
    ResetVUValues();
 }
@@ -137,19 +136,19 @@ void Callback_DigitalVUUpdate(void)
    /* Do the VU Meter*/
    uint16_t i;
    uint8_t  VURows = GetVURows();
-	   			           
+                          
    for( i = 0 ; i < DIGITAL_INPUTS+METRONOME_INPUTS; i++ )
    {
       uint8_t ActualChannel = i + ANALOGUE_INPUTS;
       
-		if( GetChannelStatus(ActualChannel) )
-		{	
-			if( VUValues[i] )
-			{
-				VUSetLevel(i, VUNormalise(GetDigitalVelocity(i), MIDI_MAX_DATA, VURows), VURows); 
-			}
-		}
-	}
+      if( GetChannelStatus(ActualChannel) )
+      {   
+         if( VUValues[i] )
+         {
+            VUSetLevel(i, VUNormalise(GetDigitalVelocity(i), MIDI_MAX_DATA, VURows), VURows);
+         }
+      }
+   }
    VUMeterPrint(SEQUENTIAL_METERS | 0x0F, VURows);
    ResetVUValues();
 }
@@ -159,14 +158,14 @@ void Callback_DigitalVUUpdate(void)
 
 void Callback_AboutUpdate(void)
 {
-	uint8_t nameIndex = 0;
-	nameIndex = ThanksIndex(GET);
-	if( ++nameIndex == SIZEOFTHANKS )
-	{
-		nameIndex = ThanksIndex(MAIN_SCREEN);	
-	}
-	ThanksIndex(nameIndex);
-	aboutScroll(nameIndex);
+   uint8_t nameIndex = 0;
+   nameIndex = ThanksIndex(GET);
+   if( ++nameIndex == SIZEOFTHANKS )
+   {
+      nameIndex = ThanksIndex(MAIN_SCREEN);   
+   }
+   ThanksIndex(nameIndex);
+   aboutScroll(nameIndex);
 }
 
 
@@ -188,36 +187,40 @@ void Callback_MonitorChannel(void)
    UF_MenuPrint(outputString);
 
    UF_MenuNewLine();
-	/* Display the first slope channel 'gain' */
-	itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET) , outputString, 10);
-	UF_MenuPrint_P(PSTR("Gain1:"));
-	UF_MenuPrint(outputString);
+   /* Display the first slope channel 'gain' */
+   itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET) , outputString, 10);
+   UF_MenuPrint_P(PSTR("Gain1:"));
+   UF_MenuPrint(outputString);
 
-	/* Display the channel slope 2 'gain' */
-	itoa( (int8_t)(GetSlope2Gain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
-	UF_MenuPrint_P(PSTR(" Gain2:"));
-	UF_MenuPrint(outputString);
+   /* Display the channel slope 2 'gain' */
+   itoa( (int8_t)(GetSlope2Gain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
+   UF_MenuPrint_P(PSTR(" Gain2:"));
+   UF_MenuPrint(outputString);
    UF_MenuNewLine();   
 
-	/* Display the gain crossover point */
-	itoa(GetCrossover(SelectedChannel), outputString, 10);
-	UF_MenuPrint_P(PSTR("Gain Crossover:"));
-	UF_MenuPrint(outputString);
+   /* Display the gain crossover point */
+   itoa(GetCrossover(SelectedChannel), outputString, 10);
+   UF_MenuPrint_P(PSTR("Gain Crossover:"));
+   UF_MenuPrint(outputString);
    UF_MenuNewLine();
 
    ResetValues();
 }
 
+#define KP_REPEAT_RATE   (50)
+#define KP_REPEAT_DELAY  (500)
 
 void Callback_Keypress(void)
 {
    static uint8_t result = KP_INVALID;
+   static uint8_t isRepeating;
    uint8_t i;
 
    if( result == KP_INVALID )
    {
+      isRepeating = 0;
       result = UI_KP_GetPress();
-      /* This will generate an interrupt flag */
+      /* This will generate an interrupt flag, so we need to clear the flag */
       GIFR |= (1 << INTF1);
    }
 
@@ -235,6 +238,7 @@ void Callback_Keypress(void)
             SoftTimerStop(SoftTimer2[i]);
          }
       }
+      SoftTimer2[SC_Keypress].timeCompare = KP_WAIT;
       SoftTimerStart(SoftTimer2[SC_Keypress]);
       return;
    }
@@ -244,10 +248,30 @@ void Callback_Keypress(void)
       MenuSetInput(ActiveMenu, result);
       MenuUpdate(ActiveMenu, RESET_MENU);
       /* Active the back light */
-      UI_LCD_BL_On();
-      SoftTimerStart(SoftTimer2[SC_LCD_BL_Period]);
+      //UI_LCD_BL_On();
+      //SoftTimerStart(SoftTimer2[SC_LCD_BL_Period]);
+      /* Generate our own timer interrupt, for the repeat */
+      if( isRepeating )
+      {
+         SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_RATE;
+      }
+      else
+      {
+         SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_DELAY;
+         isRepeating = 1;
+      }
+      SoftTimerStart(SoftTimer2[SC_Keypress]);
    }
+   else
+   {
+      /* Only enable the keypad once the user has released the key */
+      SoftTimer2[SC_Keypress].timeCompare = KP_WAIT;
+      ENABLE_KEYPAD();
+   }
+   
+   
 
-   result = KP_INVALID;
-   ENABLE_KEYPAD();
+   //result = KP_INVALID;
+   //ENABLE_KEYPAD();
 }
+
