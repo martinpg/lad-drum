@@ -22,7 +22,8 @@ enum {
    SC_AboutUpdate,
    /* LCD_BL_Period should be the last T2 SoftTimer */
    SC_LCD_BL_Period,
-   SC_Debug,
+   SC_MonitorChannel,
+   SC_Keypress,
    TIMER2_COUNT 
    
 } timer2Ids;
@@ -42,6 +43,7 @@ void Callback_VUMeterUpdate(void);
 void Callback_DigitalVUUpdate(void);
 void Callback_AboutUpdate(void);
 void Callback_LCDBacklight(void);
-void Callback_Debug(void);
+void Callback_MonitorChannel(void);
+void Callback_Keypress(void);
 
 #endif

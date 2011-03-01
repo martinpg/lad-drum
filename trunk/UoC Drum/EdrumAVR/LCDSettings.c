@@ -118,7 +118,6 @@ void UI_LCD_HWInit(void)
  */
 void UI_LCD_BL_On(void)
 {
-   uint8_t i;
    if( BL_State == LCD_BL_ON)
    {
       return;  
@@ -130,8 +129,6 @@ void UI_LCD_BL_On(void)
 
 void UI_LCD_BL_Off(void)
 {
-   
-   uint8_t i;
    BL_State = !LCD_BL_ON;   
    LCD_BL_PORT &= ~(1 << LCD_BL_PIN);  
 }

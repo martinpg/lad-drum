@@ -39,7 +39,7 @@ typedef struct _softTimer32
 
 #define SoftTimerStart(x)        x.timerEnable = SOFTTIMER_ENABLED; SoftTimerReset(x)
 #define SoftTimerStop(x)         x.timerEnable = SOFTTIMER_DISABLED
-
+#define SoftTimerIsEnabled(x)    (x.timerEnable)
 
 /* 10us Resolution */
 #define SAMPLE_10US    (F_CPU / 100000)

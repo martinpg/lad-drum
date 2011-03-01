@@ -136,6 +136,8 @@ typedef struct Menu_t
 
 
 void MenuSetInput(Menu_t* menu, uint8_t NewInput);
+uint8_t MenuGetInput(Menu_t* menu);
+
 
 void MenuUpdate(Menu_t* menu, uint8_t resetMenu);
 
