@@ -1,0 +1,30 @@
+# Project: SysEx Packer
+# Makefile created by Dev-C++ 4.9.9.2
+
+CPP  = g++.exe
+CC   = gcc.exe
+WINDRES = windres.exe
+RES  = 
+OBJ  = dataparser.o $(RES)
+LINKOBJ  = dataparser.o $(RES)
+LIBS =  -L"D:/Dev-Cpp/lib"  
+INCS =  -I"D:/Dev-Cpp/include"  -I"M:/Robotics/Source/GenericEdrum/MIDI"  -I"M:/Robotics/Source/FuncLib/Other/MIDICodes" 
+CXXINCS =  -I"D:/Dev-Cpp/lib/gcc/mingw32/3.4.2/include"  -I"D:/Dev-Cpp/include/c++/3.4.2/backward"  -I"D:/Dev-Cpp/include/c++/3.4.2/mingw32"  -I"D:/Dev-Cpp/include/c++/3.4.2"  -I"D:/Dev-Cpp/include"  -I"M:/Robotics/Source/GenericEdrum/MIDI"  -I"M:/Robotics/Source/FuncLib/Other/MIDICodes" 
+BIN  = "SysEx Packer.exe"
+CXXFLAGS = $(CXXINCS)  
+CFLAGS = $(INCS)  
+RM = rm -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before "SysEx Packer.exe" all-after
+
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o "SysEx Packer.exe" $(LIBS)
+
+dataparser.o: dataparser.c
+	$(CC) -c dataparser.c -o dataparser.o $(CFLAGS)

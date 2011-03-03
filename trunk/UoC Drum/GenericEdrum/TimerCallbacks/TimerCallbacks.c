@@ -44,9 +44,11 @@ void Callback_MIDIOutput(void)
    ResetValues();   
 
    /* Benchmark reporting */
-   /*UART_Tx( (uint8_t)(BenchMarkCount>>8) );
+#if SET_BENCHMARK
+   UART_Tx( (uint8_t)(BenchMarkCount>>8) );
    UART_Tx( (uint8_t)(BenchMarkCount) );
-   BenchMarkCount = 0;*/
+   BenchMarkCount = 0;
+#endif
 }
 
 
