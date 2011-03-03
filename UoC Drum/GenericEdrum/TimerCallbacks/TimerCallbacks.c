@@ -30,7 +30,7 @@ SoftTimer_16  SoftTimer2[TIMER2_COUNT] = {{110, 0, 0, Callback_AutoMenuUpdate}, 
                                            {2500,2500,0, Callback_AboutUpdate}, // AboutUpdate
                                            {10000, 10000, 0, Callback_LCDBacklight}, //LCD Backlight
                                            {150, 0, 0, Callback_MonitorChannel},
-                                           {10, 0, 0, Callback_Keypress}};
+                                           {KP_WAIT, 0, 0, Callback_Keypress}};
 
 
 
@@ -177,13 +177,16 @@ void Callback_MonitorChannel(void)
    UF_MenuReset();
    char outputString[10];
    itoa(GetLastMIDIValue(SelectedChannel), outputString, 10);
-   UF_MenuPrint_P(PSTR("MIDI Code:"));
+   UF_MenuPrint_P(PSTR("Last MIDI Code:"));
    UF_MenuPrint(outputString);
-
    UF_MenuNewLine();
 
+   itoa(ADC_RESOLUTION, outputString, 10);
+   UF_MenuPrint(outputString);
+   UF_MenuPrint_P(PSTR("bit "));
+
    itoa(SignalPeak[SelectedChannel], outputString, 10);
-   UF_MenuPrint_P(PSTR("ADC Val: "));
+   UF_MenuPrint_P(PSTR("ADC Code:"));
    UF_MenuPrint(outputString);
 
    UF_MenuNewLine();
@@ -207,24 +210,22 @@ void Callback_MonitorChannel(void)
    ResetValues();
 }
 
-#define KP_REPEAT_RATE   (50)
-#define KP_REPEAT_DELAY  (500)
+
 
 void Callback_Keypress(void)
 {
    static uint8_t result = KP_INVALID;
-   static uint8_t isRepeating;
+   static uint8_t pressCount;
    uint8_t i;
+
+   DISABLE_KEYPAD();
 
    if( result == KP_INVALID )
    {
-      isRepeating = 0;
       result = UI_KP_GetPress();
       /* This will generate an interrupt flag, so we need to clear the flag */
       GIFR |= (1 << INTF1);
    }
-
-   UDR = result;
 
    SoftTimerStop(SoftTimer2[SC_Keypress]);
    if( (result != KP_INVALID) && SoftTimer_IsTimer2Active() )
@@ -251,27 +252,36 @@ void Callback_Keypress(void)
       //UI_LCD_BL_On();
       //SoftTimerStart(SoftTimer2[SC_LCD_BL_Period]);
       /* Generate our own timer interrupt, for the repeat */
-      if( isRepeating )
+      if( UI_KP_GetState() != KP_NO_REPEAT )
       {
          SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_RATE;
+         pressCount++;
+         if( pressCount > 25 )
+         {
+            SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_RATE / 5;
+         }
+         if( pressCount > 200 )
+         {
+            SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_RATE / 15;
+            pressCount--;
+         }
       }
       else
       {
          SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_DELAY;
-         isRepeating = 1;
+         UI_KP_SetState(KP_REPEATING);
+         ENABLE_KEYPAD();
       }
+      /* Take another sample after a little delay */
+      result = KP_INVALID;
       SoftTimerStart(SoftTimer2[SC_Keypress]);
    }
    else
    {
       /* Only enable the keypad once the user has released the key */
-      SoftTimer2[SC_Keypress].timeCompare = KP_WAIT;
+      pressCount = 0;
       ENABLE_KEYPAD();
+      
    }
-   
-   
-
-   //result = KP_INVALID;
-   //ENABLE_KEYPAD();
 }
 

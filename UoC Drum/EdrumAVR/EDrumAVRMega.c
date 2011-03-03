@@ -246,9 +246,10 @@ ISR(SIG_SPM_READY)
 ISR(SIG_UART_RECV)
 {
    uint8_t buffer;
-
    buffer = UDR;
    sei();
+
+   
 
 /* Echo the data back out */
    //USBMIDI_PutByte(buffer);
@@ -285,6 +286,8 @@ ISR(INT0_vect, ISR_NOBLOCK)
 ISR(INT1_vect, ISR_NOBLOCK)
 {
    /* Flag a MENU Update request */
+   UI_KP_SetState(KP_NO_REPEAT);
+   SoftTimer2[SC_Keypress].timeCompare = KP_WAIT;
    SoftTimerStart(SoftTimer2[SC_Keypress]);
    ENABLE_AUXILIARY_TIMER();
    DISABLE_KEYPAD();
