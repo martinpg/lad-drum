@@ -56,6 +56,7 @@ uint8_t ActiveProcess = 0;
 */
 
 
+
 int main(void)
 {
    DDRD &= ~(1 << 3);
@@ -147,15 +148,19 @@ int main(void)
       usbPoll();
       USBMIDI_OutputData();
 
+      uint16_t sample;
+
       switch( ActiveProcess )
       {
          case PLAY_MODE:
             Play();
 
 
+            
+            //sample = ADC_Sample();
 
-            /*Benchmark();
-            BenchMarkCount++;*/
+            //Benchmark();
+            BenchMarkCount++;
          break;
              
          case RECEIVE_SYSEX:
@@ -204,7 +209,9 @@ void Play(void)
       if( !(RetriggerPeriod[ SelectedChannel ].timerEnable) )
       {
          SensorChannel(SelectedChannel);
-         _delay_us(SensorSettings->CrosstalkDelay);
+         _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
+         _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
+         _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
          /* Take a sample */
          sample = ADC_Sample();
                         
@@ -226,7 +233,7 @@ void Benchmark(void)
       
       SelectedChannel = ActiveChannels[i++];
       SensorChannel(SelectedChannel);
-   	_delay_us(SensorSettings->CrosstalkDelay);
+      _delay_loop_1(SensorSettings->CrosstalkDelay << 3);
       /* Take a sample */
       sample = ADC_Sample();
                            
