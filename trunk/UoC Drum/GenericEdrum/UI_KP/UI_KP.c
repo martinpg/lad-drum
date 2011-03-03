@@ -76,8 +76,18 @@ uint8_t UI_KP_ReturnID(uint8_t KP_Button)
 	
 }
 
+uint8_t UI_KP_SetState(uint8_t newState)
+{
+   static uint8_t keypadState;
 
-
+   if( newState == KP_GET_STATE)
+   {
+      return keypadState;
+   }
+   
+   keypadState = newState;
+   return keypadState;
+}
 
 
 

@@ -31,6 +31,10 @@ enum {
 extern SoftTimer_16  SoftTimer1[];
 extern SoftTimer_16  SoftTimer2[];
 
+#define KP_WAIT          (15)
+#define KP_REPEAT_RATE   (30)
+#define KP_REPEAT_DELAY  (500)
+
 /* Critical timers */
 void Callback_MIDIOutput(void);
 void Callback_RetriggerReset(void);

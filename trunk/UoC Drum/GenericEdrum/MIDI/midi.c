@@ -22,10 +22,6 @@ MidiSettings_t* MIDISettings;
 
 void midiTx(uint8_t inbyte)
 {
-   if( inbyte == 0xFF )
-   {
-      PORTD &= ~(1 << 7);
-   }
    USBMIDI_PutByte(inbyte);
    uartTx(inbyte);
 }
