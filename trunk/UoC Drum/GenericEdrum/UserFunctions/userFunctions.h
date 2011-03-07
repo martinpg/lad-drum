@@ -9,7 +9,7 @@
 #define ANALOGUE_ADJUST (0)
 #define DIGITAL_ADJUST (1)
 
-
+#define DOWNLOAD_FAILED (1)
 
 enum {
 	MAIN_SCREEN = 0,
@@ -38,6 +38,8 @@ uint8_t ThanksIndex(uint8_t mode);
 void SysExDisplay(void* data);
 void DumpSysEx(void* data);
 void GetSysEx(void* data);
+
+void FirmwareInstructions(void* data);
 void FirmwareUpgrade(void* data);
 
 /* Play mode disables TimerB2 */

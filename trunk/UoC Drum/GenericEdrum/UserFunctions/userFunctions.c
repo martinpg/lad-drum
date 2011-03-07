@@ -115,7 +115,6 @@ void about(void* data)
 
 
 
-
 /* Pass GET to obtain the index, otherwise the index is set to the passed
  * parameter */
 uint8_t ThanksIndex(uint8_t mode)
@@ -299,15 +298,29 @@ void GetSysEx(void* data)
 
 void FirmwareUpgrade(void* data)
 {
-	UF_MenuPrint_P( PSTR("Waiting for Firmware") );
-   UF_MenuNewLine(); 	
-	UF_MenuPrint_P( PSTR("Hold any key and ") );
-   UF_MenuNewLine();
-	UF_MenuPrint_P( PSTR("cycle power if the") );
-   UF_MenuNewLine();
-	UF_MenuPrint_P( PSTR("download fails") );
+   FirmwareInstructions(0);
    ActiveProcess = FIRMWARE_UPGRADE;
 }
+
+void FirmwareInstructions(void* data)
+{
+   if( data == DOWNLOAD_FAILED )
+   {
+      UF_MenuPrint_P( PSTR("  DOWNLOAD FAILED!") );
+   }
+   else
+   {
+      UF_MenuPrint_P( PSTR("Waiting for Firmware") );
+   }
+   UF_MenuNewLine();
+   UF_MenuPrint_P( PSTR("IF DOWNLOAD FAILS:") );
+   UF_MenuNewLine();
+	UF_MenuPrint_P( PSTR("  **HOLD ANY KEY**") );
+   UF_MenuNewLine();
+	UF_MenuPrint_P( PSTR("CYCLE POWER & RETRY") );
+}
+
+
 
 #if HAS_CONTROLLER_MODE
 /* Play mode disables TimerB2 */

@@ -8,7 +8,7 @@ extern uint16_t BenchMarkCount;
 
 extern const char VersionId[];
 
-#define SET_BENCHMARK (1)
+#define SET_BENCHMARK (0)
 #define HAS_CONTROLLER_MODE (0)
 
 enum {
@@ -25,6 +25,8 @@ void Shutdown(void);
 void Play(void);
 void Benchmark(void);
 void MidiControllerMode(void);
+
+uint8_t VerifyDownload(void);
 
 /* Interrupt Macros */
 #define UI_INT_PORT  P1IN

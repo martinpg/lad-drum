@@ -13,6 +13,19 @@
 
 
 
+const PROGRAM_CHAR VersionID[] = "USB-MIDI Bootloader V1.0";
+
+//Must be a power of two
+#define RX_BUFFER_SIZE (32)
+#define RX_BUFFER_MASK (RX_BUFFER_SIZE - 1)
+/* After 200 times to retry sending a message, we assume the USB is
+   disconnected */
+#define USB_CONNECT_TIMEOUT (5000)
+
+volatile uint8_t rxReadPtr;
+uint8_t USB_Connected;
+uint8_t RxBuffer[RX_BUFFER_SIZE];
+volatile uint8_t rxWritePtr;
 
 // This descriptor is based on http://www.usb.org/developers/devclass_docs/midi10.pdf
 // 
@@ -22,7 +35,7 @@
 static PROGMEM char deviceDescrMIDI[] = {	/* USB device descriptor */
 	18,			/* sizeof(usbDescriptorDevice): length of descriptor in bytes */
 	USBDESCR_DEVICE,	/* descriptor type */
-	0x00, 0x02,		/* USB version supported */
+	0x10, 0x01,		/* USB version supported */
 	0,			/* device class: defined at interface level */
 	0,			/* subclass */
 	0,			/* protocol */
@@ -185,21 +198,7 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 };
 
 
-const PROGRAM_CHAR VersionID[] = "USB-MIDI Bootloader V1.0";
 
-//Must be a power of two
-#define RX_BUFFER_SIZE (32)
-#define RX_BUFFER_MASK (RX_BUFFER_SIZE - 1)
-
-uint8_t RxBuffer[RX_BUFFER_SIZE];
-volatile uint8_t rxWritePtr;
-volatile uint8_t rxReadPtr;
-
-/* After 200 times to retry sending a message, we assume the USB is
-   disconnected */
-#define USB_CONNECT_TIMEOUT (5000)
-
-uint8_t USB_Connected;
 
 /* Firmware Update also via UART */
 ISR(SIG_UART_RECV)
@@ -572,7 +571,6 @@ void bootloader_enter(void)
       if( nextByte != NO_DATA_BYTE )
       {
          ParseFirmwareData(nextByte);
-         FirmwareCheckForFinalise();
       }
    }
 }

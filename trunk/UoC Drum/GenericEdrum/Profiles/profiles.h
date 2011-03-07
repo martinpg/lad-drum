@@ -12,8 +12,12 @@
 #define SEGMENTS_TO_USE       ((NUMBER_OF_PROFILES * sizeof(Profile_t) / FLASH_BLOCK_SIZE) + 1)
 /* Start after the Device Interrupts! */
 // For devices which use FLASH memory, it's to be placed at the end of flash 
-//#define PROFILE_START (FLASH_TEMP_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
-#define PROFILE_START (0)
+#if PROFILE_MEMORY == PROFILE_EEPROM
+   #define PROFILE_START (0)
+#else
+   #define PROFILE_START (FLASH_TEMP_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE)) 
+#endif
+
 #define PROFILE(x)    		(PROFILE_START + (sizeof(Profile_t)*x))
 
 #define MIDI_SETTINGS(profile)		PROFILE(profile)
@@ -22,8 +26,18 @@
 #define DIGITAL_SETTINGS(profile)	(GAIN_SETTINGS(profile)+sizeof(GainSettings_t))
 #define SENSOR_SETTINGS(profile) 	(DIGITAL_SETTINGS(profile) + sizeof(DigitalSettings_t))
 
-//#define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
-//#define PROFILE_COPY(dest, src, len) eeprom_read_block(dest, src, len)
+
+/* define either EEMEM or PROGRAM_SPACE */
+/*
+#define PROFILE_MEMORY  PROFILE_EEPROM
+#if PROFILE_MEMORY == PROFILE_EEPROM
+   #define PROFILE_SPACE   EEMEM
+   #define PROFILE_COPY(dest, src, len) eeprom_read_block(dest, src, len)
+#else
+   #define PROFILE_SPACE   PROGRAM_SPACE
+   #define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
+#endif
+*/
 
 enum {
    DEFAULT_PROFILE = 0,
