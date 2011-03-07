@@ -11,3 +11,8 @@ _jump_table:
    jmp USBMIDI_OutputData
    jmp USBMIDI_EnableRequests
    jmp USBMIDI_GetByte
+   jmp _flashmem_erase
+   jmp _flashmem_finalise
+   jmp _flashmem_writeWord
+   jmp _flashmem_release
+

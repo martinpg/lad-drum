@@ -16,8 +16,6 @@
 
 #include "hardUART/hardUart.h"
 #include "avrADC/adc.h"
-//#include "flashmem/flashmem.h"
-
 
 
 /* Interrupts */
@@ -131,7 +129,7 @@
 
 #define ADC_REF_DEFAULT ADC_REF_AVCC
 /* Lowest division before it doesn't work */
-#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV4
+#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV64
 
 #define ADC_RESOLUTION (10)
 
@@ -236,14 +234,29 @@
 
 /* Profile FLASH saving defines */
 #define SET_SECTION(x) __attribute__ ((section ((x))))
-#define NUMBER_OF_PROFILES   (1)
+#define NUMBER_OF_PROFILES   (3)
 /* FLASH Page size in bytes */
 #define FLASH_BLOCK_SIZE      (SPM_PAGESIZE)
 /* The last page in the Flash is reserved for the temp buffer */
 #define FLASH_TEMP_BUFFER  (APP_END - FLASH_BLOCK_SIZE + 1)
 /* Effective End of UserSpace Flash. Total Flash - Bootloader Flash Size*/
 #define APP_END             (FLASHEND - BOOTLOADER_SIZE)
-#define PROFILE_COPY(dest, src, len) eeprom_read_block(dest, src, len)
+
+#define PROFILE_EEPROM (0)
+#define PROFILE_FLASH  (1)
+/* define either EEMEM or PROGRAM_SPACE */
+#define PROFILE_MEMORY  PROFILE_FLASH
+
+#if PROFILE_MEMORY == PROFILE_EEPROM
+   #define PROFILE_SPACE   EEMEM
+   #define PROFILE_COPY(dest, src, len) eeprom_read_block(dest, src, len)
+#else
+   #define PROFILE_SPACE   PROGRAM_SPACE
+   #define PROFILE_COPY(dest, src, len) memcpy_P(dest, src, len)
+#endif
+
+
+
 
 #define FLASH_PAGE_ERASE(address)         boot_page_erase_safe(address)
 #define FLASH_WORD_WRITE(address, data)   boot_page_fill_safe(address, data)

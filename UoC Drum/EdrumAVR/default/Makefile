@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99                                                                          -DF_CPU=20000000UL -Os -fsigned-char
+CFLAGS += -Wall -gdwarf-2 -std=gnu99                                                                                  -DF_CPU=20000000UL -Os -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -27,7 +27,8 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 LDFLAGS = $(COMMON)
 LDFLAGS +=  -Wl,-Map=EdrumAVR.map
 LDFLAGS += -Wl,-section-start=.data=0x8000ff
-LDFLAGS += -Wl,-section-start=.profile1=0x810140
+LDFLAGS += -Wl,-section-start=.PROFILE_0=0x6a00
+LDFLAGS += -Wl,-section-start=.PROFILE_1=0x6666
 
 
 ## Intel Hex file production flags
@@ -36,14 +37,13 @@ HEX_FLASH_FLAGS = -R .eeprom -R .fuse -R .lock -R .signature
 HEX_EEPROM_FLAGS = -j .eeprom
 HEX_EEPROM_FLAGS += --set-section-flags=.eeprom="alloc,load"
 HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
-HEX_EEPROM_FLAGS += --change-section-lma .profile1=0x140
 
 
 ## Include Directories
 INCLUDES = -I"M:\Robotics\Source\EdrumAVR\..\FuncLib" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Other" -I"M:\Robotics\Source\EdrumAVR\..\GenericEdrum" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Applications" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\External" -I"M:\Robotics\Source\EdrumAVR\." 
 
 ## Objects that must be built in order to link
-OBJECTS = EDrumAVRMega.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o profiles.o SysEx.o hardwareSpecific.o UI_KP.o TimerCallbacks.o 
+OBJECTS = EDrumAVRMega.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o profiles.o SysEx.o hardwareSpecific.o UI_KP.o TimerCallbacks.o flashmem.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -113,6 +113,9 @@ UI_KP.o: ../../GenericEdrum/UI_KP/UI_KP.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 TimerCallbacks.o: ../../GenericEdrum/TimerCallbacks/TimerCallbacks.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+flashmem.o: ../../FuncLib/Other/flashmem/flashmem.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link

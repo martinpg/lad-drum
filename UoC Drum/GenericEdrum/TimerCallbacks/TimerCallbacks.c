@@ -36,18 +36,20 @@ SoftTimer_16  SoftTimer2[TIMER2_COUNT] = {{110, 0, 0, Callback_AutoMenuUpdate}, 
 
 void Callback_MIDIOutput(void)
 {
+
+
+   /* Benchmark reporting */
+#if SET_BENCHMARK
+   //UART_Tx( (uint8_t)(BenchMarkCount>>8) );
+   //UART_Tx( (uint8_t)(BenchMarkCount) );
+   BenchMarkCount = 0;
+#else
    /* Update the Digital States */
    ScanDigitalInputs();
    MIDI_Output();
    MIDI_DigitalOutput();
    MIDI_MetronomeOutput();
    ResetValues();   
-
-   /* Benchmark reporting */
-#if SET_BENCHMARK
-   UART_Tx( (uint8_t)(BenchMarkCount>>8) );
-   UART_Tx( (uint8_t)(BenchMarkCount) );
-   BenchMarkCount = 0;
 #endif
 }
 

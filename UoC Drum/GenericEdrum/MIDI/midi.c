@@ -36,12 +36,17 @@ void MIDI_Output(void)
           (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED) && 
           (SignalPeak[i]) )
       {
+         
 			uint16_t conditionedSignal = (SignalPeak[i] - GetChannelThresh(i));
-			
+         /* Make the conditioned signal start at the Threshold */
+         //uint16_t conditionedSignal = (SignalPeak[i]);			
+
 			conditionedSignal = GainFunction(i, conditionedSignal);
 			
 			if( conditionedSignal )
 			{
+            /* Make it slightly larger, so we can reach 0x7F */
+            conditionedSignal++;
 	         /* Send a NOTE ON (default) | Channel */
 	         MIDI_Tx( (GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
 	         

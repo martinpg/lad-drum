@@ -23,12 +23,27 @@
 #include "USBMIDI/USBMIDI.h"
 
 #include <stdlib.h>
+#include <util/crc16.h>
+
 
 const prog_char VersionId[] = "1.5 28/02/11";
 
 uint16_t BenchMarkCount = 0;
 
 uint8_t ActiveProcess = 0;
+
+volatile uint8_t PrintChannel;
+
+/* 5/03/2011
+   After benchmarking, we have decided to use DIV64 ADC clock
+   Crosstalk delay of 13us
+   This produces a noise floor of ADC:5-9
+   We'll set the threshold to 1% (ADC:10) of 1024
+   We get good results, however over 13 channels activated, we only get about 7-8 samples per 10ms.
+
+   Lets test it, and it works, we'll keep it.
+
+*/
 
 /* 20/02/2011
    Welcome to 2011 Edrum AVR Mega
@@ -63,16 +78,22 @@ int main(void)
    PORTD &= ~(1<<3);
 
 
+   volatile uint16_t profileStart = PROFILE_START;
+
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
 
+   
+
    _delay_ms(100);
+
+   
 
    ProfileInit();
    
    /* Make profile 1 the default profile on start up */
    Profile_Read(1);
-   
+
    SPI_Init();
    SensorInit();
    SensorInputSelect(GetSensorInput());
@@ -123,6 +144,15 @@ int main(void)
 	/* Backlight 'off' is at 5% */
    //UI_LCD_BLInit(5);
    //UI_LCD_BL_On();
+   if( VerifyDownload() == 0)
+   {
+      _delay_ms(900);      
+      Shutdown();
+      cli();
+      bootloader_enter();      
+   }
+
+
 	
    aboutScroll(MAIN_SCREEN);
    SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );	
@@ -153,14 +183,15 @@ int main(void)
       switch( ActiveProcess )
       {
          case PLAY_MODE:
-            Play();
-
-
-            
-            //sample = ADC_Sample();
-
-            //Benchmark();
+#if SET_BENCHMARK
+            Benchmark();
             BenchMarkCount++;
+#else
+            Play();
+#endif
+            
+            
+            
          break;
              
          case RECEIVE_SYSEX:
@@ -212,7 +243,8 @@ void Play(void)
          _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
          _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
          _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
-         /* Take a sample */
+         /* Take a sample, doing it twice improves the reading accuracy */
+         sample = ADC_Sample();
          sample = ADC_Sample();
                         
          /* Obtain Peak */
@@ -230,19 +262,60 @@ void Benchmark(void)
    
 	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
 	{
-      
       SelectedChannel = ActiveChannels[i++];
-      SensorChannel(SelectedChannel);
-      _delay_loop_1(SensorSettings->CrosstalkDelay << 3);
-      /* Take a sample */
-      sample = ADC_Sample();
-                           
-      /* Obtain Peak */
-      ObtainPeak(SelectedChannel, sample);
+      if( !(RetriggerPeriod[ SelectedChannel ].timerEnable) )
+      {
+         SensorChannel(SelectedChannel);
+         _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
+         _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
+         _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
+         /* Take a sample */
+         sample = ADC_Sample();
+         sample = ADC_Sample();
 
-   }   
+         /* Take more samples */
+#if 1
+         if( SelectedChannel == PrintChannel )
+         {
+            UART_Tx( (uint8_t)(sample>>8) );
+            UART_Tx( (uint8_t)(sample) );
+         }
+#endif         
+         //SoftTimerStart(RetriggerPeriod[SelectedChannel]);               
+         /* Obtain Peak */
+         ObtainPeak(SelectedChannel, sample);
+      } 
+   }
+
+   //SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
+     
 }
 #endif
+
+
+/* Performs a CRC16 check */
+uint8_t VerifyDownload(void)
+{
+   uint16_t crc = 0, appCRC;
+   uint8_t outputString[4];
+   uint32_t i;
+
+   for (i = 0; i < (APP_END - 1); i++)
+   {
+      crc = _crc_xmodem_update(crc, FLASH_GET_PGM_BYTE(i) );
+   }
+
+   appCRC = FLASH_GET_PGM_WORD(i);
+
+   if( crc != appCRC )
+   {
+      sei();
+      FirmwareInstructions(DOWNLOAD_FAILED);
+      return 0;
+   }
+
+   return 1; // must be 0
+}
 
 
 
@@ -265,7 +338,7 @@ ISR(SIG_UART_RECV)
    switch( ActiveProcess )
    {
       case PLAY_MODE:
-
+         //PrintChannel = buffer -'0';
       break;
       
       case RECEIVE_SYSEX:

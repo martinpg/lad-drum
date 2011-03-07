@@ -36,8 +36,8 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
+#include <stdint.h>
 #include "RingBuffer/ringbuffer.h"
-
 
 #define	SET	1
 #define	CLEAR	0

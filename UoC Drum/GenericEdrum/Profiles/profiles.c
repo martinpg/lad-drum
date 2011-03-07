@@ -1,5 +1,3 @@
-
-
 #include <string.h>
 #include "hardwareSpecific.h"
 #include "profiles.h"
@@ -8,7 +6,8 @@
 
 Profile_t CurrentProfile; 
 
-Profile_t Profile0 EEMEM = { 
+
+Profile_t Profile0 SET_SECTION(".PROFILE_0")  = { 
 /* MIDISettings_t */
 {	
 	/* 15ms output rate */
@@ -142,7 +141,7 @@ Profile_t Profile0 EEMEM = {
 };
 
 
-Profile_t Profile1 EEMEM = { 
+Profile_t Profile1 SET_SECTION(".PROFILE_1") = { 
 /* MIDISettings_t */
 {	
 	/* 15ms output rate */
@@ -298,8 +297,12 @@ void ProfileInit(void)
 void Profile_Write(Profile_t* profile, uint8_t profileIndex)
 {
    void* memPtr = (void*)PROFILE(profileIndex);
-   eeprom_update_block(&CurrentProfile, memPtr, sizeof(Profile_t));
-//   flashmem_bufferedWrite(memPtr, (void*)profile, sizeof(Profile_t), 0 );
+
+#if PROFILE_MEMORY == PROFILE_EEPROM
+   eeprom_update_block((void*)profile, memPtr, sizeof(Profile_t));
+#else
+   flashmem_bufferedWrite(memPtr, (void*)profile, sizeof(Profile_t), 0 );
+#endif
 
 }
 

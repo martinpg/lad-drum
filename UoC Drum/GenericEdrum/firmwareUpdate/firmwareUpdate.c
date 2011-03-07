@@ -5,7 +5,7 @@
 
 #include "firmwareUpdate/firmwareUpdate.h"
 
-#include "flashmem/flashmem.h"
+#include "flashmem/lowlevel_flashmem.h"
 
 static uint32_t firmwareDataCount;
 static uint32_t firmwareByteCount;
@@ -14,8 +14,8 @@ static uint32_t firmwareAddress;
 void FirmwareCheckForErase(void)
 {
 
-   if( (firmwareAddress % FLASH_BLOCK_SIZE) == 0 &&
-       (firmwareByteCount % 4) == 0 )
+   if( ((firmwareAddress & (FLASH_BLOCK_SIZE - 1)) == 0) &&
+       (firmwareAddress <= APP_END))
    {
       _flashmem_erase(firmwareAddress);
    }
@@ -24,12 +24,9 @@ void FirmwareCheckForErase(void)
 
 void FirmwareCheckForFinalise(void)
 {
-   if( (firmwareAddress % FLASH_BLOCK_SIZE) == 0 &&
-       (firmwareAddress) && 
-       (firmwareByteCount % 4) == 0 )
+   if( (firmwareAddress & (FLASH_BLOCK_SIZE - 1)) == 0)
    {
       PORTD ^= (1 << 7);
-
       _flashmem_finalise(firmwareAddress-2);
    }
 }
@@ -87,13 +84,10 @@ void ParseFirmwareData(uint8_t nextByte)
    
    if( firmwareDataCount >= 3 )
    {
-      /* See if we need to erase the current page */
-      FirmwareCheckForErase();
-
       /* On successful download */
       if( (nextByte == MIDI_SYSEX_STOP) )
       {
-         if(firmwareAddress % FLASH_BLOCK_SIZE)
+         if(firmwareAddress & (FLASH_BLOCK_SIZE - 1))
          {
             _flashmem_finalise(firmwareAddress);
          }
@@ -119,8 +113,14 @@ void ParseFirmwareData(uint8_t nextByte)
 
          if( index ) 
          {
-            _flashmem_writeWord(firmwareAddress, firmwareData[0] | firmwareData[1] << 8 );
-            firmwareAddress = firmwareAddress + 2;
+            if( firmwareAddress < APP_END )
+            {
+               /* See if we need to erase the current page */
+               FirmwareCheckForErase();
+               _flashmem_writeWord(firmwareAddress, firmwareData[0] | firmwareData[1] << 8 );
+               firmwareAddress = firmwareAddress + 2;
+               FirmwareCheckForFinalise();
+            }
          }
       }
       firmwareByteCount++;
