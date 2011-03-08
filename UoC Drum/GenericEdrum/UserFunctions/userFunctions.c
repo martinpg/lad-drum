@@ -1805,7 +1805,7 @@ void ShowProfile(void* data)
 void SaveProfile(void* data)
 {
    uint8_t* input = 0;
-   uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_SAVE_PROFILE_1;
+   uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_SAVE_PROFILE_1 + 1;
  	uint8_t i;
 	  
    input = data;
@@ -1824,12 +1824,12 @@ void SaveProfile(void* data)
    	}
 	
       UF_MenuNewLine();
-   	Profile_Write(&CurrentProfile, ProfileSlot + 1);
+   	Profile_Write(&CurrentProfile, ProfileSlot);
    	UF_MenuPrint_P( PSTR("Profile successfully") );
       UF_MenuNewLine();		
    	UF_MenuPrint_P( PSTR("saved to: ") );				
    	UF_MenuPrint_P( PSTR("Profile ") );	
-   	uint8toa( ProfileSlot + 1, outputString );
+   	uint8toa( ProfileSlot, outputString );
    	UF_MenuPrint(outputString);
    }
    else
@@ -1867,7 +1867,7 @@ void LoadProfile(void* data)
 	
    UF_MenuNewLine();		
 
-   if( ProfileSlot <= NUMBER_OF_PROFILES )
+   if( ProfileSlot < NUMBER_OF_PROFILES )
    {
 
    	Profile_Read(ProfileSlot);
@@ -1918,7 +1918,7 @@ void Profile_Error(void)
 {
    UF_MenuReset();
 	UF_MenuPrint_P( PSTR("Only ("));
-	uint8toa( NUMBER_OF_PROFILES, outputString );
+	uint8toa( NUMBER_OF_PROFILES - 1, outputString );
 	UF_MenuPrint(outputString);				
 
 	UF_MenuPrint_P( PSTR(") profiles") );  

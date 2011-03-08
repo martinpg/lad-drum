@@ -234,13 +234,14 @@
 
 /* Profile FLASH saving defines */
 #define SET_SECTION(x) __attribute__ ((section ((x))))
+/* Total Number of Profiles */
 #define NUMBER_OF_PROFILES   (3)
 /* FLASH Page size in bytes */
 #define FLASH_BLOCK_SIZE      (SPM_PAGESIZE)
 /* The last page in the Flash is reserved for the temp buffer */
-#define FLASH_TEMP_BUFFER  (APP_END - FLASH_BLOCK_SIZE + 1)
+#define FLASH_TEMP_BUFFER  (BOOTLOADER_START - FLASH_BLOCK_SIZE)
 /* Effective End of UserSpace Flash. Total Flash - Bootloader Flash Size*/
-#define APP_END             (FLASHEND - BOOTLOADER_SIZE)
+#define BOOTLOADER_START             (FLASHEND - BOOTLOADER_SIZE + 1)
 
 #define PROFILE_EEPROM (0)
 #define PROFILE_FLASH  (1)
