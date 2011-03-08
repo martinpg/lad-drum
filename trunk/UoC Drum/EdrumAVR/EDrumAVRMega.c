@@ -77,17 +77,13 @@ int main(void)
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);
 
-
-   volatile uint16_t profileStart = PROFILE_START;
+   volatile uint16_t haha = PROFILE(0);
+   volatile uint16_t haha2 = PROFILE(1);
 
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
-
-   
 
    _delay_ms(100);
-
-   
 
    ProfileInit();
    

@@ -3,6 +3,12 @@
 
 #include <stdint.h>
 
+#include "hardwareSpecific.h"
+#include "profiles/profiles.h"
+
+
+
+
 extern uint8_t ActiveProcess;
 extern uint16_t BenchMarkCount;
 
@@ -18,6 +24,11 @@ enum {
    FIRMWARE_UPGRADE
 } processes;
 
+#if PROFILE_MEMORY == PROFILE_EEPROM
+   #define APP_END (FLASH_TEMP_BUFFER - 1)
+#else
+   #define APP_END (PROFILE_START - 1)
+#endif
 
 #define DEFAULT_PROCESS (PLAY_MODE)
 

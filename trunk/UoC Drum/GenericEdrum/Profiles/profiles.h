@@ -9,16 +9,20 @@
 #include "Sensor/sensor.h"
 
 
-#define SEGMENTS_TO_USE       ((NUMBER_OF_PROFILES * sizeof(Profile_t) / FLASH_BLOCK_SIZE) + 1)
+#define SEGMENTS_TO_USE       (((NUMBER_OF_PROFILES) * sizeof(Profile_t) / FLASH_BLOCK_SIZE) + 1)
 /* Start after the Device Interrupts! */
 // For devices which use FLASH memory, it's to be placed at the end of flash 
 #if PROFILE_MEMORY == PROFILE_EEPROM
-   #define PROFILE_START (0)
+   #define PROFILE_START ((NUMBER_OF_PROFILES) * sizeof(Profile_t))
+   #define PROFILE_LOCATION(x) EEMEM
+   #define PROFILE(x)    		(sizeof(Profile_t)*(x))
 #else
    #define PROFILE_START (FLASH_TEMP_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE)) 
+   #define PROFILE_LOCATION(x) SET_SECTION(".PROFILE_"#x)
+   #define PROFILE(x)    		(FLASH_TEMP_BUFFER - (sizeof(Profile_t)*(x+1)))
 #endif
 
-#define PROFILE(x)    		(PROFILE_START + (sizeof(Profile_t)*x))
+
 
 #define MIDI_SETTINGS(profile)		PROFILE(profile)
 #define CHANNEL_SETTINGS(profile)	(MIDI_SETTINGS(profile)+sizeof(MidiSettings_t))

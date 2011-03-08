@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99                                                                                  -DF_CPU=20000000UL -Os -fsigned-char
+CFLAGS += -Wall -gdwarf-2 -std=gnu99                                                                                            -DF_CPU=20000000UL -Os -fsigned-char
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -27,8 +27,10 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 LDFLAGS = $(COMMON)
 LDFLAGS +=  -Wl,-Map=EdrumAVR.map
 LDFLAGS += -Wl,-section-start=.data=0x8000ff
-LDFLAGS += -Wl,-section-start=.PROFILE_0=0x6a00
-LDFLAGS += -Wl,-section-start=.PROFILE_1=0x6666
+LDFLAGS += -Wl,-section-start=.PROFILE_0=0x6e54
+LDFLAGS += -Wl,-section-start=.PROFILE_1=0x6d28
+LDFLAGS += -Wl,-section-start=.PROFILE_2=0x6bfc
+LDFLAGS += -Wl,-section-start=.PROFILE_3=0x6ad0
 
 
 ## Intel Hex file production flags
