@@ -56,7 +56,7 @@ uint8_t getDigitalState(uint8_t DigitalChannel)
 void SoftTimer_TimerInit(void)
 {
    /* Primary Timer 1024 prescaler (high priority) */
-   TCCR2 |= (0x07);
+   TCCR2 |= (0x03);
    TIMSK |= (1 << OCIE2);   
    /* Secondary Timer (non critical) */
    TCCR0 |= (0x05);

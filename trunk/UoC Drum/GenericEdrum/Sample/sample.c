@@ -192,7 +192,7 @@ void SetChannelReTrig(uint8_t channel, int16_t retrig)
    {
 		retrig = MAX_RETRIGGER;	
 	}   
-   ChannelSettings->ChannelRetrigger[channel] = retrig + MIN_RETRIGGER;
+   ChannelSettings->ChannelRetrigger[channel] = retrig;
 }
 
 /* Setup Analogue Dual Inputs */
