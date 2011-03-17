@@ -520,17 +520,23 @@ void ResetValues(void)
 /* Peaks must be larger than the threshold to trigger, else 0
  * The sample is compared against the previous samples of the channel */
 /* Channel must be <= CH15 */ 
- 
-void ObtainPeak(uint8_t channel, uint16_t sample)
+
+
+uint8_t ObtainPeak(uint8_t channel, uint16_t sample)
 {
-   if( sample < ChannelSettings->ChannelThreshold[channel] || 
-		 sample < SignalPeak[channel] )
+   if( sample < ChannelSettings->ChannelThreshold[channel] )
    {
-      return;  
+      return SAMPLE_BELOW_THRESHOLD;  
+   }
+
+   if( sample < SignalPeak[channel] )
+   {
+      return SAMPLE_IS_FALLING;  
    }
 
    /* Update the largest sample */
    SignalPeak[channel] = sample;
+   return SAMPLE_IS_PEAK;
 }
 
 

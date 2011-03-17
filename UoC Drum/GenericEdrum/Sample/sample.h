@@ -60,10 +60,13 @@
 #define MAX_CROSSOVER	(1 << ADC_RESOLUTION)
 #define MIN_CROSSOVER	(0)
 
-
 /* Most significant seven bits */
 #define DEFAULT_GAIN		(7)
 
+/* Obtain Peak defines */
+#define SAMPLE_IS_PEAK (0)
+#define SAMPLE_IS_FALLING (1)
+#define SAMPLE_BELOW_THRESHOLD (2)
 
 enum {
 	D0 = 0,
@@ -162,7 +165,7 @@ void ResetValues(void);
 
 void UpdateActiveChannels(void);
 
-void ObtainPeak(uint8_t channel, uint16_t sample);
+uint8_t ObtainPeak(uint8_t channel, uint16_t sample);
 
 
 
