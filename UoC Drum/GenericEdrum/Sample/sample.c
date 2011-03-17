@@ -508,7 +508,7 @@ uint16_t GetLastSampleValue(uint8_t channel)
 	return LastSampleValue[channel];	
 }
 
-void ResetValues(void)
+void ResetAnalogueValues(void)
 {
    uint8_t i;
    for( i = 0; i < ANALOGUE_INPUTS; i++)

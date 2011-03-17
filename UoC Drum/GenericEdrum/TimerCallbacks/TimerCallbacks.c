@@ -16,8 +16,8 @@
 
 
 /* These are the critical timers, 1ms resolution */
-volatile SoftTimer_16  SoftTimer1[TIMER1_COUNT] = { {15, 0, 0, Callback_MIDIOutput},   // MIDI Output
-                                           {10, 0, 0, Callback_RetriggerReset}};  // Retrigger Reset    };
+volatile SoftTimer_16  SoftTimer1[TIMER1_COUNT] = { {DEFAULT_OUTPUT_RATE, 0, 0, Callback_MIDIOutput},   // MIDI Output
+                                                    {10, 0, 0, Callback_RetriggerReset}};  // Retrigger Reset    };
 
 
 
@@ -46,10 +46,8 @@ void Callback_MIDIOutput(void)
 #else
    /* Update the Digital States */
    ScanDigitalInputs();
-   MIDI_Output();
    MIDI_DigitalOutput();
    MIDI_MetronomeOutput();
-   ResetValues();   
 #endif
 }
 
@@ -62,7 +60,9 @@ void Callback_RetriggerReset(void)
    for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
    {
       if(SoftTimerInterrupt(RetriggerPeriod[i]))
-      {
+      {  
+         /* Reset the value here */
+         SignalPeak[i] = 0;
          SoftTimerStop(RetriggerPeriod[i]);
          SoftTimerReset(RetriggerPeriod[i]);      
       }
@@ -180,7 +180,17 @@ void Callback_AboutUpdate(void)
 
 void Callback_MonitorChannel(void)
 {
-   MIDI_Output();
+   uint16_t adcValue = SignalPeak[SelectedChannel];
+
+   uint8_t i;      
+   /* Let this function control the retriggers and signal peaks */
+   for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
+   { 
+      /* Reset the value here */
+      SignalPeak[i] = 0;
+      SoftTimerStop(RetriggerPeriod[i]);
+      SoftTimerReset(RetriggerPeriod[i]);      
+   }
 
    UF_MenuReset();
    char outputString[10];
@@ -193,7 +203,7 @@ void Callback_MonitorChannel(void)
    UF_MenuPrint(outputString);
    UF_MenuPrint_P(PSTR("bit "));
 
-   itoa(SignalPeak[SelectedChannel], outputString, 10);
+   itoa(adcValue, outputString, 10);
    UF_MenuPrint_P(PSTR("ADC Code:"));
    UF_MenuPrint(outputString);
 
@@ -214,8 +224,6 @@ void Callback_MonitorChannel(void)
    UF_MenuPrint_P(PSTR("Gain Crossover:"));
    UF_MenuPrint(outputString);
    UF_MenuNewLine();
-
-   ResetValues();
 }
 
 

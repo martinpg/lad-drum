@@ -181,11 +181,11 @@ int main(void)
             Benchmark();
             BenchMarkCount++;
 #else
-            Play();
+            if( SoftTimerIsEnabled(SoftTimer1[SC_MIDIOutput]) )
+            {
+               Play();
+            }
 #endif
-            
-            
-            
          break;
              
          case RECEIVE_SYSEX:
@@ -241,7 +241,10 @@ void Play(void)
          sample = ADC_Sample();
                         
          /* Obtain Peak */
-         ObtainPeak(SelectedChannel, sample);
+         if( ObtainPeak(SelectedChannel, sample) == SAMPLE_IS_FALLING)
+         {
+            MIDI_OutputAnalogueChannel(SelectedChannel);
+         }
       } 
    }
 }

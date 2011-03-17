@@ -11,10 +11,10 @@ Profile_t Profile0 PROFILE_LOCATION(0)  = {
 /* MIDISettings_t */
 {	
 	/* 15ms output rate */
-	15,
+	DEFAULT_OUTPUT_RATE,
 	DEFAULT_BAUD_RATE,
 	/* MIDI Channel Instrument # */
-	(0x09)
+	(DEFAULT_MIDI_CHANNEL)
 },
 
 /* Channel Settings */
@@ -145,10 +145,10 @@ Profile_t Profile1 PROFILE_LOCATION(1) = {
 /* MIDISettings_t */
 {	
 	/* 15ms output rate */
-	15,
+	DEFAULT_OUTPUT_RATE,
 	DEFAULT_BAUD_RATE,
 	/* MIDI Channel Instrument # */
-	(0x09)
+	(DEFAULT_MIDI_CHANNEL)
 },
 
 /* Channel Settings */
@@ -281,10 +281,10 @@ Profile_t Profile2 PROFILE_LOCATION(2) = {
 /* MIDISettings_t */
 {	
 	/* 15ms output rate */
-	15,
+	DEFAULT_OUTPUT_RATE,
 	DEFAULT_BAUD_RATE,
 	/* MIDI Channel Instrument # */
-	(0x09)
+	(DEFAULT_MIDI_CHANNEL)
 },
 
 /* Channel Settings */
@@ -418,10 +418,10 @@ Profile_t Profile3 PROFILE_LOCATION(3) = {
 /* MIDISettings_t */
 {	
 	/* 15ms output rate */
-	15,
+	DEFAULT_OUTPUT_RATE,
 	DEFAULT_BAUD_RATE,
 	/* MIDI Channel Instrument # */
-	(0x09)
+	(DEFAULT_MIDI_CHANNEL)
 },
 
 /* Channel Settings */

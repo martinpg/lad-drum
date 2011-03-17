@@ -5,8 +5,8 @@
 #include "MIDICodes/MIDICodes.h"
 
 
-/* In 100us resolution */
-#define MAX_MIDI_RATE   (5000)
+/* In 1ms resolution */
+#define MAX_MIDI_RATE   (50)
 
 /*#if F_CPU == 8000000
 #define BAUD_31250      (0x0100)
@@ -25,6 +25,8 @@
 
 
 #define DEFAULT_BAUD_RATE	MIDI_BAUD_31250
+#define DEFAULT_OUTPUT_RATE (10)
+#define DEFAULT_MIDI_CHANNEL (9)
 #define MAX_MIDI_CHANNEL (0x0F)
 #define MIDI_MANUFACTURER (0x7D) /* Educational Use */
 #define MIDI_DEVICE_CODE       (0x01)  /* LAD Drum */
@@ -56,6 +58,7 @@ extern MidiSettings_t* MIDISettings;
 void midiTx(uint8_t inbyte);
 
 void MIDI_Output(void);
+void MIDI_OutputAnalogueChannel(uint8_t channel);
 void MIDI_DigitalOutput(void);
 void MIDI_MetronomeOutput(void);
 void MIDI_KeypadOutput(uint8_t kpButton);

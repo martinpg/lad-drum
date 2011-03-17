@@ -18,7 +18,7 @@
 /* The number of bits in the ADC Reading */
 #define MAX_THRESHOLD      (1 << ADC_RESOLUTION)
 /* Set to x% of the ADC input */
-#define DEFAULT_THRESHOLD	(MAX_THRESHOLD / 20)
+#define DEFAULT_THRESHOLD	(MAX_THRESHOLD / 50)
 #define MIN_THRESHOLD      (0)
 /* Number of levels actually equals 2^(ADC_RESOLUTION - THRESHOLD_LEVELS) */
 #define THRESHOLD_LEVELS	(ADC_RESOLUTION - 5)
@@ -31,7 +31,7 @@
 #define MAX_RETRIGGER      (255)
 /* For BPM conversion */
 #define RETRIGGER_RESOLUTION (100*60)
-#define DEFAULT_RETRIGGER	(3)
+#define DEFAULT_RETRIGGER	(2)
 #define MIN_RETRIGGER         (0)
 #define RETRIGGER_ADJUST   (ADC_RESOLUTION - 8)
 
@@ -161,7 +161,7 @@ extern const int8_t PresetGain1[];
 extern const int8_t PresetGain2[];
 extern const int16_t PresetGainCrossover[];
 
-void ResetValues(void);
+void ResetAnalogueValues(void);
 
 void UpdateActiveChannels(void);
 
