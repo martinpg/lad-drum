@@ -371,8 +371,13 @@ ISR(INT1_vect, ISR_NOBLOCK)
 
 ISR(TIMER2_COMP_vect, ISR_NOBLOCK)
 {
-   OCR2 += (SAMPLE_1MS);
-   RunCriticalTimer(); 
+   OCR2 += (SAMPLE_1MS_CRITICAL);
+   static uint8_t timerCount;
+   if( ++timerCount == SAMPLE_CRITICAL_COUNT )
+   {
+      RunCriticalTimer();
+      timerCount = 0;
+   }
 }
 
 

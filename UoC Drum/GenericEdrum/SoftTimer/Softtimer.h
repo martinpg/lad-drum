@@ -33,7 +33,7 @@ typedef struct _softTimer32
 
 #define SoftTimerDec(x)          x.timerCounter--
 #define SoftTimerReset(x)        x.timerCounter = x.timeCompare
-#define SoftTimerInterrupt(x)    (x.timerEnable && (!x.timerCounter--))
+#define SoftTimerInterrupt(x)    (x.timerEnable && (!(--x.timerCounter)))
 #define SoftTimerCallback(x)     if(x.timerCallback) (void)(x.timerCallback())
 
 
@@ -48,6 +48,9 @@ typedef struct _softTimer32
 #define SAMPLE_100US (F_CPU / 10000)
 
 /* 1ms Resoultion @ 8MHz*/
+#define SAMPLE_CRITICAL_COUNT (5)
+#define SAMPLE_1MS_CRITICAL   (((F_CPU / 1000) / (32)) / SAMPLE_CRITICAL_COUNT)
+
 #define SAMPLE_1MS   (F_CPU / 1000) / (1024)
 
 

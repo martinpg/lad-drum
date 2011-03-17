@@ -32,7 +32,7 @@
 /* For BPM conversion */
 #define RETRIGGER_RESOLUTION (100*60)
 #define DEFAULT_RETRIGGER	(2)
-#define MIN_RETRIGGER         (0)
+#define MIN_RETRIGGER         (1)
 #define RETRIGGER_ADJUST   (ADC_RESOLUTION - 8)
 
 #define ACTIVE_HIGH	(1)
