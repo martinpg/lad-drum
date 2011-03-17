@@ -14,8 +14,9 @@ enum {
 
 /* CCR2B associated timers */
 enum {  
-
-   SC_AutoMenuUpdate = 0,
+   SC_OneSecond = 0,
+   SC_usbPoll,
+   SC_AutoMenuUpdate,
    SC_VUMeterUpdate,
    SC_DigitalVUUpdate,
    SC_VUDecay,
@@ -28,8 +29,8 @@ enum {
    
 } timer2Ids;
 
-extern SoftTimer_16  SoftTimer1[];
-extern SoftTimer_16  SoftTimer2[];
+extern volatile SoftTimer_16  SoftTimer1[];
+extern volatile SoftTimer_16  SoftTimer2[];
 
 #define KP_WAIT          (15)
 #define KP_REPEAT_RATE   (30)
@@ -41,6 +42,7 @@ void Callback_RetriggerReset(void);
 
 
 /* Auxiliary Timers */
+void Callback_OneSecond(void);
 void Callback_AutoMenuUpdate(void);
 void Callback_VUDecay(void);
 void Callback_VUMeterUpdate(void);

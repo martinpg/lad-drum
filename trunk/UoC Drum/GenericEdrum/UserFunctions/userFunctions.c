@@ -92,6 +92,7 @@ void UF_MenuUpOneLevel(Menu_t* menu)
 void about(void* data)
 {
 	uint8_t* input = data;
+   uint8_t nameIndex;
 
 	if( primaryMenu.firstEnter != 1 )
 	{
@@ -101,11 +102,19 @@ void about(void* data)
 			UI_LCD_LoadDefaultChars();	
 	   	UF_MenuSetInput(KP_BACK);
 	      UF_stateMachine(primaryMenu.currentState);
-	      UF_MenuSetInput(0);
 			SoftTimerStop(SoftTimer2[SC_AboutUpdate]);
 			ThanksIndex(MAIN_SCREEN);       
 	      return;	
 		}	
+
+      
+      nameIndex = ThanksIndex(GET);
+      if( ++nameIndex == SIZEOFABOUT )
+      {
+         nameIndex = ThanksIndex(MAIN_SCREEN);   
+      }
+      ThanksIndex(nameIndex);
+
 	}
 	
 	primaryMenu.firstEnter = 0;
@@ -133,7 +142,7 @@ uint8_t ThanksIndex(uint8_t mode)
 
 void aboutScroll(uint8_t nameIndex)
 {
-	if( nameIndex > SIZEOFTHANKS )
+	if( nameIndex > SIZEOFABOUT )
 	{
 		nameIndex = MAIN_SCREEN;	
 	}
@@ -141,6 +150,14 @@ void aboutScroll(uint8_t nameIndex)
 	const uint8_t lightning[][8] = {{158,143,135,140,156,142,130,129},
 											  {143,158,156,134,135,142,136,144}};
 	
+   uint8_t i = 0;
+   while(ActiveChannels[i] != LAST_CHANNEL_INDEX)
+   {
+      i++;
+   }
+   uint16_t sampleRate = ADC_SAMPLE_SPEEDus + SensorSettings->CrosstalkDelay;
+   uint16_t sampleFrequency = (1000000 / sampleRate);
+
 	switch( nameIndex )
 	{
 		case MAIN_SCREEN:
@@ -160,7 +177,39 @@ void aboutScroll(uint8_t nameIndex)
 		   UF_MenuNewLine();
 			UF_MenuPrint_P(PSTR("Version:") );
 			UF_MenuPrint_P(VersionId);		   
-		break;			
+		break;	
+      
+		case TECH_SPECS:
+
+			UF_MenuReset();
+			UF_MenuPrint_P( PSTR("  Technical Specs:"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P(PSTR("ATmega32 @ ") );
+         utoa(F_CPU/1e6, outputString, 10);
+         UF_MenuPrint(outputString);
+         UF_MenuPrint_P( PSTR(" MHz"));
+			UF_MenuNewLine();	
+			UF_MenuPrint_P( PSTR("Sample Rate:"));
+         utoa(sampleFrequency, outputString, 10);
+			UF_MenuPrint(outputString);
+         UF_MenuPrint_P( PSTR(" Hz"));	
+		   UF_MenuNewLine();
+			UF_MenuPrint_P(PSTR("Active Channels:") );
+         utoa(i, outputString, 10);
+         UF_MenuPrint(outputString);
+		break;   
+      
+		case CONTACT_INFO:
+
+			UF_MenuReset();
+			UF_MenuPrint_P(PSTR("   Contact Info:"));
+			UF_MenuNewLine();
+			UF_MenuPrint_P(PSTR("adrian.gin@gmail.com") );
+			UF_MenuNewLine();
+         UF_MenuPrint_P(PSTR("  http://lad-drum"));
+         UF_MenuNewLine();
+         UF_MenuPrint_P(PSTR("  .googlecode.com"));
+		break;          		
 	}
 }
 
@@ -1882,7 +1931,7 @@ void LoadProfile(void* data)
 
       /* Update the Retrigger periods */
       UpdateChannelRetriggers();
-
+      UpdateActiveChannels();
 
       UF_MenuPrint_P( PSTR("Profile:"));
       if( ProfileSlot == DEFAULT_PROFILE )

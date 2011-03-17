@@ -4,7 +4,7 @@
 
 
 #define MAX_CROSSTALK	(1000)
-#define DEFAULT_CROSSTALK (12)
+#define DEFAULT_CROSSTALK (36)
 #define MIN_CROSSTALK	(0)
 
 #define CH0        (0)

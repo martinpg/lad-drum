@@ -10,16 +10,16 @@
 #include "mmculib/log2.h"
 
 /* Signal Peak also holds the value of the Digital State */
-uint16_t SignalPeak[NUMBER_OF_INPUTS];
+volatile uint16_t SignalPeak[NUMBER_OF_INPUTS];
 
 /* The Digital Triggers must be cycled for the singleshot triggers */
 uint8_t DigitalCycle[DIGITAL_INPUTS];
 
 /* For Retrigger Timers */
-SoftTimer_8   RetriggerPeriod[NUMBER_OF_INPUTS];
+volatile SoftTimer_8   RetriggerPeriod[NUMBER_OF_INPUTS];
 
 /* This stores which analogue channels are active, this streamlines the polling process */
-uint8_t ActiveChannels[NUMBER_OF_INPUTS+1];
+volatile uint8_t ActiveChannels[NUMBER_OF_INPUTS+1];
 
 /* The functions below all work on the 'current profile */
 

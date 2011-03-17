@@ -11,23 +11,25 @@
 #include "UI_KP/UI_KP.h"
 
 #include "LCDSettings.h"
-
+#include "edrumAVRsharedfunctions.h"
 #include "TimerCallbacks/TimerCallbacks.h"
 
 
 /* These are the critical timers, 1ms resolution */
-SoftTimer_16  SoftTimer1[TIMER1_COUNT] = { {15, 0, 1, Callback_MIDIOutput},   // MIDI Output
-                                           {10, 0, 1, Callback_RetriggerReset}};  // Retrigger Reset    };
+volatile SoftTimer_16  SoftTimer1[TIMER1_COUNT] = { {15, 0, 0, Callback_MIDIOutput},   // MIDI Output
+                                           {10, 0, 0, Callback_RetriggerReset}};  // Retrigger Reset    };
 
 
 
 /* These are non-critical timers, and dont really run during 'play time',
    Functions which start these need to ensure they stop them for optimisation */
-SoftTimer_16  SoftTimer2[TIMER2_COUNT] = {{110, 0, 0, Callback_AutoMenuUpdate},  // Threshold Bar
+volatile SoftTimer_16  SoftTimer2[TIMER2_COUNT] = { {1000, 0, 0, Callback_OneSecond},
+                                           {10, 0, 0, usbPoll},
+                                           {110, 0, 0, Callback_AutoMenuUpdate},  // Threshold Bar
                                            {70, 0, 0, Callback_VUMeterUpdate},  // VU Meter Update
                                            {70, 0, 0, Callback_DigitalVUUpdate},  // Digital VU Meter Update
                                            {25, 0, 0, Callback_VUDecay},  // VU Decay
-                                           {2500,2500,0, Callback_AboutUpdate}, // AboutUpdate
+                                           {4000,4000,0, Callback_AboutUpdate}, // AboutUpdate
                                            {10000, 10000, 0, Callback_LCDBacklight}, //LCD Backlight
                                            {150, 0, 0, Callback_MonitorChannel},
                                            {KP_WAIT, 0, 0, Callback_Keypress}};
@@ -36,12 +38,10 @@ SoftTimer_16  SoftTimer2[TIMER2_COUNT] = {{110, 0, 0, Callback_AutoMenuUpdate}, 
 
 void Callback_MIDIOutput(void)
 {
-
-
    /* Benchmark reporting */
 #if SET_BENCHMARK
-   //UART_Tx( (uint8_t)(BenchMarkCount>>8) );
-   //UART_Tx( (uint8_t)(BenchMarkCount) );
+   UART_Tx( (uint8_t)(BenchMarkCount>>8) );
+   UART_Tx( (uint8_t)(BenchMarkCount) );
    BenchMarkCount = 0;
 #else
    /* Update the Digital States */
@@ -70,6 +70,10 @@ void Callback_RetriggerReset(void)
 }
 
 
+void Callback_OneSecond(void)
+{
+   SoftTimerStop(SoftTimer2[SC_OneSecond]);
+}
 
 
 void Callback_AutoMenuUpdate(void)
@@ -164,7 +168,7 @@ void Callback_AboutUpdate(void)
 {
    uint8_t nameIndex = 0;
    nameIndex = ThanksIndex(GET);
-   if( ++nameIndex == SIZEOFTHANKS )
+   if( ++nameIndex == SIZEOFABOUT )
    {
       nameIndex = ThanksIndex(MAIN_SCREEN);   
    }
@@ -228,7 +232,7 @@ void Callback_Keypress(void)
    {
       result = UI_KP_GetPress();
       /* This will generate an interrupt flag, so we need to clear the flag */
-      GIFR |= (1 << INTF1);
+      GIFR = (1 << INTF1);
    }
 
    SoftTimerStop(SoftTimer2[SC_Keypress]);

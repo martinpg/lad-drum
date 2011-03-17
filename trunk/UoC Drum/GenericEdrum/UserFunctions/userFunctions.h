@@ -13,7 +13,9 @@
 
 enum {
 	MAIN_SCREEN = 0,
-	SIZEOFTHANKS
+   TECH_SPECS,
+   CONTACT_INFO,
+	SIZEOFABOUT
 };
 
 extern uint8_t SelectedChannel;
