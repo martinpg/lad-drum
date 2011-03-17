@@ -37,9 +37,9 @@ void MIDI_Output(void)
           (SignalPeak[i]) )
       {
          
-			uint16_t conditionedSignal = (SignalPeak[i] - GetChannelThresh(i));
+			//uint16_t conditionedSignal = (SignalPeak[i] - GetChannelThresh(i));
          /* Make the conditioned signal start at the Threshold */
-         //uint16_t conditionedSignal = (SignalPeak[i]);			
+         uint16_t conditionedSignal = (SignalPeak[i]);			
 
 			conditionedSignal = GainFunction(i, conditionedSignal);
 			
@@ -77,7 +77,10 @@ void MIDI_Output(void)
 	         
 				if( SoftTimer2[SC_VUMeterUpdate].timerEnable )
 	         {
-	         	VUValues[i] = SignalPeak[i];
+               if( SignalPeak[i] > VUValues[i] )
+	         	{
+                  VUValues[i] = SignalPeak[i];
+               }
 				}
 			}
       }  

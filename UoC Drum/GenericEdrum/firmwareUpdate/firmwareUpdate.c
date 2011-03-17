@@ -15,7 +15,7 @@ void FirmwareCheckForErase(void)
 {
 
    if( ((firmwareAddress & (FLASH_BLOCK_SIZE - 1)) == 0) &&
-       (firmwareAddress <= APP_END))
+       (firmwareAddress <= BOOTLOADER_START))
    {
       _flashmem_erase(firmwareAddress);
    }
@@ -113,7 +113,7 @@ void ParseFirmwareData(uint8_t nextByte)
 
          if( index ) 
          {
-            if( firmwareAddress < APP_END )
+            if( firmwareAddress < BOOTLOADER_START )
             {
                /* See if we need to erase the current page */
                FirmwareCheckForErase();

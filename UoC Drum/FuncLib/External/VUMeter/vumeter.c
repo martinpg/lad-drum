@@ -18,7 +18,7 @@ static uint8_t VUCol;
 
 static uint8_t VURows = DEFAULT_VU_HEIGHT;
 
-uint16_t	VUValues[MAX_METERS];
+volatile uint16_t	VUValues[MAX_METERS];
 
 void UpdateVUValues(void* src)
 {

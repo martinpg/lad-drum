@@ -17,8 +17,8 @@
 
 /* The number of bits in the ADC Reading */
 #define MAX_THRESHOLD      (1 << ADC_RESOLUTION)
-/* Set to 1% of the ADC input */
-#define DEFAULT_THRESHOLD	(MAX_THRESHOLD / 100)
+/* Set to x% of the ADC input */
+#define DEFAULT_THRESHOLD	(MAX_THRESHOLD / 20)
 #define MIN_THRESHOLD      (0)
 /* Number of levels actually equals 2^(ADC_RESOLUTION - THRESHOLD_LEVELS) */
 #define THRESHOLD_LEVELS	(ADC_RESOLUTION - 5)
@@ -143,10 +143,10 @@ enum {
 	NUMBER_OF_GAIN_PRESETS
 };
 
-extern uint16_t SignalPeak[];
-extern SoftTimer_8   RetriggerPeriod[];
+extern volatile uint16_t SignalPeak[];
+extern volatile SoftTimer_8   RetriggerPeriod[];
 extern uint8_t DigitalCycle[];
-extern uint8_t ActiveChannels[];
+extern volatile uint8_t ActiveChannels[];
 
 extern ChannelSettings_t* ChannelSettings;
 extern DigitalSettings_t* DigitalSettings;

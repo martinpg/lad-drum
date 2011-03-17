@@ -19,7 +19,7 @@
 #define MAX_ROWS	(4)
 #define FULL_BLOCK	(0xFF)
 #define DEFAULT_VU_HEIGHT (MAX_ROWS - 1)
-extern uint16_t	VUValues[];
+extern volatile uint16_t	VUValues[];
 
 
 void VUSetLevel(uint8_t meterIndex, uint8_t normalValue, uint8_t rows);

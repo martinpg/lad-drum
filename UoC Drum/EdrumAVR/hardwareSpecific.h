@@ -129,7 +129,8 @@
 
 #define ADC_REF_DEFAULT ADC_REF_AVCC
 /* Lowest division before it doesn't work */
-#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV64
+#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV4
+#define ADC_SAMPLE_SPEEDus      (1000000 / (F_CPU / (4*13)))
 
 #define ADC_RESOLUTION (10)
 

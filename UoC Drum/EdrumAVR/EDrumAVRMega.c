@@ -77,13 +77,14 @@ int main(void)
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);
 
-   volatile uint16_t haha = PROFILE(0);
-   volatile uint16_t haha2 = PROFILE(1);
-
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
 
-   _delay_ms(100);
+   /* Setup the USB */
+   usbInit();
+   sei();
+   SoftTimer_TimerInit();
+   SoftTimerStart( SoftTimer2[SC_usbPoll] );
 
    ProfileInit();
    
@@ -112,18 +113,24 @@ int main(void)
    /* ADC Module Init */
    ADC_Init();
    
-   SoftTimer_TimerInit();
-
-   /* Enable Keypad */
-   UI_KP_Init();   
-
-   /*Activate Interrupt */
-   MCUCR |= ((1 << ISC11) | (1 << ISC10));
-   GICR |= (1 << INT1);
 
    /* Enable LCD */
    UI_LCD_HWInit();
-   _delay_ms(20);
+
+   /* Enable Keypad */
+   UI_KP_Init();   
+	
+	/* Menu must be Initialised first */
+	/* Backlight 'off' is at 5% */
+   //UI_LCD_BLInit(5);
+   //UI_LCD_BL_On();
+   if( VerifyDownload() == 0)
+   {    
+      Shutdown();
+      cli();
+      bootloader_enter();      
+   }
+
    UI_LCD_Init(&PrimaryDisplay);
    UI_LCD_LoadDefaultChars();
 	
@@ -135,40 +142,31 @@ int main(void)
    MenuSetDisplay(&digitalMenu, MENU_LCD);      
    /* Menu Setup */
    MenuSetInput(&primaryMenu, 0); 
-	
-	/* Menu must be Initialised first */
-	/* Backlight 'off' is at 5% */
-   //UI_LCD_BLInit(5);
-   //UI_LCD_BL_On();
-   if( VerifyDownload() == 0)
+
+   /*Activate Interrupt */
+   MCUCR |= ((1 << ISC11) | (1 << ISC10));
+   GICR |= (1 << INT1);
+
+   aboutScroll(MAIN_SCREEN);
+
+   SoftTimerStart(SoftTimer2[SC_OneSecond]);
+   while(SoftTimerIsEnabled(SoftTimer2[SC_OneSecond]))
    {
-      _delay_ms(900);      
-      Shutdown();
-      cli();
-      bootloader_enter();      
    }
 
-
-	
-   aboutScroll(MAIN_SCREEN);
-   SoftTimerStart( SoftTimer2[SC_LCD_BL_Period] );	
-	
-   _delay_ms(900);
-   _delay_ms(900);	
    UI_LCD_LoadDefaultChars();					  
    /* Reprint Menu */  
-   MenuUpdate(&primaryMenu, RESET_MENU);
-
-   usbInit();
-
+   MenuUpdate(&primaryMenu, RESET_MENU);   
+  
    /* Flush the buffer */
    UI_KP_GetPress();
+   
 
-   sei();
-
+   SoftTimerStop(SoftTimer2[SC_usbPoll]);
+   SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
+   SoftTimerStart(SoftTimer1[SC_RetriggerReset]);
 
    uint8_t inByte;
-
    while (1)
    {   
       usbPoll();
@@ -241,7 +239,6 @@ void Play(void)
          _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
          /* Take a sample, doing it twice improves the reading accuracy */
          sample = ADC_Sample();
-         sample = ADC_Sample();
                         
          /* Obtain Peak */
          ObtainPeak(SelectedChannel, sample);
@@ -267,10 +264,8 @@ void Benchmark(void)
          _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
          /* Take a sample */
          sample = ADC_Sample();
-         sample = ADC_Sample();
 
-         /* Take more samples */
-#if 1
+#if 0
          if( SelectedChannel == PrintChannel )
          {
             UART_Tx( (uint8_t)(sample>>8) );
