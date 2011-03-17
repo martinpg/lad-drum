@@ -26,65 +26,70 @@ void midiTx(uint8_t inbyte)
    uartTx(inbyte);
 }
 
+
+void MIDI_OutputAnalogueChannel(uint8_t channel)
+{
+   if( GetChannelStatus(channel) && 
+       (RetriggerPeriod[channel].timerEnable == SOFTTIMER_DISABLED) && 
+       (SignalPeak[channel]) )
+   {
+   
+   	//uint16_t conditionedSignal = (SignalPeak[i] - GetChannelThresh(i));
+      /* Make the conditioned signal start at the Threshold */
+      uint16_t conditionedSignal = (SignalPeak[channel]);			
+   	conditionedSignal = GainFunction(channel, conditionedSignal);
+   	if( conditionedSignal )
+   	{
+         /* Make it slightly larger, so we can reach 0x7F */
+         conditionedSignal++;
+         /* Send a NOTE ON (default) | Channel */
+         MIDI_Tx( (GetChannelCommand(channel)) | MIDISettings->MIDI_ChannelCode);
+      
+         /* Output the correct Closed or Open Key */
+         if( GetDualMode(channel) && 
+   			 GetDigitalState(GetDigitalTrigger(channel)) == GetActiveState(GetDigitalTrigger(channel)) )
+   		{
+         	MIDI_Tx(GetChannelKeyClosed(channel));
+   		}
+   		else
+   		{
+   			MIDI_Tx(GetChannelKey(channel));
+   		}
+      
+   		if( conditionedSignal > MIDI_MAX_DATA )
+         {
+   			conditionedSignal = MIDI_MAX_DATA;
+            MIDI_Tx( MIDI_MAX_DATA );   
+         }
+         else
+         {
+            MIDI_Tx( (uint8_t)conditionedSignal  );
+         } 
+
+         /* Auxiliary MIDI functions */
+         MIDI_LastMIDIValue[channel] = conditionedSignal;
+         SoftTimerStart(RetriggerPeriod[channel]); 
+   		if( SoftTimer2[SC_VUMeterUpdate].timerEnable )
+         {
+            if( SignalPeak[channel] > VUValues[channel] )
+         	{
+               VUValues[channel] = SignalPeak[channel];
+            }
+   		}
+
+   	}
+   }  
+}
+
+
 void MIDI_Output(void)
 {
    uint8_t i;
    /* do analogue inputs then do digital inputs  */
    for( i = 0; i < ANALOGUE_INPUTS; i++)
    {      
-      if( GetChannelStatus(i) && 
-          (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED) && 
-          (SignalPeak[i]) )
-      {
-         
-			//uint16_t conditionedSignal = (SignalPeak[i] - GetChannelThresh(i));
-         /* Make the conditioned signal start at the Threshold */
-         uint16_t conditionedSignal = (SignalPeak[i]);			
-
-			conditionedSignal = GainFunction(i, conditionedSignal);
-			
-			if( conditionedSignal )
-			{
-            /* Make it slightly larger, so we can reach 0x7F */
-            conditionedSignal++;
-	         /* Send a NOTE ON (default) | Channel */
-	         MIDI_Tx( (GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
-	         
-	         /* Output the correct Closed or Open Key */
-	         if( GetDualMode(i) && 
-					 GetDigitalState(GetDigitalTrigger(i)) == GetActiveState(GetDigitalTrigger(i)) )
-				{
-	         	MIDI_Tx(GetChannelKeyClosed(i));
-				}
-				else
-				{
-					MIDI_Tx(GetChannelKey(i));
-				}
-	         
-				if( conditionedSignal > MIDI_MAX_DATA )
-	         {
-					conditionedSignal = MIDI_MAX_DATA;
-	            MIDI_Tx( MIDI_MAX_DATA );   
-	         }
-	         else
-	         {
-	            MIDI_Tx( (uint8_t)conditionedSignal  );
-	         } 
-	         
-	         MIDI_LastMIDIValue[i] = conditionedSignal;
-	         
-	         SoftTimerStart(RetriggerPeriod[i]); 
-	         
-				if( SoftTimer2[SC_VUMeterUpdate].timerEnable )
-	         {
-               if( SignalPeak[i] > VUValues[i] )
-	         	{
-                  VUValues[i] = SignalPeak[i];
-               }
-				}
-			}
-      }  
-   }
+      MIDI_OutputAnalogueChannel(i);
+   }  
 }
 
 
@@ -103,8 +108,7 @@ void MIDI_DigitalOutput(void)
 	         MIDI_Tx(GetChannelKey(i));
 	         MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
 				SoftTimerStart(RetriggerPeriod[i]);
-				
-				
+
 				if( SoftTimer2[SC_DigitalVUUpdate].timerEnable )
 	         {
 	         	VUValues[i-ANALOGUE_INPUTS] = GetDigitalVelocity(i - ANALOGUE_INPUTS);

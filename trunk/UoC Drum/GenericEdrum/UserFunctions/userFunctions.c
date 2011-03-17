@@ -1089,7 +1089,7 @@ void MonitorChannel(void* data)
       case KP_BACK:
          /* Stop and restore timers */
 			SoftTimerStop(SoftTimer2[SC_MonitorChannel]);
-         SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
+         SoftTimerStart(SoftTimer1[SC_RetriggerReset]);
 			if( SelectedChannel >= ANALOGUE_INPUTS )
 			{ 
       	   UF_MenuUpOneLevel(&digitalMenu); 
@@ -1101,7 +1101,7 @@ void MonitorChannel(void* data)
       return;
 	}
 
-   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
+   SoftTimerStop(SoftTimer1[SC_RetriggerReset]);
 	SoftTimerStart(SoftTimer2[SC_MonitorChannel]);
    
 }
