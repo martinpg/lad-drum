@@ -6,8 +6,7 @@
 
 /* CCR1B associated timers */
 enum {  
-   SC_MIDIOutput = 0,
-   SC_RetriggerReset,
+   SC_MIDIScan = 0,
    TIMER1_COUNT 
    
 } timer1Ids;
@@ -29,17 +28,17 @@ enum {
    
 } timer2Ids;
 
-extern volatile SoftTimer_16  SoftTimer1[];
+extern volatile SoftTimer_8  SoftTimer1[];
 extern volatile SoftTimer_16  SoftTimer2[];
 
-#define KP_WAIT          (15)
-#define KP_REPEAT_RATE   (30)
-#define KP_REPEAT_DELAY  (500)
+#define KP_WAIT          (1)
+#define KP_REPEAT_RATE   (3)
+#define KP_REPEAT_RATE_FAST   (2)
+#define KP_REPEAT_RATE_FASTEST   (1)
+#define KP_REPEAT_DELAY  (50)
 
 /* Critical timers */
-void Callback_MIDIOutput(void);
-void Callback_RetriggerReset(void);
-
+void Callback_MIDIScan(void);
 
 /* Auxiliary Timers */
 void Callback_OneSecond(void);

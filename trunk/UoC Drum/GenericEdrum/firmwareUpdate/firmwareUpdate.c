@@ -11,23 +11,24 @@ static uint32_t firmwareDataCount;
 static uint32_t firmwareByteCount;
 static uint32_t firmwareAddress;
 
-void FirmwareCheckForErase(void)
+/* Erase pages as we go */
+void FirmwareCheckForErase(uint32_t address)
 {
 
-   if( ((firmwareAddress & (FLASH_BLOCK_SIZE - 1)) == 0) &&
-       (firmwareAddress <= BOOTLOADER_START))
+   if( ((address & (FLASH_BLOCK_SIZE - 1)) == 0) &&
+       (address <= BOOTLOADER_START))
    {
-      _flashmem_erase(firmwareAddress);
+      _flashmem_erase(address);
    }
 }
 
 
-void FirmwareCheckForFinalise(void)
+void FirmwareCheckForFinalise(uint32_t address)
 {
-   if( (firmwareAddress & (FLASH_BLOCK_SIZE - 1)) == 0)
+   if( (address & (FLASH_BLOCK_SIZE - 1)) == 0)
    {
       PORTD ^= (1 << 7);
-      _flashmem_finalise(firmwareAddress-2);
+      _flashmem_finalise(address-2);
    }
 }
 
@@ -116,10 +117,10 @@ void ParseFirmwareData(uint8_t nextByte)
             if( firmwareAddress < BOOTLOADER_START )
             {
                /* See if we need to erase the current page */
-               FirmwareCheckForErase();
+               FirmwareCheckForErase(firmwareAddress);
                _flashmem_writeWord(firmwareAddress, firmwareData[0] | firmwareData[1] << 8 );
                firmwareAddress = firmwareAddress + 2;
-               FirmwareCheckForFinalise();
+               FirmwareCheckForFinalise(firmwareAddress);
             }
          }
       }

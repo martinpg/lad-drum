@@ -13,6 +13,7 @@
 #define FLASH_WORD_WRITE(address, data)   boot_page_fill_safe(address, data)
 #define FLASH_FINALISE_WRITE(address)     boot_page_write_safe(address)
 #define FLASH_RELEASE()                   boot_rww_enable_safe()
+#define FLASH_WAIT_READY()                boot_spm_busy_wait()
 #define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
 #define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
 */

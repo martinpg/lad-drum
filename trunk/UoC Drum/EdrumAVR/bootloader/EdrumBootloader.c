@@ -24,7 +24,7 @@ const PROGRAM_CHAR VersionID[] = "USB-MIDI Bootloader V1.0";
 
 volatile uint8_t rxReadPtr;
 uint8_t USB_Connected;
-uint8_t RxBuffer[RX_BUFFER_SIZE];
+volatile uint8_t RxBuffer[RX_BUFFER_SIZE];
 volatile uint8_t rxWritePtr;
 
 // This descriptor is based on http://www.usb.org/developers/devclass_docs/midi10.pdf
@@ -205,8 +205,10 @@ ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
    //USBMIDI_PutByte(buffer);
-   RxBuffer[rxWritePtr++] = buffer;
-   rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
+
+   /* Echo this back out */
+   RxBuffer[rxWritePtr] = buffer;
+   rxWritePtr = ((rxWritePtr + 1) & RX_BUFFER_MASK);
 }
 
 void bootuartTxString_P(PGM_P outString_P)
@@ -226,16 +228,11 @@ void bootuartTx(uint8_t outbyte)
 	UDR	= outbyte;
 }
 
-ISR(USART_TXC_vect)
+
+ISR(BADISR_vect, ISR_NOBLOCK)
 {
-   
+    // user code here
 }
-
-ISR(SPM_RDY_vect, ISR_NOBLOCK)
-{
-
-}
-
 
 
  
@@ -325,8 +322,8 @@ void usbFunctionWriteOut(uchar * data, uchar len)
    while(byteCount--)
    {
       uint8_t buffer = *data++;
-      RxBuffer[rxWritePtr++] = buffer;
-      rxWritePtr = (rxWritePtr & RX_BUFFER_MASK);
+      RxBuffer[rxWritePtr] = buffer;
+      rxWritePtr = ((rxWritePtr + 1) & RX_BUFFER_MASK);
    }
 //   uartTxDump(data, byteCount);
 
@@ -378,8 +375,10 @@ uint8_t USBMIDI_GetByte(void)
    /* Process messages in the UART Rx buffer is there are any */
    if( rxReadPtr != rxWritePtr )
    {
-      uint8_t nextByte = RxBuffer[rxReadPtr++];
-      rxReadPtr = (rxReadPtr & RX_BUFFER_MASK);
+      
+
+      uint8_t nextByte = RxBuffer[rxReadPtr];
+      rxReadPtr = ((rxReadPtr + 1) & RX_BUFFER_MASK);
       return nextByte;
    }
 
@@ -562,11 +561,11 @@ void bootloader_enter(void)
    bootuartTx('\r');
    bootuartTxString_P(PSTR("by FuzzyJohn Inc. 2011"));
 
+   uint8_t nextByte;
+
    while(1)
    {
       usbPoll();
-      //USBMIDI_OutputData();
-      uint8_t nextByte;
       nextByte = USBMIDI_GetByte();
       if( nextByte != NO_DATA_BYTE )
       {
@@ -581,6 +580,7 @@ int main(void)
    MCUCSR = (1 << JTD);
 
    bootloader_init();
+   boot_spm_interrupt_disable();
 
    /* If bootloader condition */
    if( BOOTLOADER_CONDITION )

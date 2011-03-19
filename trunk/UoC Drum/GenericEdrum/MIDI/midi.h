@@ -63,9 +63,6 @@ void MIDI_DigitalOutput(void);
 void MIDI_MetronomeOutput(void);
 void MIDI_KeypadOutput(uint8_t kpButton);
 
-uint16_t MIDI_GetRate(void);
-void MIDI_SetRate(uint16_t newRate);
-
 uint16_t MIDI_GetBaud(void);
 void MIDI_SetBaud(uint16_t newBaud);
 
