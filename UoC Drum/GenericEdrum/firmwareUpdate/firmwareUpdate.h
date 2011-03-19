@@ -11,9 +11,9 @@
 #define	UART_DATA_REG	UDR
 
 void ReceiveFirmwareInit(void);
-void FirmwareUpdateError();
+void FirmwareUpdateError(void);
 void ParseFirmwareData(uint8_t nextByte);
-void FirmwareCheckForFinalise(void);
+void FirmwareCheckForFinalise(uint32_t address);
 
 
 

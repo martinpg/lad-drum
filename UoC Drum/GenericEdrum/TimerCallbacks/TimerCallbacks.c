@@ -15,46 +15,30 @@
 #include "TimerCallbacks/TimerCallbacks.h"
 
 
-/* These are the critical timers, 1ms resolution */
-volatile SoftTimer_16  SoftTimer1[TIMER1_COUNT] = { {DEFAULT_OUTPUT_RATE, 0, 0, Callback_MIDIOutput},   // MIDI Output
-                                                    {10, 0, 0, Callback_RetriggerReset}};  // Retrigger Reset    };
+/* These are the critical timers, 10ms resolution */
+volatile SoftTimer_8  SoftTimer1[TIMER1_COUNT] = { {1, 0, 0, Callback_MIDIScan} };   // MIDI Output
 
 
 
 /* These are non-critical timers, and dont really run during 'play time',
-   Functions which start these need to ensure they stop them for optimisation */
-volatile SoftTimer_16  SoftTimer2[TIMER2_COUNT] = { {1000, 0, 0, Callback_OneSecond},
-                                           {10, 0, 0, usbPoll},
-                                           {110, 0, 0, Callback_AutoMenuUpdate},  // Threshold Bar
-                                           {70, 0, 0, Callback_VUMeterUpdate},  // VU Meter Update
-                                           {70, 0, 0, Callback_DigitalVUUpdate},  // Digital VU Meter Update
-                                           {25, 0, 0, Callback_VUDecay},  // VU Decay
-                                           {4000,4000,0, Callback_AboutUpdate}, // AboutUpdate
-                                           {10000, 10000, 0, Callback_LCDBacklight}, //LCD Backlight
-                                           {150, 0, 0, Callback_MonitorChannel},
+   Functions which start these need to ensure they stop them for optimisation
+   Use a 10ms timer base*/
+volatile SoftTimer_16  SoftTimer2[TIMER2_COUNT] = { {100, 0, 0, Callback_OneSecond},
+                                           {1, 0, 0, usbPoll},
+                                           {11, 0, 0, Callback_AutoMenuUpdate},  // Threshold Bar
+                                           {7, 0, 0, Callback_VUMeterUpdate},  // VU Meter Update
+                                           {7, 0, 0, Callback_DigitalVUUpdate},  // Digital VU Meter Update
+                                           {3, 0, 0, Callback_VUDecay},  // VU Decay
+                                           {400,400,0, Callback_AboutUpdate}, // AboutUpdate
+                                           {1000, 1000, 0, Callback_LCDBacklight}, //LCD Backlight
+                                           {15, 0, 0, Callback_MonitorChannel},
                                            {KP_WAIT, 0, 0, Callback_Keypress}};
 
 
 
-void Callback_MIDIOutput(void)
+void Callback_MIDIScan(void)
 {
-   /* Benchmark reporting */
-#if SET_BENCHMARK
-   UART_Tx( (uint8_t)(BenchMarkCount>>8) );
-   UART_Tx( (uint8_t)(BenchMarkCount) );
-   BenchMarkCount = 0;
-#else
-   /* Update the Digital States */
-   ScanDigitalInputs();
-   MIDI_DigitalOutput();
-   MIDI_MetronomeOutput();
-#endif
-}
-
-
-
-void Callback_RetriggerReset(void)
-{
+   /* Retriggers need to be reset before outputting MIDI Data */
    uint8_t i;      
    /* Each increment of Retrigger increases the time by 1ms */
    for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
@@ -67,7 +51,18 @@ void Callback_RetriggerReset(void)
          SoftTimerReset(RetriggerPeriod[i]);      
       }
    }
-   
+
+   /* Benchmark reporting */
+#if SET_BENCHMARK
+   UART_Tx( (uint8_t)(BenchMarkCount>>8) );
+   UART_Tx( (uint8_t)(BenchMarkCount) );
+   BenchMarkCount = 0;
+#else
+   /* Update the Digital States */
+   ScanDigitalInputs();
+   MIDI_DigitalOutput();
+   MIDI_MetronomeOutput();
+#endif
 }
 
 
@@ -182,16 +177,9 @@ void Callback_AboutUpdate(void)
 void Callback_MonitorChannel(void)
 {
    uint16_t adcValue = SignalPeak[SelectedChannel];
-
-   uint8_t i;      
+   
    /* Let this function control the retriggers and signal peaks */
-   for( i = 0; i < NUMBER_OF_INPUTS ; i++ )
-   { 
-      /* Reset the value here */
-      SignalPeak[i] = 0;
-      SoftTimerStop(RetriggerPeriod[i]);
-      SoftTimerReset(RetriggerPeriod[i]);      
-   }
+   Callback_MIDIScan();
 
    UF_MenuReset();
    char outputString[10];
@@ -275,11 +263,11 @@ void Callback_Keypress(void)
          pressCount++;
          if( pressCount > 25 )
          {
-            SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_RATE / 5;
+            SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_RATE_FAST ;
          }
          if( pressCount > 200 )
          {
-            SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_RATE / 15;
+            SoftTimer2[SC_Keypress].timeCompare = KP_REPEAT_RATE_FASTEST;
             pressCount--;
          }
       }

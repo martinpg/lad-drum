@@ -167,19 +167,6 @@ void MIDI_KeypadOutput(uint8_t kpButton)
 #endif
 
 
-
-
-uint16_t MIDI_GetRate(void)
-{
-   return MIDISettings->MIDI_OutputRate;
-}
-
-void MIDI_SetRate(uint16_t newRate)
-{
-	MIDISettings->MIDI_OutputRate = newRate;
-   SoftTimer1[SC_MIDIOutput].timeCompare = newRate;
-}
-
 void MIDI_SetBaud(uint16_t newBaud)
 {
 

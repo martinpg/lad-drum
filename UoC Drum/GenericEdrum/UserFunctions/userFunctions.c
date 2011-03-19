@@ -149,14 +149,10 @@ void aboutScroll(uint8_t nameIndex)
 
 	const uint8_t lightning[][8] = {{158,143,135,140,156,142,130,129},
 											  {143,158,156,134,135,142,136,144}};
-	
-   uint8_t i = 0;
-   while(ActiveChannels[i] != LAST_CHANNEL_INDEX)
-   {
-      i++;
-   }
-   uint16_t sampleRate = ADC_SAMPLE_SPEEDus + SensorSettings->CrosstalkDelay;
-   uint16_t sampleFrequency = (1000000 / sampleRate);
+
+   uint8_t i;
+   uint16_t sampleRate;
+   uint16_t sampleFrequency;
 
 	switch( nameIndex )
 	{
@@ -180,6 +176,15 @@ void aboutScroll(uint8_t nameIndex)
 		break;	
       
 		case TECH_SPECS:
+
+         while(ActiveChannels[i] != LAST_CHANNEL_INDEX)
+         {
+               i++;
+         }
+         
+         sampleRate = ADC_SAMPLE_SPEEDus + SensorSettings->CrosstalkDelay;
+         sampleFrequency = (1000000 / sampleRate);
+
 
 			UF_MenuReset();
 			UF_MenuPrint_P( PSTR("  Technical Specs:"));
@@ -276,9 +281,9 @@ void DumpSysEx(void* data)
    UF_MenuNewLine();		
 
    /* Stop output timers */
-   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
+   SoftTimerStop(SoftTimer1[SC_MIDIScan]);
    SysexSend(&CurrentProfile, sizeof(Profile_t));
-   SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
+   SoftTimerStart(SoftTimer1[SC_MIDIScan]);
 
 	UF_MenuPrint_P( PSTR("Profile sucessfully"));			
    UF_MenuNewLine();		
@@ -362,7 +367,7 @@ void FirmwareInstructions(void* data)
       UF_MenuPrint_P( PSTR("Waiting for Firmware") );
    }
    UF_MenuNewLine();
-   UF_MenuPrint_P( PSTR("IF DOWNLOAD FAILS:") );
+   UF_MenuPrint_P( PSTR(" IF DOWNLOAD FAILS:") );
    UF_MenuNewLine();
 	UF_MenuPrint_P( PSTR("  **HOLD ANY KEY**") );
    UF_MenuNewLine();
@@ -581,9 +586,7 @@ void PrintMIDIRate(void)
 	
 	UF_MenuPrint_P( PSTR("MIDI Output Rate: ") );
    UF_MenuNewLine(); 	
-	utoa( (MIDI_GetRate()), outputString, 10);
-	UF_MenuPrint(outputString);
-   UF_MenuPrint_P( PSTR(" ms @ "));
+   UF_MenuPrint_P( PSTR("Baud Rate:"));
    
    switch(MIDI_GetBaud())
    {
@@ -613,36 +616,13 @@ void PrintMIDIRate(void)
 void EditMIDIRate(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
-	static uint16_t	Delay;
 	uint8_t selectedBaud = 0;
-	
-	if( primaryMenu.firstEnter == 1)
-	{
-		Delay = MIDI_GetRate();
-	}
 	
    if( primaryMenu.firstEnter == 0 )
    {     
       switch( *input )
       {
          /* Increment msec delay */
-         case 'q':
-         case KP_A:
-            if( ++Delay > MAX_MIDI_RATE)
-            {
-               Delay = 1;   
-            }   
-         break;
-            
-         /* Deccrement msec delay */  
-         case 'a':                   
-         case KP_B:
-            if(!--Delay)
-            {
-               Delay = MAX_MIDI_RATE;   
-            }
-         break;
-         
          case KP_C:
 				   switch(MIDI_GetBaud())
 				   {
@@ -683,15 +663,6 @@ void EditMIDIRate(void* data)
    
    primaryMenu.firstEnter = 0;
    
-   UF_MenuPrint_P( PSTR("Millisecond Delay:"));
-	UF_MenuNewLine();
-	
-	utoa( Delay, outputString, 10);
-	UF_MenuPrint(outputString);
-	UF_MenuPrint_P( PSTR(" milliseconds") );      
-	MIDI_SetRate( Delay );
-
-	UF_MenuNewLine();
    UF_MenuPrint_P( PSTR("Baud Rate:"));
    switch(MIDI_GetBaud())
    {
@@ -1088,8 +1059,8 @@ void MonitorChannel(void* data)
 	{
       case KP_BACK:
          /* Stop and restore timers */
+         SoftTimerStart(SoftTimer1[SC_MIDIScan]);
 			SoftTimerStop(SoftTimer2[SC_MonitorChannel]);
-         SoftTimerStart(SoftTimer1[SC_RetriggerReset]);
 			if( SelectedChannel >= ANALOGUE_INPUTS )
 			{ 
       	   UF_MenuUpOneLevel(&digitalMenu); 
@@ -1101,7 +1072,7 @@ void MonitorChannel(void* data)
       return;
 	}
 
-   SoftTimerStop(SoftTimer1[SC_RetriggerReset]);
+   SoftTimerStop(SoftTimer1[SC_MIDIScan]);
 	SoftTimerStart(SoftTimer2[SC_MonitorChannel]);
    
 }
@@ -1788,9 +1759,7 @@ void SensorInputChange(void* data)
 	/* Corresponding to either SENSOR_OUT or SENSOR_OUT2 */
 	uint8_t SelectedState = GetState(&primaryMenu);
 	
-   SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
 	SensorInputSelect( (SelectedState == ST_VARIABLE_GAIN) ? SENSOR_OUTPUT2 : SENSOR_OUTPUT );
-	SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
 
    UF_MenuSetInput(KP_BACK);
    UF_stateMachine(primaryMenu.currentState);
@@ -1921,7 +1890,6 @@ void LoadProfile(void* data)
 
    	Profile_Read(ProfileSlot);
       /* Implement the changes */
-   	MIDI_SetRate(MIDI_GetRate());
    	MIDI_SetBaud(MIDI_GetBaud());
    	MIDI_SetChannelCode( MIDI_GetChannelCode() );
 

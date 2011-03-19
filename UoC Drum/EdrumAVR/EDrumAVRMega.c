@@ -85,22 +85,49 @@ int main(void)
    sei();
    SoftTimer_TimerInit();
    SoftTimerStart( SoftTimer2[SC_usbPoll] );
-
-   ProfileInit();
    
-   /* Make profile 1 the default profile on start up */
-   Profile_Read(1);
-
-   SPI_Init();
-   SensorInit();
-   SensorInputSelect(GetSensorInput());
-   DigitalInputInit();
    /* Setup the communications module */   
    UART_Init(0);
    uartSetBaud(0,39);
+   
+   SPI_Init();
+   /* Enable LCD */
+   _delay_ms(10);
+   UI_LCD_HWInit();
+   _delay_ms(10);
+   /* Enable Keypad */
+   UI_KP_Init();   
+	
+	/* Menu must be Initialised first */
+	/* Backlight 'off' is at 5% */
+   //UI_LCD_BLInit(5);
+   //UI_LCD_BL_On();
+
+   UI_LCD_Init(&PrimaryDisplay);
+   LCD_BL_DDR |= (1 << LCD_BL_PIN);
+   LCD_BL_PORT |= (1 << LCD_BL_PIN);
+
+   /* Menu Display Init */
+   MenuSetDisplay(&primaryMenu, MENU_LCD);
+   MenuSetDisplay(&analogueMenu, MENU_LCD);
+   MenuSetDisplay(&digitalMenu, MENU_LCD);      
+
+   if( VerifyDownload() == 0)
+   {  
+      Shutdown();
+      cli();
+      bootloader_enter();
+   }
+   
+   ProfileInit();   
+   /* Make profile 1 the default profile on start up */
+   Profile_Read(1);
+
+   SensorInit();
+   SensorInputSelect(GetSensorInput());
+   DigitalInputInit();
 
    /* Implement the changes */
-   MIDI_SetRate(MIDI_GetRate());
    MIDI_SetBaud(MIDI_GetBaud());
    MIDI_SetChannelCode( MIDI_GetChannelCode() );
 
@@ -113,58 +140,25 @@ int main(void)
    /* ADC Module Init */
    ADC_Init();
    
-
-   /* Enable LCD */
-   UI_LCD_HWInit();
-
-   /* Enable Keypad */
-   UI_KP_Init();   
-	
-	/* Menu must be Initialised first */
-	/* Backlight 'off' is at 5% */
-   //UI_LCD_BLInit(5);
-   //UI_LCD_BL_On();
-   if( VerifyDownload() == 0)
-   {    
-      Shutdown();
-      cli();
-      bootloader_enter();      
-   }
-
-   UI_LCD_Init(&PrimaryDisplay);
-   UI_LCD_LoadDefaultChars();
-	
-   LCD_BL_DDR |= (1 << LCD_BL_PIN);
-   LCD_BL_PORT |= (1 << LCD_BL_PIN);
-
-   MenuSetDisplay(&primaryMenu, MENU_LCD);
-   MenuSetDisplay(&analogueMenu, MENU_LCD);
-   MenuSetDisplay(&digitalMenu, MENU_LCD);      
    /* Menu Setup */
    MenuSetInput(&primaryMenu, 0); 
+
+   aboutScroll(MAIN_SCREEN);
+   _delay_ms(1000);
+
+   UI_LCD_LoadDefaultChars();					  
+   /* Reprint Menu */
+   MenuUpdate(&primaryMenu, RESET_MENU);   
 
    /*Activate Interrupt */
    MCUCR |= ((1 << ISC11) | (1 << ISC10));
    GICR |= (1 << INT1);
-
-   aboutScroll(MAIN_SCREEN);
-
-   SoftTimerStart(SoftTimer2[SC_OneSecond]);
-   while(SoftTimerIsEnabled(SoftTimer2[SC_OneSecond]))
-   {
-   }
-
-   UI_LCD_LoadDefaultChars();					  
-   /* Reprint Menu */  
-   MenuUpdate(&primaryMenu, RESET_MENU);   
   
    /* Flush the buffer */
    UI_KP_GetPress();
-   
 
    SoftTimerStop(SoftTimer2[SC_usbPoll]);
-   SoftTimerStart(SoftTimer1[SC_MIDIOutput]);
-   SoftTimerStart(SoftTimer1[SC_RetriggerReset]);
+   SoftTimerStart(SoftTimer1[SC_MIDIScan]);
 
    uint8_t inByte;
    while (1)
@@ -181,7 +175,7 @@ int main(void)
             Benchmark();
             BenchMarkCount++;
 #else
-            if( SoftTimerIsEnabled(SoftTimer1[SC_MIDIOutput]) )
+            if( SoftTimerIsEnabled(SoftTimer1[SC_MIDIScan]) )
             {
                Play();
             }
@@ -203,9 +197,7 @@ int main(void)
 
          case FIRMWARE_UPGRADE:
             Shutdown();
-            cli();
             //ReceiveFirmware();
-            
             bootloader_enter();
          break;
       }      
@@ -220,6 +212,9 @@ void Shutdown(void)
    DISABLE_KEYPAD();
    DISABLE_PRIMARY_TIMER();
    DISABLE_AUXILIARY_TIMER();
+   UART_Shutdown();
+   /* Reset the timer flags */
+   TIFR = 0xFF;
 }
 
 void Play(void)
@@ -281,7 +276,7 @@ void Benchmark(void)
       } 
    }
 
-   //SoftTimerStop(SoftTimer1[SC_MIDIOutput]);
+   //SoftTimerStop(SoftTimer1[SC_MIDIScan]);
      
 }
 #endif
@@ -291,7 +286,6 @@ void Benchmark(void)
 uint8_t VerifyDownload(void)
 {
    uint16_t crc = 0, appCRC;
-   uint8_t outputString[4];
    uint32_t i;
 
    for (i = 0; i < (APP_END - 1); i++)
@@ -300,10 +294,15 @@ uint8_t VerifyDownload(void)
    }
 
    appCRC = FLASH_GET_PGM_WORD(i);
+   
 
    if( crc != appCRC )
    {
-      sei();
+      //UI_LCD_String_P(&PrimaryDisplay, PSTR("  DOWNLOAD FAILED!") );
+      //UI_LCD_String_P(&PrimaryDisplay, PSTR("IF DOWNLOAD FAILS:") );
+   	//UI_LCD_String_P(&PrimaryDisplay, PSTR("  **HOLD ANY KEY**") );
+   	//UI_LCD_String_P(&PrimaryDisplay, PSTR("CYCLE POWER & RETRY") );        
+      //sei();
       FirmwareInstructions(DOWNLOAD_FAILED);
       return 0;
    }
@@ -312,18 +311,11 @@ uint8_t VerifyDownload(void)
 }
 
 
-
-ISR(SIG_SPM_READY)
-{
-}
-
 ISR(SIG_UART_RECV)
 {
    uint8_t buffer;
    buffer = UDR;
    sei();
-
-   
 
 /* Echo the data back out */
    //USBMIDI_PutByte(buffer);
@@ -368,22 +360,21 @@ ISR(INT1_vect, ISR_NOBLOCK)
 }
 
 
-
-ISR(TIMER2_COMP_vect, ISR_NOBLOCK)
+ISR(TIMER1_COMPA_vect, ISR_NOBLOCK)
 {
-   OCR2 += (SAMPLE_1MS_CRITICAL);
-   static uint8_t timerCount;
-   if( ++timerCount == SAMPLE_CRITICAL_COUNT )
-   {
-      RunCriticalTimer();
-      timerCount = 0;
-   }
+   OCR1A += (SAMPLE_10MS_CRITICAL);
+   RunCriticalTimer();
+}
+
+ISR(BADISR_vect, ISR_NOBLOCK)
+{
+    // user code here
 }
 
 
 ISR(TIMER0_COMP_vect, ISR_NOBLOCK)
 {  
-   OCR0 += (SAMPLE_1MS);
+   OCR0 += (SAMPLE_10MS);
    RunAuxTimers();
 }
 

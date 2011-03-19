@@ -43,9 +43,9 @@
 #define nSS       (PB4)
 
 /* Timer Related */
-#define ENABLE_PRIMARY_TIMER()      TIMSK |= (1 << OCIE2)
+#define ENABLE_PRIMARY_TIMER()      TIMSK |= (1 << OCIE1A)
 #define ENABLE_AUXILIARY_TIMER()    TIMSK |= (1 << OCIE0)
-#define DISABLE_PRIMARY_TIMER()     TIMSK &= ~(1 << OCIE2)
+#define DISABLE_PRIMARY_TIMER()     TIMSK &= ~(1 << OCIE1A)
 #define DISABLE_AUXILIARY_TIMER()   TIMSK &= ~(1 << OCIE0)
 #define DISABLE_KEYPAD()            GICR &= ~(1 << INT1)
 #define ENABLE_KEYPAD()             GICR |= (1 << INT1)
@@ -54,6 +54,7 @@
 #define UART_Init(x) uartInit(x)
 #define UART_Tx   uartTx
 #define UART_TxDump   uartTxDump
+#define UART_Shutdown uartDisable
 #define UART_TxString_P uartTxString_P
 #define UART_TxString uartTxString
 
@@ -264,6 +265,7 @@
 #define FLASH_WORD_WRITE(address, data)   boot_page_fill_safe(address, data)
 #define FLASH_FINALISE_WRITE(address)     boot_page_write_safe(address)
 #define FLASH_RELEASE()                   boot_rww_enable_safe()
+#define FLASH_WAIT_READY()                boot_spm_busy_wait()
 #define FLASH_GET_PGM_WORD(address) pgm_read_word(address)
 #define FLASH_GET_PGM_BYTE(address) pgm_read_byte(address)
 

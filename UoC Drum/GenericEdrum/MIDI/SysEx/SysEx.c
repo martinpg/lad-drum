@@ -124,7 +124,6 @@ void ParseSysExData(uint8_t nextByte)
             primaryMenu.MenuPrint(outputString);
       
             /* Implement the changes */
-         	MIDI_SetRate(MIDI_GetRate());
          	MIDI_SetBaud(MIDI_GetBaud());
          	MIDI_SetChannelCode( MIDI_GetChannelCode() );
          
