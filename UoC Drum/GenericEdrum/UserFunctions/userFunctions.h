@@ -10,6 +10,7 @@
 #define DIGITAL_ADJUST (1)
 
 #define DOWNLOAD_FAILED (1)
+#define WITH_DOTS (1)
 
 enum {
 	MAIN_SCREEN = 0,
@@ -30,6 +31,7 @@ void UF_MenuPrint_P(PGM_P string);
 void UF_MenuPrint(char* string);
 void UF_MenuUpOneLevel(Menu_t* menu);
 
+void delayWithUSBPoll(uint8_t hundredms, uint8_t withDots);
 void reset(void* data);
 void about(void* data);
 void aboutScroll(uint8_t nameIndex);

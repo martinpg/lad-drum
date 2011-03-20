@@ -26,6 +26,8 @@
 #include "MenuSettings.h"
 #include "LCDSettings.h"
 
+#include "edrumAVRsharedfunctions.h"
+
 #if HAS_CONTROLLER_MODE
 #include "ControllerMode/ControllerMode.h"
 #endif
@@ -35,9 +37,28 @@ uint8_t SelectedChannel = 0;
 static char outputString[21];
 
 
+void delayWithUSBPoll(uint8_t hundredms, uint8_t withDots)
+{
+   uint8_t i;
+   SoftTimerStop(SoftTimer1[SC_MIDIScan]);
+   SoftTimerStart(SoftTimer2[SC_usbPoll]);
+	for( i = 0; i < hundredms; i++ )
+	{
+      if( withDots )
+      {
+		   UF_MenuChar('.');      	
+      }
+		_delay_ms(100);
+	}
+   SoftTimerStop(SoftTimer2[SC_usbPoll]);
+   SoftTimerStart(SoftTimer1[SC_MIDIScan]);
+}
+
+
+
 void reset(void* data)
 {
-	asm volatile("jmp 0"::);
+	hardwareReset();
 }
 
 /* Menu wrapper functions */
@@ -272,12 +293,8 @@ void DumpSysEx(void* data)
    UF_MenuNewLine();		
 	UF_MenuPrint_P( PSTR("Sending") );	
 
-	for( i = 0; i < 4; i++ )
-	{
-		UF_MenuPrint_P( PSTR(".") );		
-		_delay_ms(100);
-	}
-	
+   delayWithUSBPoll(4, WITH_DOTS);
+
    UF_MenuNewLine();		
 
    /* Stop output timers */
@@ -289,10 +306,8 @@ void DumpSysEx(void* data)
    UF_MenuNewLine();		
 	UF_MenuPrint_P( PSTR("uploaded!") );
 
-	for( i = 0; i < 4; i++ )
-	{	
-		_delay_ms(200);
-	}	
+   delayWithUSBPoll(8, 0);
+
    UF_MenuUpOneLevel(&primaryMenu);  
 }
 
@@ -308,11 +323,8 @@ void GetSysEx(void* data)
 	UF_MenuPrint_P( PSTR("Ready for SysEx Data") );	
    UF_MenuNewLine();			
 
-	for( i = 0; i < 4; i++ )
-	{
-		UF_MenuPrint_P( PSTR(".") );		
-		_delay_ms(100);
-	}
+   delayWithUSBPoll(4, WITH_DOTS);
+
    UF_MenuNewLine();	
 	IsReceivingSysExData(RECEIVING_SYSEX_DATA);
 	
@@ -326,11 +338,9 @@ void GetSysEx(void* data)
 				primaryMenu.firstEnter = 1;
 				SysExFlush();
             IsReceivingSysExData(!RECEIVING_SYSEX_DATA);
-            UF_MenuPrint_P( PSTR("User cancelled!"));	
-         	for( i = 0; i < 4; i++ )
-         	{	
-         		_delay_ms(200);
-         	}	
+            UF_MenuPrint_P( PSTR("User cancelled!"));
+
+            delayWithUSBPoll(8, 0);
          	
 		   	UF_MenuUpOneLevel(&primaryMenu);
          	
@@ -1021,7 +1031,7 @@ void SetRetrigger(void* data)
 	if( adjustStyle == ANALOGUE_ADJUST )
 	{
 		uint16_t PotValue = SensorPotValue() >> (RETRIGGER_ADJUST);
-		SetChannelReTrig(SelectedChannel, PotValue);	
+		SetChannelReTrig(SelectedChannel, PotValue + MIN_RETRIGGER);	
 	}
 
 	UF_MenuPrint_P(PSTR("Use # to change adj."));
@@ -1576,10 +1586,7 @@ void SetSwitchType(void* data)
       UF_MenuNewLine();
       UF_MenuPrint_P(PSTR("Continuous"));
 
-      for( i = 0; i < 15; i++ )
-      {
-         _delay_ms(200);   
-      }
+      delayWithUSBPoll(15, 0);
 
       UF_MenuUpOneLevel(&digitalMenu);
       return;
@@ -1791,7 +1798,7 @@ void ShowProfile(void* data)
 			case KB_ENTER:
 			case KP_ENTER:
 				UF_MenuReset();
-		   	UF_executeState( primaryMenu.currentState);
+		   	UF_executeState(primaryMenu.currentState);
 				firstEnter = 1;
 				return;	
 			break;
@@ -1833,16 +1840,16 @@ void SaveProfile(void* data)
 
    	UF_MenuPrint_P( PSTR("Saving Data") );	
       UF_MenuNewLine();		
-   	UF_MenuPrint_P( PSTR("Please Wait...") );	
+   	UF_MenuPrint_P( PSTR("Please Wait") );	
 
-   	for( i = 0; i < 4; i++ )
-   	{
-   		UF_MenuPrint_P( PSTR(".") );		
-   		_delay_ms(200);
-   	}
+      delayWithUSBPoll(4, WITH_DOTS);
 	
       UF_MenuNewLine();
+      /* Because we go into the Bootarea, we need to disable all uneccesary interrupts */
+      //Shutdown();
    	Profile_Write(&CurrentProfile, ProfileSlot);
+      //StartUp();
+
    	UF_MenuPrint_P( PSTR("Profile successfully") );
       UF_MenuNewLine();		
    	UF_MenuPrint_P( PSTR("saved to: ") );				
@@ -1855,11 +1862,8 @@ void SaveProfile(void* data)
       Profile_Error();
    }
 
-	for( i = 0; i < 10; i++ )
-	{	
-		_delay_ms(200);
-	}	
-	
+   delayWithUSBPoll(7, 0);
+
 	UF_MenuUpOneLevel(&primaryMenu);
 	UF_MenuReset();
 }
@@ -1877,12 +1881,8 @@ void LoadProfile(void* data)
    UF_MenuNewLine();		
 	UF_MenuPrint_P( PSTR("Please Wait") );	
 
-	for( i = 0; i < 4; i++ )
-	{
-		UF_MenuPrint_P( PSTR(".") );		
-		_delay_ms(100);
-	}
-	
+   delayWithUSBPoll(4, WITH_DOTS);
+
    UF_MenuNewLine();		
 
    if( ProfileSlot < NUMBER_OF_PROFILES )
@@ -1921,10 +1921,7 @@ void LoadProfile(void* data)
       Profile_Error();
    }
 
-   for( i = 0; i < 10; i++ )
-   {	
-   	_delay_ms(200);
-   }	
+   delayWithUSBPoll(20, 0);
 	
 	UF_MenuUpOneLevel(&primaryMenu);
 	UF_MenuReset();

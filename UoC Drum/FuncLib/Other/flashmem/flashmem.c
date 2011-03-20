@@ -48,7 +48,9 @@ void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint
 
    uint16_t overflow;
    uint32_t baseAddr;
-   cli();
+   
+   /* Because we goto the bootloader, we need to stop all interrupts */
+   enableFlashProgramming(FLASH_PROGRAMMING_ENTER);
    
    while( len > 0 )
    {
@@ -75,8 +77,7 @@ void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint
          }
       }
 
-      //
-      uint16_t offset = i;
+      
       for( ; i < FLASH_BLOCK_SIZE; i++ )
       {
          // Write the actual data from the source
@@ -107,7 +108,7 @@ void flashmem_bufferedWrite(uint32_t address, uint8_t* buffer, int16_t len, uint
       address = baseAddr + FLASH_BLOCK_SIZE;
    }
 
-   _flashmem_release();
-   sei();
+   /* Because we goto the bootloader, we need to stop all interrupts */
+   enableFlashProgramming(FLASH_PROGRAMMING_EXIT);
 }
 
