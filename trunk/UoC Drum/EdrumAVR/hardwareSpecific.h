@@ -8,6 +8,7 @@
 #include <avr/pgmspace.h>
 #include <avr/eeprom.h>
 #include <avr/boot.h>
+#include <avr/wdt.h>  
 #include <util/delay.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -271,12 +272,14 @@
 
 #define JUMP_TABLE_LOCATION (0x7FC0)
 
+#define FLASH_PROGRAMMING_ENTER  (1)
+#define FLASH_PROGRAMMING_EXIT  (0)
 
 /* hardware Specific defines */
 void DigitalInputInit(void);
 uint8_t getDigitalState(uint8_t DigitalChannel);
 void SoftTimer_TimerInit(void);
-
+void enableFlashProgramming(uint8_t mode);
 
 
 

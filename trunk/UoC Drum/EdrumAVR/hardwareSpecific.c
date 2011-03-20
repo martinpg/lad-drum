@@ -65,3 +65,13 @@ void SoftTimer_TimerInit(void)
 }
 
 
+void enableFlashProgramming(uint8_t mode)
+{
+   uint8_t interuptControlState;
+   interuptControlState = GICR;
+   /* IVSEL = 1, bootloader interrupts */
+   GICR = (1 << IVCE);
+   GICR = (mode << IVSEL);
+   GICR = interuptControlState;
+}
+

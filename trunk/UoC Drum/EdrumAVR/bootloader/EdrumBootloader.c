@@ -3,11 +3,8 @@
 #include "hardwareSpecific.h"
 #include "EdrumBootloader.h"
 #include "flashmem/flashmem.h"
-
 #include "firmwareUpdate/firmwareUpdate.h"
-
 #include "USBMIDI/USBMIDI.h"
-
 #include "usbdrv/usbdrv.h"
 #include "usbconfig.h"
 
@@ -20,7 +17,7 @@ const PROGRAM_CHAR VersionID[] = "USB-MIDI Bootloader V1.0";
 #define RX_BUFFER_MASK (RX_BUFFER_SIZE - 1)
 /* After 200 times to retry sending a message, we assume the USB is
    disconnected */
-#define USB_CONNECT_TIMEOUT (5000)
+#define USB_CONNECT_TIMEOUT (1500)
 
 volatile uint8_t rxReadPtr;
 uint8_t USB_Connected;
@@ -211,6 +208,12 @@ ISR(SIG_UART_RECV)
    rxWritePtr = ((rxWritePtr + 1) & RX_BUFFER_MASK);
 }
 
+ISR(BADISR_vect, ISR_NOBLOCK)
+{
+    // user code here
+}
+
+
 void bootuartTxString_P(PGM_P outString_P)
 {
    char c;
@@ -229,13 +232,6 @@ void bootuartTx(uint8_t outbyte)
 }
 
 
-ISR(BADISR_vect, ISR_NOBLOCK)
-{
-    // user code here
-}
-
-
- 
 uchar usbFunctionDescriptor(usbRequest_t * rq)
 {
    USB_Connected = 1;
@@ -375,8 +371,6 @@ uint8_t USBMIDI_GetByte(void)
    /* Process messages in the UART Rx buffer is there are any */
    if( rxReadPtr != rxWritePtr )
    {
-      
-
       uint8_t nextByte = RxBuffer[rxReadPtr];
       rxReadPtr = ((rxReadPtr + 1) & RX_BUFFER_MASK);
       return nextByte;
@@ -493,6 +487,10 @@ void USBMIDI_OutputData(void)
 }
 
 
+void hardwareReset(void)
+{
+   wdt_enable(WDTO_15MS);
+}
 
 
 void bootuartInit(void)
@@ -578,9 +576,8 @@ int main(void)
 {
    MCUCSR = (1 << JTD);
    MCUCSR = (1 << JTD);
-
    bootloader_init();
-   boot_spm_interrupt_disable();
+   wdt_disable();
 
    /* If bootloader condition */
    if( BOOTLOADER_CONDITION )

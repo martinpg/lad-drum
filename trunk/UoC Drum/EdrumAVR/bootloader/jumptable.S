@@ -15,4 +15,5 @@ _jump_table:
    jmp _flashmem_finalise
    jmp _flashmem_writeWord
    jmp _flashmem_release
+   jmp hardwareReset
 

@@ -37,7 +37,7 @@ void FirmwareUpdateError()
    firmwareDataCount = 0;
    firmwareByteCount = 0;
    firmwareAddress = 0;
-   //asm volatile("jmp 0"::);
+   hardwareReset();
 }
 
 void ParseFirmwareData(uint8_t nextByte) 
@@ -92,9 +92,8 @@ void ParseFirmwareData(uint8_t nextByte)
          {
             _flashmem_finalise(firmwareAddress);
          }
-         asm volatile("jmp 0"::);
-         /* Finish here and restart */
-         //FirmwareUpdateError();
+
+         hardwareReset();
       }
       
       /* Check if Datacount is odd */    

@@ -30,7 +30,7 @@ const prog_char VersionId[] = "1.5 28/02/11";
 
 uint16_t BenchMarkCount = 0;
 
-uint8_t ActiveProcess = 0;
+volatile uint8_t ActiveProcess = DEFAULT_PROCESS;
 
 volatile uint8_t PrintChannel;
 
@@ -81,8 +81,8 @@ int main(void)
    MCUCSR = (1 << JTD);
 
    /* Setup the USB */
-   usbInit();
    sei();
+   usbInit();
    SoftTimer_TimerInit();
    SoftTimerStart( SoftTimer2[SC_usbPoll] );
    
@@ -144,21 +144,23 @@ int main(void)
    MenuSetInput(&primaryMenu, 0); 
 
    aboutScroll(MAIN_SCREEN);
+      /*Activate Interrupt */
+   MCUCR |= ((1 << ISC11) | (1 << ISC10));
+   GICR |= (1 << INT1);
+
    _delay_ms(1000);
 
    UI_LCD_LoadDefaultChars();					  
    /* Reprint Menu */
    MenuUpdate(&primaryMenu, RESET_MENU);   
 
-   /*Activate Interrupt */
-   MCUCR |= ((1 << ISC11) | (1 << ISC10));
-   GICR |= (1 << INT1);
-  
    /* Flush the buffer */
-   UI_KP_GetPress();
+   Callback_Keypress();
 
    SoftTimerStop(SoftTimer2[SC_usbPoll]);
    SoftTimerStart(SoftTimer1[SC_MIDIScan]);
+
+   sei();
 
    uint8_t inByte;
    while (1)
@@ -176,7 +178,7 @@ int main(void)
             BenchMarkCount++;
 #else
             if( SoftTimerIsEnabled(SoftTimer1[SC_MIDIScan]) )
-            {
+            {  
                Play();
             }
 #endif
@@ -205,6 +207,14 @@ int main(void)
 
    return 0;
 
+}
+
+void StartUp(void)
+{
+   ENABLE_KEYPAD();
+   ENABLE_PRIMARY_TIMER();
+   ENABLE_AUXILIARY_TIMER();
+   UART_Init(0);
 }
 
 void Shutdown(void)

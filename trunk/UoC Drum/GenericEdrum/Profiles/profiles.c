@@ -578,7 +578,7 @@ void Profile_Write(Profile_t* profile, uint8_t profileIndex)
 #if PROFILE_MEMORY == PROFILE_EEPROM
    eeprom_update_block((void*)profile, memPtr, sizeof(Profile_t));
 #else
-   flashmem_bufferedWrite(memPtr, (void*)profile, sizeof(Profile_t), 0 );
+   flashmem_bufferedWrite( (uint32_t)memPtr, (void*)profile, sizeof(Profile_t), 0 );
 #endif
 
 }

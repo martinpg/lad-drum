@@ -9,7 +9,7 @@
 
 
 
-extern uint8_t ActiveProcess;
+extern volatile uint8_t ActiveProcess;
 extern uint16_t BenchMarkCount;
 
 extern const char VersionId[];
@@ -32,6 +32,7 @@ enum {
 
 #define DEFAULT_PROCESS (PLAY_MODE)
 
+void StartUp(void);
 void Shutdown(void);
 void Play(void);
 void Benchmark(void);

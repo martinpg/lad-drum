@@ -30,6 +30,7 @@ static __inline__ void _flashmem_erase(uint32_t address)                      {(
 static __inline__ void _flashmem_finalise(uint32_t address)                   {((PF_flashmem_finalise)(JUMP_TABLE_FUNCTION(10)))(address);}
 static __inline__ void _flashmem_writeWord(uint32_t address, uint16_t data)   {((PF_flashmem_writeWord)(JUMP_TABLE_FUNCTION(11)))(address, data);}
 static __inline__ void _flashmem_release()                                    {((PF_VOID)(JUMP_TABLE_FUNCTION(12)))();}
-
+static __inline__ void hardwareReset()                                        {((PF_VOID)(JUMP_TABLE_FUNCTION(13)))();}
+ 
 
 #endif

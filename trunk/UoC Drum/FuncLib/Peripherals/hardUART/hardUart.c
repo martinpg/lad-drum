@@ -78,7 +78,7 @@ void uartSetBaud(uint8_t baudrateH, uint8_t baudrateL)
 /* Disables the Receiver and Transmitter modules*/
 void uartDisable(void)
 {
-	UCSRB &= ~((1<<RXEN) | (1<<TXEN));	/*Disable Rx and Tx modules*/
+	UCSRB &= ~((1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE));	/*Disable Rx and Tx modules*/
 	
 }
 
