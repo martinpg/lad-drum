@@ -22,11 +22,6 @@
 
 
 
-// This descriptor is based on http://www.usb.org/developers/devclass_docs/midi10.pdf
-// 
-// Appendix B. Example: Simple MIDI Adapter (Informative)
-// B.1 Device Descriptor
-//
 static PROGMEM char deviceDescrMIDI[] = {	/* USB device descriptor */
 	18,			/* sizeof(usbDescriptorDevice): length of descriptor in bytes */
 	USBDESCR_DEVICE,	/* descriptor type */
@@ -191,7 +186,6 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	1,			/* bNumEmbMIDIJack (0) */
 	3,			/* baAssocJackID (0) */
 };
-
 
 
  

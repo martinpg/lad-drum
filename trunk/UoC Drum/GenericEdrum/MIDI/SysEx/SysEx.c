@@ -15,7 +15,7 @@
 
 #include "hardUart/hardUart.h"
 
-static uint16_t DataCount = 0;
+static uint16_t DataCount;
 
 void SysexSend(void* data, uint16_t len)
 {
@@ -47,7 +47,7 @@ void SysexSend(void* data, uint16_t len)
 
 uint8_t IsReceivingSysExData(uint8_t state)
 {  
-   static uint8_t ReceivingSysExData = 0;     
+   static uint8_t ReceivingSysExData;     
    if( state == GET_SYSEX_DATA )
    {
        return ReceivingSysExData;

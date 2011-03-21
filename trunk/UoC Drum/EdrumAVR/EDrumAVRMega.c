@@ -112,6 +112,7 @@ int main(void)
    MenuSetDisplay(&analogueMenu, MENU_LCD);
    MenuSetDisplay(&digitalMenu, MENU_LCD);      
 
+
    if( VerifyDownload() == 0)
    {  
       Shutdown();
@@ -144,15 +145,16 @@ int main(void)
    MenuSetInput(&primaryMenu, 0); 
 
    aboutScroll(MAIN_SCREEN);
-      /*Activate Interrupt */
-   MCUCR |= ((1 << ISC11) | (1 << ISC10));
-   GICR |= (1 << INT1);
 
    _delay_ms(1000);
 
    UI_LCD_LoadDefaultChars();					  
    /* Reprint Menu */
    MenuUpdate(&primaryMenu, RESET_MENU);   
+
+   /*Activate Interrupt */
+   MCUCR |= ((1 << ISC11) | (1 << ISC10));
+   GICR |= (1 << INT1);
 
    /* Flush the buffer */
    Callback_Keypress();
@@ -229,8 +231,8 @@ void Shutdown(void)
 
 void Play(void)
 {
-   uint8_t i = 0;
-   uint8_t SelectedChannel = 0;
+   uint8_t i;
+   uint8_t SelectedChannel;
    uint16_t sample;
 
 	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
@@ -257,8 +259,8 @@ void Play(void)
 #if SET_BENCHMARK
 void Benchmark(void)
 {
-   uint8_t i = 0;
-   uint8_t SelectedChannel = 0;
+   uint8_t i;
+   uint8_t SelectedChannel;
    uint16_t sample;
    
 	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
