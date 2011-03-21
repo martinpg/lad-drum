@@ -45,7 +45,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 INCLUDES = -I"M:\Robotics\Source\EdrumAVR\..\FuncLib" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Other" -I"M:\Robotics\Source\EdrumAVR\..\GenericEdrum" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Applications" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\External" -I"M:\Robotics\Source\EdrumAVR\." 
 
 ## Objects that must be built in order to link
-OBJECTS = EDrumAVRMega.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o profiles.o SysEx.o hardwareSpecific.o UI_KP.o TimerCallbacks.o flashmem.o 
+OBJECTS = EDrumAVRMega.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o profiles.o SysEx.o hardwareSpecific.o UI_KP.o TimerCallbacks.o flashmem.o USBMIDIThru.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -118,6 +118,9 @@ TimerCallbacks.o: ../../GenericEdrum/TimerCallbacks/TimerCallbacks.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 flashmem.o: ../../FuncLib/Other/flashmem/flashmem.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+USBMIDIThru.o: ../../GenericEdrum/USBMIDIThru/USBMIDIThru.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link

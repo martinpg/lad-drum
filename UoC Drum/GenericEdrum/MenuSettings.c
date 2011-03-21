@@ -30,12 +30,15 @@ const MENU_TEXT  MT_PROFILE_DEF[] = "Default Profile";
 
 const MENU_TEXT  MT_VUMETER[] = "Analogue VU Meter";
 const MENU_TEXT  MT_DIGITAL_VUMETER[] = "Digital VU Meter";
+const MENU_TEXT  MT_UTILITIES[] = "Utilities";
 const MENU_TEXT  MT_SYSTEM_SETUP[] = "System Setup";
+
+const MENU_TEXT  MT_USB_MIDI_THRU[] = "USB-MIDI THRU";
 
 const MENU_TEXT  MT_SYSTEM_RESET[] = "Reset eDrum";
 const MENU_TEXT  MT_SYSTEM_ABOUT[] = "About";
 const MENU_TEXT  MT_SYSTEM_SYSEX[] = "System Exclusive";
-const MENU_TEXT  MT_SYSEX_DUMP[] = "Dump Current Setup";
+const MENU_TEXT  MT_SYSEX_DUMP[] = "Send Current Setup";
 const MENU_TEXT  MT_SYSEX_RECEIVE[] = "Get SysEx Settings";
 const MENU_TEXT  MT_SYSTEM_UPGRADE[] = "Upgrade Firmware";
 
@@ -135,7 +138,8 @@ const menu_list MenuState[] MENU_SPACE = {
    {ST_MAIN,	ST_VUMETER,	  1},
    {ST_MAIN,   ST_DIGITAL_VUMETER, 2},
    {ST_MAIN, 	ST_PROFILES,  3},
-   {ST_MAIN,   ST_SYSTEM_SETUP, 4},
+   {ST_MAIN,   ST_UTILITIES, 4},
+   {ST_MAIN,   ST_SYSTEM_SETUP, 5},
 #endif
 
 
@@ -226,6 +230,8 @@ const menu_list MenuState[] MENU_SPACE = {
 	{ST_SAVE_PROFILE, ST_SAVE_PROFILE_3, 2},
 	{ST_SAVE_PROFILE, ST_SAVE_PROFILE_4, 3},
 		
+   {ST_UTILITIES, ST_USB_MIDI_THRU, 0},
+
 	{ST_SYSTEM_SETUP, ST_SYSTEM_RESET, 0},
 	{ST_SYSTEM_SETUP, ST_SYSTEM_ABOUT, 1},
 	{ST_SYSTEM_SETUP, ST_SYSEX, 2},
@@ -247,6 +253,10 @@ const menu_data MenuData[] MENU_SPACE = {
    {ST_OPTIONS, MT_OPTIONS, 0},
 	{ST_VUMETER, MT_VUMETER, VUMeterSetup},
 	{ST_DIGITAL_VUMETER, MT_DIGITAL_VUMETER, VUMeterSetup},
+
+   {ST_UTILITIES,     MT_UTILITIES, 0},
+   {ST_USB_MIDI_THRU, MT_USB_MIDI_THRU, USBMIDIThru},
+
 	{ST_SYSTEM_SETUP, MT_SYSTEM_SETUP, 0},
 	{ST_SYSTEM_RESET, MT_SYSTEM_RESET, reset},
 	{ST_SYSTEM_ABOUT, MT_SYSTEM_ABOUT, about},

@@ -15,6 +15,7 @@
 #include "mmculib/uint8toa.h"
 #include "MIDI/midi.h"
 
+#include "USBMIDIThru/USBMIDIThru.h"
 #include "MIDI/SysEx/SysEx.h"
 #include "Sample/sample.h"
 #include "Sensor/sensor.h"
@@ -33,7 +34,7 @@
 #endif
 
 static uint8_t SelectedProfile = PROFILE_1;
-uint8_t SelectedChannel = 0;
+uint8_t SelectedChannel;
 static char outputString[21];
 
 
@@ -58,6 +59,7 @@ void delayWithUSBPoll(uint8_t hundredms, uint8_t withDots)
 
 void reset(void* data)
 {
+   _delay_ms(1000);
 	hardwareReset();
 }
 
@@ -198,11 +200,10 @@ void aboutScroll(uint8_t nameIndex)
       
 		case TECH_SPECS:
 
-         while(ActiveChannels[i] != LAST_CHANNEL_INDEX)
+         for(i = 0; ActiveChannels[i] != LAST_CHANNEL_INDEX; i++)
          {
-               i++;
          }
-         
+
          sampleRate = ADC_SAMPLE_SPEEDus + SensorSettings->CrosstalkDelay;
          sampleFrequency = (1000000 / sampleRate);
 
@@ -237,6 +238,54 @@ void aboutScroll(uint8_t nameIndex)
          UF_MenuPrint_P(PSTR("  .googlecode.com"));
 		break;          		
 	}
+}
+
+
+void USBMIDIThru(void* data)
+{
+   uint8_t* input = (uint8_t*)data;
+		
+	if( primaryMenu.firstEnter != 1 )
+   {     
+		UF_stateMachine( primaryMenu.currentState );
+      switch( *input )
+      {
+			case KB_BACK:
+			case KP_BACK:
+				primaryMenu.firstEnter = 1;
+				return;
+			break;
+				
+			case KB_ENTER:
+			case KP_ENTER:
+			   UF_executeState( primaryMenu.currentState);
+			   
+				return;	
+			break;
+
+			default:
+			break;
+		}	
+	}
+
+
+	UF_MenuReset();
+	primaryMenu.firstEnter = 0;
+
+   UF_MenuPrint_P( PSTR("USB<->MIDI Thru:") );
+
+   if( USBMIDIThruIsActive( GET_USBMIDITHRU_STATE ) )
+   {
+      UF_MenuPrint_P( PSTR("On") ); 
+   }
+   else
+   {
+      UF_MenuPrint_P( PSTR("Off") );
+   }
+   
+   UF_MenuNewLine();
+
+
 }
 
 
@@ -592,7 +641,7 @@ void SetMIDIRate(void* data)
 
 void PrintMIDIRate(void)
 {
-	uint8_t selectedBaud = 0;
+	uint8_t selectedBaud;
 	
 	UF_MenuPrint_P( PSTR("MIDI Output Rate: ") );
    UF_MenuNewLine(); 	
@@ -626,7 +675,7 @@ void PrintMIDIRate(void)
 void EditMIDIRate(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
-	uint8_t selectedBaud = 0;
+	uint8_t selectedBaud;
 	
    if( primaryMenu.firstEnter == 0 )
    {     
@@ -896,7 +945,7 @@ void SetThreshold(void* data)
 {
 	uint8_t* input;
    
-   static uint16_t lastPotValue = 0;
+   static uint16_t lastPotValue;
 	static uint8_t firstEnter = 1;
 	
    input = data;
@@ -1155,7 +1204,7 @@ void LCD_Load_ProgressBar(void)
 void SetGainCurves(void* data)
 {
 
-   uint8_t* input = 0;
+   uint8_t* input;
    
    static int8_t presetSetting = CUSTOM;
 	input = data;
@@ -1298,7 +1347,7 @@ void SetGainCurves(void* data)
 
 void SetDualInput(void* data)
 {
-   uint8_t* input = 0;
+   uint8_t* input;
 	input = data;
 
 
@@ -1417,7 +1466,7 @@ void SetDualInput(void* data)
 /** Function to setup each individual digital channel */
 void DigitalChannelSettings(void* data)
 {
-   uint8_t* input = 0;
+   uint8_t* input;
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 	uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
@@ -1829,7 +1878,7 @@ void ShowProfile(void* data)
 /* Save the CurrentProfile into the passed profileIndex */
 void SaveProfile(void* data)
 {
-   uint8_t* input = 0;
+   uint8_t* input;
    uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_SAVE_PROFILE_1 + 1;
  	uint8_t i;
 	  
@@ -1870,7 +1919,7 @@ void SaveProfile(void* data)
 
 void LoadProfile(void* data)
 {
-   uint8_t* input = 0;
+   uint8_t* input;
    uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_LOAD_PROFILE_DEF;
 	uint8_t i;
 	

@@ -95,6 +95,9 @@ enum {
    
    ST_SYSEX_DUMP,
    ST_SYSEX_RECEIVE,
+
+   ST_UTILITIES,
+   ST_USB_MIDI_THRU,
  
    
 } menuIds;

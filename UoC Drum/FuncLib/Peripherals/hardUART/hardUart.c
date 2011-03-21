@@ -26,7 +26,7 @@ RINGBUFFER_T ReceiveBuffer = {rxbuffer, sizeof(rxbuffer)};
 
 
 
-volatile uint8_t transmitState = 0;
+volatile uint8_t transmitState;
 
 /* uartInit:
  * Initialises the baudrate, parity, stop bit generation and 8bit mode
