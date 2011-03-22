@@ -1,5 +1,5 @@
 
-#include "EDrumAVRMega.h"
+#include "EDrum.h"
 #include "hardwareSpecific.h" 
 #include "MIDI/SysEx/SysEx.h"
 #include "UI_LCD/UI_LCD.h"
@@ -170,10 +170,19 @@ int main(void)
       usbPoll();
       USBMIDI_OutputData();
 
-      uint16_t sample;
-
       switch( ActiveProcess )
       {
+
+         /* Note that there is no break here, since
+          * We do not wish to disable the PlayMode during
+          * USB_MIDI_THRU mode */
+         case USB_MIDI_THRU:
+            inByte = USBMIDI_GetByte();
+            if( inByte != NO_DATA_BYTE )
+            {
+               UART_Tx(inByte);
+            }
+
          case PLAY_MODE:
 #if SET_BENCHMARK
             Benchmark();
@@ -185,7 +194,7 @@ int main(void)
             }
 #endif
          break;
-             
+
          case RECEIVE_SYSEX:
             inByte = USBMIDI_GetByte();
             if(inByte != NO_DATA_BYTE)
@@ -201,9 +210,10 @@ int main(void)
 
          case FIRMWARE_UPGRADE:
             Shutdown();
-            //ReceiveFirmware();
             bootloader_enter();
          break;
+
+
       }      
    }
 
@@ -216,7 +226,6 @@ void StartUp(void)
    ENABLE_KEYPAD();
    ENABLE_PRIMARY_TIMER();
    ENABLE_AUXILIARY_TIMER();
-   UART_Init(0);
 }
 
 void Shutdown(void)
@@ -224,14 +233,13 @@ void Shutdown(void)
    DISABLE_KEYPAD();
    DISABLE_PRIMARY_TIMER();
    DISABLE_AUXILIARY_TIMER();
-   UART_Shutdown();
    /* Reset the timer flags */
    TIFR = 0xFF;
 }
 
 void Play(void)
 {
-   uint8_t i;
+   uint8_t i = 0;
    uint8_t SelectedChannel;
    uint16_t sample;
 
@@ -345,6 +353,10 @@ ISR(SIG_UART_RECV)
 
       case FIRMWARE_UPGRADE:
 //         ParseFirmwareData(buffer);
+      break;
+
+      case USB_MIDI_THRU:
+         USBMIDI_PutByte(buffer);
       break;
    }
 }

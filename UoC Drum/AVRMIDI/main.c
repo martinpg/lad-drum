@@ -155,7 +155,7 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	0x1,			/* bEndpointAddress OUT endpoint number 1 */
 	3,			/* bmAttributes: 2:Bulk, 3:Interrupt endpoint */ //This should be bulk for max speed
 	8, 0,			/* wMaxPacketSize */
-	2,			/* bIntervall in ms */
+	1,			/* bIntervall in ms */
 	0,			/* bRefresh */
 	0,			/* bSyncAddress */
 
@@ -175,7 +175,7 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	0x81,			/* bEndpointAddress IN endpoint number 1 */
 	3,			/* bmAttributes: 2: Bulk, 3: Interrupt endpoint */ // This should be bulk so that it is faster than the UART
 	8, 0,			/* wMaxPacketSize */
-	2,			/* bIntervall in ms */
+	1,			/* bIntervall in ms */
 	0,			/* bRefresh */
 	0,			/* bSyncAddress */
 

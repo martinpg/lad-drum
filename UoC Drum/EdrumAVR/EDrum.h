@@ -1,5 +1,5 @@
-#ifndef EDRUM_AVRMEGA_H
-#define EDRUM_AVRMEGA_H
+#ifndef EDRUM_H
+#define EDRUM_H
 
 #include <stdint.h>
 
@@ -21,7 +21,8 @@ enum {
    PLAY_MODE = 0,
    RECEIVE_SYSEX,
    CONTROLLER_MODE,
-   FIRMWARE_UPGRADE
+   FIRMWARE_UPGRADE,
+   USB_MIDI_THRU,
 } processes;
 
 #if PROFILE_MEMORY == PROFILE_EEPROM

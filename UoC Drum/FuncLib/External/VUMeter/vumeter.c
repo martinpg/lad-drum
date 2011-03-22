@@ -22,7 +22,7 @@ volatile uint16_t	VUValues[MAX_METERS];
 
 void UpdateVUValues(void* src)
 {
-	memcpy(VUValues, src, sizeof(VUValues));
+	memcpy((void*)VUValues, src, sizeof(VUValues));
 }
 
 void ResetVUValues(void)

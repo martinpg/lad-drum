@@ -39,8 +39,11 @@ void aboutScroll(uint8_t nameIndex);
  * parameter */
 uint8_t ThanksIndex(uint8_t mode);
 
-void USBMIDIThru(void* data);
+/* ======== UTILITY FUNCTIONS ======== */
+void DisableEdrum(void* data);
 
+void USBMIDIThru(void* data);
+void USBMIDI_Monitor(void *data);
 
 void SysExDisplay(void* data);
 void DumpSysEx(void* data);
