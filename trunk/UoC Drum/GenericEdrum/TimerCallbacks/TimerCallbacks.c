@@ -5,7 +5,7 @@
 #include "MIDI/midi.h"
 #include "Sample/sample.h"
 #include "Menu/Menu.h"
-#include "EDrumAVRMega.h"
+#include "EDrum.h"
 #include "MenuSettings.h"
 #include "UserFunctions/userFunctions.h"
 #include "UI_KP/UI_KP.h"

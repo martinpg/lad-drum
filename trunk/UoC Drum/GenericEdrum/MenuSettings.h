@@ -97,7 +97,9 @@ enum {
    ST_SYSEX_RECEIVE,
 
    ST_UTILITIES,
+   ST_DISABLE_EDRUM,
    ST_USB_MIDI_THRU,
+   ST_MIDI_MONITOR,
  
    
 } menuIds;

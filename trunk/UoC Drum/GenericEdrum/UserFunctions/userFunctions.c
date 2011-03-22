@@ -6,7 +6,7 @@
 
 
 #include "hardwareSpecific.h"
-#include "EDrumAVRMega.h"
+#include "EDrum.h"
 #include "Menu/Menu.h"
 #include "UI_KP/UI_KP.h"
 #include "UI_LCD/UI_LCD.h"
@@ -240,8 +240,7 @@ void aboutScroll(uint8_t nameIndex)
 	}
 }
 
-
-void USBMIDIThru(void* data)
+void DisableEdrum(void* data)
 {
    uint8_t* input = (uint8_t*)data;
 		
@@ -250,6 +249,17 @@ void USBMIDIThru(void* data)
 		UF_stateMachine( primaryMenu.currentState );
       switch( *input )
       {
+         case KP_A:
+            if( SoftTimerIsEnabled(SoftTimer1[SC_MIDIScan]) )
+            {
+               SoftTimer1[SC_MIDIScan].timerEnable = 0;
+            }
+            else
+            {
+               SoftTimer1[SC_MIDIScan].timerEnable = 1;
+            }
+            break;
+         
 			case KB_BACK:
 			case KP_BACK:
 				primaryMenu.firstEnter = 1;
@@ -259,7 +269,6 @@ void USBMIDIThru(void* data)
 			case KB_ENTER:
 			case KP_ENTER:
 			   UF_executeState( primaryMenu.currentState);
-			   
 				return;	
 			break;
 
@@ -267,8 +276,63 @@ void USBMIDIThru(void* data)
 			break;
 		}	
 	}
+	UF_MenuReset();
+	primaryMenu.firstEnter = 0;
+   UF_MenuPrint_P( PSTR("eDrum Active:") );
+   if( SoftTimerIsEnabled(SoftTimer1[SC_MIDIScan]) )
+   {
+      UF_MenuPrint_P( PSTR("Yes") ); 
+   }
+   else
+   {
+      UF_MenuPrint_P( PSTR("No") );
+   }
+   UF_MenuNewLine();
+}
 
 
+void USBMIDIThru(void* data)
+{
+   uint8_t* input = (uint8_t*)data;
+
+   uint8_t usbmidiThruState;
+		
+	if( primaryMenu.firstEnter != 1 )
+   {     
+		UF_stateMachine( primaryMenu.currentState );
+      switch( *input )
+      {
+         case KP_A:
+            usbmidiThruState = !USBMIDIThruIsActive(GET_USBMIDITHRU_STATE);
+
+            if( usbmidiThruState )
+            {
+               ActiveProcess = USB_MIDI_THRU;
+            }
+            else
+            {
+               ActiveProcess = DEFAULT_PROCESS;
+            }
+
+            USBMIDIThruIsActive( usbmidiThruState );
+            break;
+         
+			case KB_BACK:
+			case KP_BACK:
+				primaryMenu.firstEnter = 1;
+				return;
+			break;
+				
+			case KB_ENTER:
+			case KP_ENTER:
+			   UF_executeState( primaryMenu.currentState);
+				return;	
+			break;
+
+			default:
+			break;
+		}	
+	}
 	UF_MenuReset();
 	primaryMenu.firstEnter = 0;
 
@@ -282,11 +346,21 @@ void USBMIDIThru(void* data)
    {
       UF_MenuPrint_P( PSTR("Off") );
    }
-   
    UF_MenuNewLine();
+}
 
+
+void USBMIDI_Monitor(void *data)
+{
+   uint8_t* input;
+   input = data;
+
+	
+
+   UF_MenuUpOneLevel(&primaryMenu);
 
 }
+
 
 
 void SysExDisplay(void* data)
@@ -333,8 +407,7 @@ void SysExDisplay(void* data)
 
 void DumpSysEx(void* data)
 {
-   uint8_t* input = 0;
-	uint16_t i;
+   uint8_t* input;
 	   
    input = data;
 
@@ -365,7 +438,6 @@ void DumpSysEx(void* data)
 void GetSysEx(void* data)
 {
    uint8_t* input = 0;
-	uint16_t i;
 	   
    input = data;
 
@@ -641,7 +713,7 @@ void SetMIDIRate(void* data)
 
 void PrintMIDIRate(void)
 {
-	uint8_t selectedBaud;
+	uint8_t selectedBaud = 0;
 	
 	UF_MenuPrint_P( PSTR("MIDI Output Rate: ") );
    UF_MenuNewLine(); 	
@@ -675,7 +747,7 @@ void PrintMIDIRate(void)
 void EditMIDIRate(void* data)
 {
 	uint8_t* input = (uint8_t*)data;
-	uint8_t selectedBaud;
+	uint8_t selectedBaud = 0;
 	
    if( primaryMenu.firstEnter == 0 )
    {     
@@ -1618,7 +1690,6 @@ void DigitalChannelSettings(void* data)
 void SetSwitchType(void* data)
 {
 	uint8_t* input;
-   uint8_t i;
    uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
    
    input = data;
@@ -1880,7 +1951,6 @@ void SaveProfile(void* data)
 {
    uint8_t* input;
    uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_SAVE_PROFILE_1 + 1;
- 	uint8_t i;
 	  
    input = data;
 
@@ -1895,9 +1965,8 @@ void SaveProfile(void* data)
 	
       UF_MenuNewLine();
       /* Because we go into the Bootarea, we need to disable all uneccesary interrupts */
-      //Shutdown();
    	Profile_Write(&CurrentProfile, ProfileSlot);
-      //StartUp();
+      
 
    	UF_MenuPrint_P( PSTR("Profile successfully") );
       UF_MenuNewLine();		
@@ -1921,8 +1990,6 @@ void LoadProfile(void* data)
 {
    uint8_t* input;
    uint8_t   ProfileSlot = GetState(&primaryMenu) - ST_LOAD_PROFILE_DEF;
-	uint8_t i;
-	
 	   
    input = data;
 

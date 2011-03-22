@@ -4,7 +4,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
-#include "EDrumAVRMega.h"
+#include "EDrum.h"
 #include "hardwareSpecific.h"
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"
