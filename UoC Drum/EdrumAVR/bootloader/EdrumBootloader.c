@@ -544,9 +544,10 @@ void bootloader_leave(void)
 void bootloader_enter(void)
 {
    GICR = (1 << IVCE);
-   GICR = (1 << IVSEL);
-   
+   GICR = (1 << IVSEL);  
    DDRD |= (1 << 7);
+
+   boot_lock_bits_set ((1<<BLB11));
    
    usbInit();
    bootuartInit();
