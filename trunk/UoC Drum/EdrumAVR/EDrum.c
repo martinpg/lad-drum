@@ -26,7 +26,7 @@
 #include <util/crc16.h>
 
 
-const prog_char VersionId[] = "1.5 28/02/11";
+const prog_char VersionId[] = "1.6 22/03/11";
 
 uint16_t BenchMarkCount = 0;
 
