@@ -20,11 +20,8 @@
 
 static char txbuffer[TXBUFFER_SIZE];
 RINGBUFFER_T TransmitBuffer = {txbuffer, sizeof(txbuffer)};
-
 static char rxbuffer[RXBUFFER_SIZE];
 RINGBUFFER_T ReceiveBuffer = {rxbuffer, sizeof(rxbuffer)};
-
-
 
 volatile uint8_t transmitState;
 
@@ -35,25 +32,24 @@ volatile uint8_t transmitState;
  * Interrupts are not set by default.
  *
  */
-void uartInit(uint8_t U2Xvalue)
+void uartInit(AVR_USART_t* port, uint8_t U2Xvalue)
 {
 	/*Setup the U2X Bit*/
-	UCSRA	=	(UCSRA & (~(1<<U2X))) | (U2Xvalue << U2X);
+	*port->UCSRxA	=	(*port->UCSRxA & (~(1<<U2X))) | (U2Xvalue << U2X);
 	
-	UCSRB |= (1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE);	/*Enable Rx and Tx modules*/
-	UCSRB &= ~(1<<UCSZ2);				/*Set to 8bit mode*/
+	*port->UCSRxB |= (1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE);	/*Enable Rx and Tx modules*/
+	*port->UCSRxB &= ~(1<<UCSZ2);				/*Set to 8bit mode*/
 	
 
-	/*Select UCSRC to be written to*/	
+	/*Select port->UCSRxC to be written to*/	
 	/* Set to Asynchronous Mode
 	 *			 1 Stop-bit
 	 *			 No Parity
 	 *			 8-bit char mode
 	 */
-	UCSRC = (UCSRC & ~( UCSRCMASK ))
-				|  (NOPARITY<<UPM0)
-				|	(BIT8 << UCSZ0) 
-				|  (1<<URSEL);
+	*port->UCSRxC = (NOPARITY<<UPM0)
+      				|	(BIT8 << UCSZ0) 
+      				|  (1<<URSEL);
 
    /*Enable the pull up on RXD */
    PORTD |= (1 << PD0);
@@ -65,20 +61,20 @@ void uartInit(uint8_t U2Xvalue)
  * See the datasheet for more details on what the
  * Baudrate generation registers should be.
  */
-void uartSetBaud(uint8_t baudrateH, uint8_t baudrateL)
+void uartSetBaud(AVR_USART_t* port, uint8_t baudrateH, uint8_t baudrateL)
 {
-	UBRRH = 	baudrateH;
+	*port->UBRRxH = 	baudrateH;
 	/* The lower 8bits must be written last as the baudrate generator
 	 * is updated as soon as UBRRL is written to*/
-	UBRRL	=	baudrateL; 
+	*port->UBRRxL	=	baudrateL; 
 
 }
 
 
 /* Disables the Receiver and Transmitter modules*/
-void uartDisable(void)
+void uartDisable(AVR_USART_t* port)
 {
-	UCSRB &= ~((1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE));	/*Disable Rx and Tx modules*/
+	*port->UCSRxB &= ~((1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE));	/*Disable Rx and Tx modules*/
 	
 }
 
@@ -87,85 +83,60 @@ void uartDisable(void)
  * Transmits the passed byte to the Uart.Tx pin.
  *
  */
-//void uartTx(uint8_t outbyte)
+//void uartTx(AVR_USART_t* port, uint8_t outbyte)
 //{
 	/*Wait until output shift register is empty*/	
-//	while( (UCSRA & (1<<UDRE)) == 0 );
+//	while( (*port->UCSRxA & (1<<UDRE)) == 0 );
 		
 	/*Send byte to output buffer*/
-//	UDR	= outbyte;
+//	*UDRx	= outbyte;
 //}
 
 
 
-void uartTx(uint8_t byte)
+void uartTx(AVR_USART_t* port, uint8_t byte)
 {
    /* If the buffer is full, then we have to wait until we have to send the data
     * to prevent data loss */
-
-   while(ringbuffer_put((RINGBUFFER_T*)&TransmitBuffer, byte) == BUFFER_OVERFLOW)
+   while(ringbuffer_put((RINGBUFFER_T*)port->TransmitBuffer, byte) == BUFFER_OVERFLOW)
    {
-      /* If this is the first byte */
-      if( transmitState == 0 )
+      if( (*port->UCSRxA & (1<<UDRE)) )
       {
-         if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
-      	{
-            transmitState++;
-         	UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
-      	}	
-   	}
+         *port->UDRx = ringbuffer_get((RINGBUFFER_T*)port->TransmitBuffer); 
+      }
    }
 
-   /* If this is the first byte */
-   if( transmitState == 0 )
+   if( (*port->UCSRxA & (1<<UDRE)) )
    {
-      if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
-   	{
-         transmitState++;
-      	UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer); 
-   	}	
-	}
+      *port->UDRx = ringbuffer_get((RINGBUFFER_T*)port->TransmitBuffer); 
+   }
 }
 
-/* Once a tx has completed, this is called */
-ISR(USART_TXC_vect, ISR_NOBLOCK)
-{
-   //sei();
-   /* Tx the next byte if there are still bytes in the buffer */
-   if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
-   {
-      transmitState--;
-      UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
-   }
-   else
-   {
-      transmitState = 0;
-   }
-}
+
 
 
 
 
 
 /** Writes nbytes of buffer to the UART */
-void uartTxDump(uint8_t* buffer, uint16_t nbytes )
+void uartTxDump(AVR_USART_t* port, uint8_t* buffer, uint16_t nbytes )
 {
 	uint16_t i = 0;
 	while( i++ < nbytes )
 	{
-		uartTx(*buffer++);
+		uartTx(port, *buffer++);
 	}
 }
 
 /** Writes nbytes of buffer to the UART */
-void uartTxDump_P(PGM_P buffer, uint16_t nbytes )
+void uartTxDump_P(AVR_USART_t* port, PGM_P buffer, uint16_t nbytes )
 {
 	uint16_t i = 0;
 	while( i++ < nbytes )
 	{
       uint8_t c;
       c = pgm_read_byte(buffer++);
-		uartTx(c);
+		uartTx(port, c);
 	}
 }
 
@@ -176,29 +147,29 @@ void uartTxDump_P(PGM_P buffer, uint16_t nbytes )
  * The output is true ouput, not inverted, so a MAX232 or some sort of
  * TTL -> +/- 15V converter is required.
  */
-void uartTxString(uint8_t* outString)
+void uartTxString(AVR_USART_t* port, uint8_t* outString)
 {
 	while( *outString )
 	{
-		uartTx(*outString++);
+		uartTx(port, *outString++);
    }
 }
 
 /* Usage: uartTxString_P( PSTR("hello!") ); */
 /* Send a string which resides in the program memory */
-void uartTxString_P(PGM_P outString_P)
+void uartTxString_P(AVR_USART_t* port, PGM_P outString_P)
 {
    char c;
    while( (c = pgm_read_byte(outString_P++)) )
    {
-      uartTx(c);    
+      uartTx(port, c);    
    }
 }
 
-void uartNewLine(void)
+void uartNewLine(AVR_USART_t* port)
 {
-   uartTx('\r');
-   uartTx('\n'); 
+   uartTx(port, '\r');
+   uartTx(port, '\n'); 
 }
 
 /* To echo the receiver buffer, write this code in the main.c file */
@@ -209,3 +180,21 @@ ISR(SIG_UART_RECV)
 }
 */
 
+
+
+/* Once a tx has completed, this is called */
+/*
+ISR(USART_TXC_vect, ISR_NOBLOCK)
+{
+   //sei();
+   // Tx the next byte if there are still bytes in the buffer
+   if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
+   {
+      UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
+   }
+}
+
+
+
+
+*/

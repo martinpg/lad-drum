@@ -74,6 +74,7 @@ volatile uint8_t PrintChannel;
 
 int main(void)
 {
+
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);
 
@@ -88,7 +89,8 @@ int main(void)
    
    /* Setup the communications module */   
    UART_Init(0);
-   uartSetBaud(0,39);
+   UART_SetBaud(0, 39);
+   
    
    SPI_Init();
    /* Enable LCD */
@@ -331,7 +333,7 @@ uint8_t VerifyDownload(void)
 }
 
 
-ISR(SIG_UART_RECV)
+ISR(USART_RXC_vect)
 {
    uint8_t buffer;
    buffer = UDR;
@@ -358,6 +360,18 @@ ISR(SIG_UART_RECV)
       case USB_MIDI_THRU:
          USBMIDI_PutByte(buffer);
       break;
+   }
+}
+
+
+/* Once a tx has completed, this is called */
+ISR(USART_TXC_vect, ISR_NOBLOCK)
+{
+   //sei();
+   // Tx the next byte if there are still bytes in the buffer
+   if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
+   {
+      UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
    }
 }
 

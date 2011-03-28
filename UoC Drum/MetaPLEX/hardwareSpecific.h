@@ -18,8 +18,6 @@
 #include "hardUART/hardUart.h"
 #include "avrADC/adc.h"
 
-extern AVR_USART_t PrimaryUART;
-
 
 /* Interrupts */
 //#define ENABLE_INTERRUPT() (sei())
@@ -30,7 +28,7 @@ extern AVR_USART_t PrimaryUART;
 
 /* MIDI Defines */
 #define MIDI_Tx(x)   midiTx(x)
-#define MIDI_SetBaudRate(high,low) UART_SetBaud(high,low)
+#define MIDI_SetBaudRate(high,low) //uartSetBaud(high,low)
 #define MIDI_BAUD(x)   (((F_CPU / (x)) / 16) - 1)
 #define MIDI_BAUD_31250      MIDI_BAUD(31250)
 #define MIDI_BAUD_38400      MIDI_BAUD(38400)
@@ -40,21 +38,22 @@ extern AVR_USART_t PrimaryUART;
 /* SPI Defines */
 #define SPI_DDR   (DDRB)
 #define SPI_PORT  (PORTB)
-#define SCK       (PB7)
-#define MISO      (PB6)
-#define MOSI      (PB5)
-#define nSS       (PB4)
+#define SCK       (PB1)
+#define MISO      (PB3)
+#define MOSI      (PB2)
+#define nSS       (PB0)
 
 /* Timer Related */
-#define ENABLE_PRIMARY_TIMER()      TIMSK |= (1 << OCIE1A)
-#define ENABLE_AUXILIARY_TIMER()    TIMSK |= (1 << OCIE0)
-#define DISABLE_PRIMARY_TIMER()     TIMSK &= ~(1 << OCIE1A)
-#define DISABLE_AUXILIARY_TIMER()   TIMSK &= ~(1 << OCIE0)
-#define DISABLE_KEYPAD()            GICR &= ~(1 << INT1)
-#define ENABLE_KEYPAD()             GICR |= (1 << INT1)
-#define CLEAR_KEYPAD()              GIFR = (1 << INTF1)
+#define ENABLE_PRIMARY_TIMER()      TIMSK1 |= (1 << OCIE1A)
+#define ENABLE_AUXILIARY_TIMER()    TIMSK1 |= (1 << OCIE1B)
+#define DISABLE_PRIMARY_TIMER()     TIMSK1 &= ~(1 << OCIE1A)
+#define DISABLE_AUXILIARY_TIMER()   TIMSK1 &= ~(1 << OCIE1B)
+#define DISABLE_KEYPAD()            //GICR &= ~(1 << INT1)
+#define ENABLE_KEYPAD()             //GICR |= (1 << INT1)
+#define CLEAR_KEYPAD()              //GIFR = (1 << INTF1)
 
 /* Uart Defines */
+extern AVR_USART_t PrimaryUART;
 #define UART_Init(x)            uartInit(&PrimaryUART, x)
 #define UART_SetBaud(high, low) uartSetBaud(&PrimaryUART, high, low)
 #define UART_Tx(x)              uartTx(&PrimaryUART, x)
@@ -63,15 +62,15 @@ extern AVR_USART_t PrimaryUART;
 #define UART_TxString_P(x)      uartTxString_P(&PrimaryUART, x)
 #define UART_TxString(x)        uartTxString(&PrimaryUART, x)
 
-#define ANALOGUE_INPUTS	(16)
-#define METRONOME_INPUTS (8)
-#define DIGITAL_INPUTS	(8)
+#define ANALOGUE_INPUTS	(40)
+#define METRONOME_INPUTS (0)
+#define DIGITAL_INPUTS	(0)
 
 /* Channel Select Defines */
-#define CHSELOUT  PORTB
-#define CHSELDIR  DDRB
+#define CHSELOUT  PORTA
+#define CHSELDIR  DDRA
 #define CHSELSEL  P4SEL
-#define CHSELIN   PINB
+#define CHSELIN   PINA
 
 #define CHSELA     (0)
 #define CHSELB     (1)
@@ -79,16 +78,14 @@ extern AVR_USART_t PrimaryUART;
 #define CHSELD     (3)
 
 #define CHSELPINS  ( (1 << CHSELA) | (1 << CHSELB) | (1 << CHSELC) | (1 << CHSELD) )
-#define CHANNEL_COUNT (16)
+/* This is effectively the number of channels per ADC channel */
+#define CHANNEL_COUNT (8)
 
-
-
-/* Variable Output */
 /* Sensor Defines */
+/* Variable Output */
 #define ADC_CHANNEL(x)  (x)
-#define DEFAULT_ADC_CHANNEL (7)
+#define DEFAULT_ADC_CHANNEL (0)
 #define POT_INPUT			(6)
-
 
 
 /* Digital Input Section */
@@ -130,9 +127,9 @@ extern AVR_USART_t PrimaryUART;
 
 
 /* ADC Defines */
-#define ADC_Init()       adcInitialise()     
-#define ADC_Sample()     adc10()
-#define ADC_SetupAddress(channel) adcSetPin(channel)
+#define ADC_Init()       //adcInitialise()     
+#define ADC_Sample()     0//adc10()
+#define ADC_SetupAddress(channel) //adcSetPin(channel)
 
 #define ADC_REF_DEFAULT ADC_REF_AVCC
 /* Lowest division before it doesn't work */
@@ -209,16 +206,16 @@ extern AVR_USART_t PrimaryUART;
 #define UI_LCD_PORT     (0x00)
 
 /* LCD Inputs */
-#define UI_LCD_RS_PIN      (5)
-#define UI_LCD_RS       (1<<5)
-#define UI_LCD_E        (1<<7)
-#define UI_LCD_D4       (1<<0)
-#define UI_LCD_D5       (1<<1)
-#define UI_LCD_D6       (1<<2)
-#define UI_LCD_D7       (1<<3)    
+#define UI_LCD_RS_PIN      (2)
+#define UI_LCD_RS       (1<<2)
+#define UI_LCD_E        (1<<3)
+#define UI_LCD_D4       (1<<4)
+#define UI_LCD_D5       (1<<5)
+#define UI_LCD_D6       (1<<6)
+#define UI_LCD_D7       (1<<7)    
 
 /* Use 8bit mode via 74HC164 */
-#define UI_LCD_8BITMODE
+//#define UI_LCD_8BITMODE
 #define UI_LCD_SERIAL_DATA (UI_LCD_RS)
 
 #define UI_LCD_CONTROL_DIR   (DDRC)
@@ -231,7 +228,7 @@ extern AVR_USART_t PrimaryUART;
 #define UI_LCD_DATA_PORT		(PORTC)
 
 
-#define LCD_FUNCTION_DEFAULT	((1<<LCD_FUNCTION) | (1<<LCD_FUNCTION_2LINES) | (1 << LCD_FUNCTION_8BIT))
+#define LCD_FUNCTION_DEFAULT	((1<<LCD_FUNCTION) | (1<<LCD_FUNCTION_2LINES))
 #define LCD_MODE_DEFAULT		((1<<LCD_ENTRY_MODE) | (1<<LCD_ENTRY_INC))
 #define LCD_DISPLAY_DEFAULT   ((1<<LCD_DISPLAY) | (1<<LCD_ON_DISPLAY))
 
@@ -285,8 +282,8 @@ void DigitalInputInit(void);
 uint8_t getDigitalState(uint8_t DigitalChannel);
 void SoftTimer_TimerInit(void);
 void enableFlashProgramming(uint8_t mode);
-void SensorChannel(uint8_t channel);
 uint16_t Sample_Channel(uint8_t channel);
+void SensorChannel(uint8_t channel);
 
 
 #endif

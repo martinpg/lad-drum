@@ -23,7 +23,7 @@ void UI_KP_Init(void)
 uint8_t UI_KP_GetPress(void)
 {
    uint8_t ColResult;
-   uint8_t RowResult;
+   uint8_t RowResult = 0;
    uint8_t KPResult;
 
    if( UI_ROW_IN & UI_ROWS )

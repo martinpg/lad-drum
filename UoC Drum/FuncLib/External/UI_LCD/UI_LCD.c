@@ -78,18 +78,12 @@ void UI_LCD_Init(HD44780lcd_t* lcd)
 #else
 
    UI_LCD_SetInstruction(lcd);
-   lcd->Strobe();
 	/* Set to 8 - bit mode */
 	lcd->SetRegister(((LCD_FUNCTION_DEFAULT) >> 4) & (0x0F) );
    lcd->Strobe();
-	_delay_ms(5);
-	
-   UI_LCD_Write( lcd, LCD_FUNCTION_DEFAULT );
-   _delay_ms(2); 	   
-   
+   UI_LCD_Write( lcd, LCD_FUNCTION_DEFAULT );  
    UI_LCD_Write( lcd, LCD_DISPLAY_DEFAULT );
-   _delay_ms(2);   
-   UI_LCD_Write( lcd, LCD_MODE_DEFAULT );   
+   UI_LCD_Write( lcd, LCD_MODE_DEFAULT );  
    UI_LCD_Clear(lcd);
    _delay_ms(2);    
    UI_LCD_Home(lcd);
@@ -151,7 +145,7 @@ void UI_LCD_String_P(HD44780lcd_t* lcd, const char* string_P)
 /* Max Row is 3 and Max Col is 0 -> 19 (Dec) */
 void UI_LCD_Pos(HD44780lcd_t* lcd, uint8_t row, uint8_t col)
 {
-   uint8_t DDRAMAddr;
+   uint8_t DDRAMAddr = 0;
    
    UI_LCD_SetInstruction(lcd);   
    lcd->RowPos = row;

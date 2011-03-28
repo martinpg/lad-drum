@@ -55,7 +55,7 @@ extern SensorSettings_t* SensorSettings;
 
 void SensorInit(void);
 /* Changes the sampling channel to channel, CH0 -> CH15 */
-void SensorChannel(uint8_t channel);
+//void SensorChannel(uint8_t channel);
 
 
 /* New Port must be within INCH_A0 -> INCH_Ax */

@@ -424,7 +424,7 @@ void MenuSetDisplay(Menu_t* menu, uint8_t display)
       menu->MenuPrint_P = MenuUartTxString_P;
       menu->MenuNewLine = MenuUart_NewLine;
       menu->MenuReset = MenuUart_Reset;
-		menu->MenuChar = UART_Tx;      
+		menu->MenuChar = MenuUart_Tx;      
    }
 }
 
@@ -458,6 +458,12 @@ void LCD_Reset(void)
 {
    UI_LCD_Clear(&PrimaryDisplay);
    UI_LCD_Pos(&PrimaryDisplay, 0, 0);
+}
+
+
+void MenuUart_Tx(char byte)
+{
+   UART_Tx(byte);
 }
 
 /* Uart Functions also route to the LCD */

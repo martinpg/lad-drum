@@ -139,7 +139,7 @@ void MenuUart_NewLine(void);
 void MenuUartTxString(char* string);
 void MenuUartTxString_P(const char* string);
 void MenuUart_Reset(void);
-
+void MenuUart_Tx(char byte);
 
 void MenuSetDisplay(Menu_t* menu, uint8_t display);
 void Menu_UpOneLevel(Menu_t* menu);

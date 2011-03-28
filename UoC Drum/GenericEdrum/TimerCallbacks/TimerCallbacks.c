@@ -229,7 +229,7 @@ void Callback_Keypress(void)
    {
       result = UI_KP_GetPress();
       /* This will generate an interrupt flag, so we need to clear the flag */
-      GIFR = (1 << INTF1);
+      CLEAR_KEYPAD();
    }
 
    SoftTimerStop(SoftTimer2[SC_Keypress]);

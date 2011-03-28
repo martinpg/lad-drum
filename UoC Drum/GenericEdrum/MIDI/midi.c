@@ -23,7 +23,7 @@ MidiSettings_t* MIDISettings;
 void midiTx(uint8_t inbyte)
 {
    USBMIDI_PutByte(inbyte);
-   uartTx(inbyte);
+   UART_Tx(inbyte);
 }
 
 

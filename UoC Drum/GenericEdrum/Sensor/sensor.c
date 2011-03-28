@@ -23,12 +23,13 @@ void SensorInit(void)
  * If a valid sample is taken, set the input port to an output and
  * pull it down.
  */
+/* This should be in hardwareSpecific.c
 void SensorChannel(uint8_t channel)
 {
 	
 	uint8_t channelState;
 	
-   if( channel > CHANNEL_COUNT )
+   if( channel >= CHANNEL_COUNT )
    {
       return;    
    }
@@ -43,6 +44,7 @@ void SensorChannel(uint8_t channel)
    CHSELOUT = (CHSELOUT & ~(CHSELPINS)) | channelState;
    return;
 }
+*/
 
 /* New Port must be within INCH_A0 -> INCH_Ax */
 void SensorInputSelect(uint8_t newPort)
@@ -74,8 +76,8 @@ void SetCrossTalkDelay(int16_t newCrosstalk)
 uint16_t SensorPotValue(void)
 {
    ADC_SetupAddress(POT_INPUT);
-   uint16_t PotValue = (ADC_Sample());
-   ADC_SetupAddress(SENSOR_OUTPUT2); 
+   uint16_t PotValue = ADC_Sample();
+   ADC_SetupAddress(ADC_CHANNEL(DEFAULT_ADC_CHANNEL)); 
 
 	return PotValue;
 }
