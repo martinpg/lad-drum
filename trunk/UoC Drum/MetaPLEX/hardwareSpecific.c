@@ -2,12 +2,12 @@
 
 
 AVR_USART_t PrimaryUART = {
-   &UCSRA,
-   &UCSRB,
-   &UCSRC,
-   &UBRRH,
-   &UBRRL,
-   &UDR,
+   &UCSR1A,
+   &UCSR1B,
+   &UCSR1C,
+   &UBRR1H,
+   &UBRR1L,
+   &UDR1,
 
    &TransmitBuffer,
    &ReceiveBuffer
@@ -69,22 +69,22 @@ void SoftTimer_TimerInit(void)
 {
    /* Primary Timer prescaler (high priority) */
    TCCR1B |= (0x03);
-   TIMSK |= (1 << OCIE1A);
+   TIMSK1 |= (1 << OCIE1A);
 
    /* Secondary Timer (non critical) */
-   TCCR0 |= (0x05);
-   TIMSK |= (1 << OCIE0);
+   //TCCR1B |= (0x05);
+   TIMSK1 |= (1 << OCIE1B);
 }
 
 
 void enableFlashProgramming(uint8_t mode)
 {
    uint8_t interuptControlState;
-   interuptControlState = GICR;
+//   interuptControlState = GICR;
    /* IVSEL = 1, bootloader interrupts */
-   GICR = (1 << IVCE);
-   GICR = (mode << IVSEL);
-   GICR = interuptControlState;
+//   GICR = (1 << IVCE);
+//   GICR = (mode << IVSEL);
+//   GICR = interuptControlState;
 }
 
 void SensorChannel(uint8_t channel)
@@ -97,10 +97,7 @@ void SensorChannel(uint8_t channel)
       return;    
    }
    
-   channel = ~channel;
-   
-   channelState = (((channel & (0x08)) ? 1 : 0) << CHSELD) |
-                  (((channel & (0x04)) ? 1 : 0) << CHSELC) |
+   channelState = (((channel & (0x04)) ? 1 : 0) << CHSELC) |
                   (((channel & (0x02)) ? 1 : 0) << CHSELB) |
                   (((channel & (0x01)) ? 1 : 0) << CHSELA);
 
@@ -109,11 +106,12 @@ void SensorChannel(uint8_t channel)
 }
 
 
+
 uint16_t Sample_Channel(uint8_t channel)
 {
-   ADC_SetupAddress(DEFAULT_ADC_CHANNEL);
+   channel = channel % 8;
+   ADC_SetupAddress(channel);
    return ADC_Sample();
 }
-
 
 

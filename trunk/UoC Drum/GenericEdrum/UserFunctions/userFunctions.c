@@ -185,14 +185,13 @@ void aboutScroll(uint8_t nameIndex)
 			UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)lightning[1], 1);
 			
 			UF_MenuReset();
-			UF_MenuPrint_P( PSTR("     FuzzyJohn"));
+			UF_MenuPrint_P( PSTR("  Roberto & Adrian"));
 			UF_MenuNewLine();
-			UF_MenuPrint_P(PSTR("   Inc. presents:") );
+			UF_MenuPrint_P(PSTR("      present:") );
 			UF_MenuNewLine();	
 			UF_MenuChar(0x00);
-			UF_MenuPrint_P( PSTR(" L-A-D eDrum "));
+			UF_MenuPrint_P( PSTR("   metaPLEX 1.3   "));
 			UF_MenuChar(0x01);
-			UF_MenuPrint_P( PSTR(" 2011"));	
 		   UF_MenuNewLine();
 			UF_MenuPrint_P(PSTR("Version:") );
 			UF_MenuPrint_P(VersionId);		   
@@ -1866,7 +1865,7 @@ void AmpInputSelect(void* data)
 	
 	UF_MenuNewLine();
 	
-	if( GetSensorInput() == SENSOR_OUTPUT )
+	if( GetSensorInput() == ADC_CHANNEL(0) )
 	{
 		UF_MenuPrint_P( PSTR("Fixed Gain (1x)") );		
 	}
@@ -1886,7 +1885,7 @@ void SensorInputChange(void* data)
 	/* Corresponding to either SENSOR_OUT or SENSOR_OUT2 */
 	uint8_t SelectedState = GetState(&primaryMenu);
 	
-	SensorInputSelect( (SelectedState == ST_VARIABLE_GAIN) ? SENSOR_OUTPUT2 : SENSOR_OUTPUT );
+	SensorInputSelect( (SelectedState == ST_VARIABLE_GAIN) ? ADC_CHANNEL(DEFAULT_ADC_CHANNEL) : ADC_CHANNEL(0) );
 
    UF_MenuSetInput(KP_BACK);
    UF_stateMachine(primaryMenu.currentState);

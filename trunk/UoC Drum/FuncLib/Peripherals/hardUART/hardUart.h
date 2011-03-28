@@ -8,6 +8,9 @@
 * For AVR Core
 * Since the UART has true ouputs, a MAX232 is required to interface
 * with a computer's serial port.
+*
+* Addition of support for USART0 and USART1.
+*
 */
 
 
@@ -101,8 +104,35 @@
 
 #define	UCSRCMASK		(0x7F)
 
-#define  TXBUFFER_SIZE   (16)
-#define  RXBUFFER_SIZE   (16)
+
+#ifndef TXEN
+#define RXC    7
+#define TXC    6
+#define UDRE   5
+#define FE    4
+#define DOR    3
+#define UPE    2
+#define U2X    1
+#define MPCM   0
+
+#define RXCIE  RXCIE1
+#define TXCIE  TXCIE1
+#define UDRIE  UDRIE1
+#define RXEN   RXEN1
+#define TXEN   TXEN1
+#define UCSZ2  UCSZ12
+#define RXB8   RXB81
+#define TXB8   TXB81
+
+#define URSEL  UMSEL11
+#define UMSEL0 UMSEL10
+#define UPM1   UPM11
+#define UPM0   UPM10
+#define USBS   USBS1
+#define UCSZ1  UCSZ11
+#define UCSZ0  UCSZ10
+#define UCPOL  UCPOL1
+#endif
 
 
 #define IS_TRANSMITTING (1)
@@ -117,16 +147,35 @@
 #define FAST 1
 #define SLOW 0
 
+#define  TXBUFFER_SIZE   (16)
+#define  RXBUFFER_SIZE   (16)
+
+
 extern RINGBUFFER_T ReceiveBuffer;
 extern RINGBUFFER_T TransmitBuffer;
+extern volatile uint8_t transmitState;
 
-void uartInit(uint8_t U2Xvalue);
+typedef struct
+{
+   volatile uint8_t* UCSRxA;
+   volatile uint8_t* UCSRxB;
+   volatile uint8_t* UCSRxC;
+   volatile uint8_t* UBRRxH;
+   volatile uint8_t* UBRRxL;
+   volatile uint8_t* UDRx;
+
+   RINGBUFFER_T* ReceiveBuffer;
+   RINGBUFFER_T* TransmitBuffer;
+
+} AVR_USART_t;
+
+void uartInit(AVR_USART_t* port, uint8_t U2Xvalue);
 
 
 
 /** uartDisable:
  * Disables the Receiver and Transmitter modules*/
-void uartDisable(void);
+void uartDisable(AVR_USART_t* port);
 
 
 
@@ -135,7 +184,7 @@ void uartDisable(void);
  * See the datasheet for more details on what the
  * Baudrate generation registers should be.
  */
-void uartSetBaud(uint8_t baudrateH, uint8_t baudrateL);
+void uartSetBaud(AVR_USART_t* port, uint8_t baudrateH, uint8_t baudrateL);
 
 
 /** uartTxString:
@@ -143,9 +192,9 @@ void uartSetBaud(uint8_t baudrateH, uint8_t baudrateL);
  * The output is true ouput, not inverted, so a MAX232 or some sort of
  * TTL -> +/- 15V converter is required.
  */
-void uartTxString(uint8_t* outString);
+void uartTxString(AVR_USART_t* port, uint8_t* outString);
 
-void uartTxString_P(PGM_P outString_P);
+void uartTxString_P(AVR_USART_t* port, PGM_P outString_P);
 
 /** uartTx:
  *
@@ -153,15 +202,15 @@ void uartTxString_P(PGM_P outString_P);
  *
  */
 //void uartTx(uint8_t outbyte);
-void uartTx(uint8_t byte); // Use this for interrupt based transmission
+void uartTx(AVR_USART_t* port, uint8_t byte); // Use this for interrupt based transmission
 
 
 /** uartTxDump:
  *  Prints out nbytes of buffer to the UART
  */
-void uartTxDump(uint8_t* buffer, uint16_t nbytes );
+void uartTxDump(AVR_USART_t* port, uint8_t* buffer, uint16_t nbytes );
 
-void uartTxDump_P(PGM_P buffer, uint16_t nbytes );
+void uartTxDump_P(AVR_USART_t* port, PGM_P buffer, uint16_t nbytes );
 
 /* ISR(SIG_UART_RECV)
  *
@@ -169,6 +218,6 @@ void uartTxDump_P(PGM_P buffer, uint16_t nbytes );
  */
 //ISR(SIG_UART_RECV);
 
-void uartNewLine(void);
+void uartNewLine(AVR_USART_t* port);
 
 #endif
