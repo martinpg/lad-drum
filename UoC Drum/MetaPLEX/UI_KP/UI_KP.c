@@ -12,45 +12,36 @@ static const uint8_t KP_ButtonIndex[] = {RAW_KP_0, RAW_KP_1, RAW_KP_2, RAW_KP_3,
 
 void UI_KP_Init(void)
 {  
+
+   /* Set the rows are inputs FIRST! */
+   UI_ROW_DIR &= ~(UI_ROWS);
+   UI_ROW_OUT |=  (UI_ROWS);
+
    /* Columns as outputs */  
    UI_COL_DIR |= (UI_COLS);
-   UI_COL_OUT |= (UI_COLS);
+   UI_COL_OUT &= ~(UI_COLS);
 
-   UI_ROW_DIR &= ~(UI_ROWS);
-   UI_ROW_OUT &= ~(UI_ROWS); 
+
 }
 
 uint8_t UI_KP_GetPress(void)
 {
    uint8_t ColResult;
-   uint8_t RowResult = 0;
    uint8_t KPResult;
 
-   if( UI_ROW_IN & UI_ROWS )
-   {
-      RowResult = (UI_ROW_IN & UI_ROWS);
-      RowResult = (RowResult << 1);
-   }
-
-   /* Set Columns to inputs */
+   /* Set Columns to inputs FIRST! */
    UI_COL_DIR &= ~(UI_COLS);
-   UI_COL_OUT &= ~(UI_COLS);
-   UI_ROW_DIR |= (UI_ROWS);
-   UI_ROW_OUT |= (UI_ROWS);  
+   UI_COL_OUT |= (UI_COLS);
    
-   _delay_us(32);
+   /* Set the Rows to Outputs */
+   UI_ROW_DIR |= (UI_ROWS);
+   UI_ROW_OUT &= ~(UI_ROWS);  
 
-   if( UI_COL_IN & UI_COLS )
-   {
-      ColResult = (UI_COL_IN & UI_COLS);
-   }
-   else
-   {
-      /* We assume one column */
-      ColResult = (1 << 3);
-   }
+   _delay_us(50);
 
-   KPResult = (ColResult) | RowResult;
+   ColResult = (UI_COL_IN & UI_COLS);
+
+   KPResult = (ColResult);
    /* Reset the buttons to original state */
    UI_KP_Init();
    

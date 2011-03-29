@@ -48,9 +48,9 @@
 #define ENABLE_AUXILIARY_TIMER()    TIMSK1 |= (1 << OCIE1B)
 #define DISABLE_PRIMARY_TIMER()     TIMSK1 &= ~(1 << OCIE1A)
 #define DISABLE_AUXILIARY_TIMER()   TIMSK1 &= ~(1 << OCIE1B)
-#define DISABLE_KEYPAD()            //GICR &= ~(1 << INT1)
-#define ENABLE_KEYPAD()             //GICR |= (1 << INT1)
-#define CLEAR_KEYPAD()              //GIFR = (1 << INTF1)
+#define DISABLE_KEYPAD()            PCICR &= ~(1 << PCIE0); PCMSK0 &= ~(UI_ROW0)
+#define ENABLE_KEYPAD()             PCICR |= (1 << PCIE0); PCMSK0 |= (UI_ROW0)
+#define CLEAR_KEYPAD()              PCIFR = (1 << PCIF0)
 
 /* Uart Defines */
 extern AVR_USART_t PrimaryUART;
@@ -63,8 +63,8 @@ extern AVR_USART_t PrimaryUART;
 #define UART_TxString(x)        uartTxString(&PrimaryUART, x)
 
 #define ANALOGUE_INPUTS	(40)
-#define METRONOME_INPUTS (0)
-#define DIGITAL_INPUTS	(0)
+#define METRONOME_INPUTS (8)
+#define DIGITAL_INPUTS	(8)
 
 /* Channel Select Defines */
 #define CHSELOUT  PORTA
@@ -140,51 +140,58 @@ extern AVR_USART_t PrimaryUART;
 
 /* Keypad Defines */
 /* Key Pad Inputs */
-#define UI_COL0   (1<<0)
-#define UI_COL1   (1<<2)
-#define UI_COL2   (1<<1)
-#define UI_COL3   (1<<0)
-#define UI_ROW3   (1<<6)
-#define UI_ROW2   (1<<5)
-#define UI_ROW1   (1<<4)
-#define UI_ROW0   (1<<3)
+#define UI_COL0   (1<<3)
+#define UI_COL1   (1<<4)
+#define UI_COL2   (1<<5)
+#define UI_COL3   (1<<6)
+//Not used
+//#define UI_ROW3   (1<<6)
+//#define UI_ROW2   (1<<5)
+//#define UI_ROW1   (1<<4)
+#define UI_ROW0   (1<<6)
 
-#define UI_ROWS	(UI_ROW0 | UI_ROW1 | UI_ROW2 | UI_ROW3)
-#define UI_COLS	(UI_COL1 | UI_COL2 | UI_COL3)
+#define UI_ROWS	(UI_ROW0)
+#define UI_COLS	(UI_COL0 | UI_COL1 | UI_COL2 | UI_COL3)
 
 #define UI_COL_OUT (PORTA)
-#define UI_ROW_OUT (PORTC)
+#define UI_ROW_OUT (PORTB)
 
 #define UI_COL_IN (PINA)
-#define UI_ROW_IN (PINC)
+#define UI_ROW_IN (PINB)
 
 #define UI_COL_DIR (DDRA)
-#define UI_ROW_DIR (DDRC)
+#define UI_ROW_DIR (DDRB)
 
 /* KeyPad Defines */
 /* 1st Row */
 #define RAW_KP_1   (0x18)
-#define RAW_KP_2   (0x14)
+#define RAW_KP_2   (0x58)
+
 #define RAW_KP_3   (0x12)
-#define RAW_KP_A   (0x11)
+
 
 /* 2nd Row */
-#define RAW_KP_4   (0x28)
+#define RAW_KP_4   (0x38)
+
 #define RAW_KP_5   (0x24)
-#define RAW_KP_6   (0x22)
-#define RAW_KP_B   (0x21)
+#define RAW_KP_6   (0x70)
 
 /* 3rd Row */
 #define RAW_KP_7   (0x48)
-#define RAW_KP_8   (0x44)
+#define RAW_KP_8   (0x68)
+
 #define RAW_KP_9   (0x42)
-#define RAW_KP_C   (0x41)
+
 
 /* 4th Row */
 #define RAW_KP_STAR   (0x88)
 #define RAW_KP_0      (0x84)
 #define RAW_KP_HASH   (0x82)
-#define RAW_KP_D      (0x81)
+
+#define RAW_KP_A   (RAW_KP_2 & RAW_KP_6)
+#define RAW_KP_B   (RAW_KP_8 & RAW_KP_6)
+#define RAW_KP_C   (RAW_KP_2 & RAW_KP_4)
+#define RAW_KP_D   (RAW_KP_8 & RAW_KP_4)
 
 
 /* LCD Defines */
@@ -235,7 +242,7 @@ extern AVR_USART_t PrimaryUART;
 /* END OF VERSION WITHOUT PE Defines */
 
 /* Bootloader */
-#define BOOTLOADER_SIZE (4096)
+#define BOOTLOADER_SIZE (8192)
 
 /* Profile FLASH saving defines */
 #define SET_SECTION(x) __attribute__ ((section ((x))))
