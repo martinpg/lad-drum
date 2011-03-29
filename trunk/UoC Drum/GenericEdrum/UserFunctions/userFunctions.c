@@ -248,6 +248,7 @@ void DisableEdrum(void* data)
 		UF_stateMachine( primaryMenu.currentState );
       switch( *input )
       {
+         case KP_UP:
          case KP_A:
             if( SoftTimerIsEnabled(SoftTimer1[SC_MIDIScan]) )
             {
@@ -301,6 +302,7 @@ void USBMIDIThru(void* data)
 		UF_stateMachine( primaryMenu.currentState );
       switch( *input )
       {
+         case KP_UP:
          case KP_A:
             usbmidiThruState = !USBMIDIThruIsActive(GET_USBMIDITHRU_STATE);
 
@@ -753,6 +755,7 @@ void EditMIDIRate(void* data)
       switch( *input )
       {
          /* Increment msec delay */
+         case KP_UP:
          case KP_C:
 				   switch(MIDI_GetBaud())
 				   {
@@ -827,6 +830,9 @@ void EditMIDIRate(void* data)
 void ChannelSetup(void* data)
 {
    uint8_t* input = data;
+
+   static uint8_t enterCount;
+   static int8_t UpDownPosition;
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 
@@ -837,8 +843,33 @@ void ChannelSetup(void* data)
 	   {
          case KP_UP:
          case KP_DOWN:
-            MenuSetInput( &analogueMenu, *input );
-         break;
+
+            if( UpDownPosition >= 3 )
+            {
+               MenuSetInput( &analogueMenu, *input );
+            }
+
+            if( *input == KP_UP )
+            {
+               UpDownPosition--;
+            }
+            else
+            {
+               UpDownPosition++;
+            }
+
+            if( UpDownPosition >= 7 )
+            {
+               UpDownPosition = 7;
+            }
+
+            if( UpDownPosition < 0 )
+            {
+               UpDownPosition = 0;
+            }
+
+            break;
+         
          
 	      /* Up and down a Key */
 	      case KP_1:
@@ -880,6 +911,8 @@ void ChannelSetup(void* data)
 	      
 			case KB_BACK:
 			case KP_BACK:
+            UpDownPosition = 0;
+            SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
             MenuSetInput( &analogueMenu, 0 );
 				primaryMenu.firstEnter = 1;
 				return;
@@ -903,7 +936,14 @@ void ChannelSetup(void* data)
 	   }
 	}
 	   
+
+
+
    primaryMenu.firstEnter = 0;
+   enterCount ^= (1);
+   SoftTimer2[SC_AutoMenuUpdate].timeCompare = 20;
+   SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
+
 	UF_MenuReset();
 		
 	/* Indicate the channel selected */
@@ -912,34 +952,49 @@ void ChannelSetup(void* data)
 	UF_MenuPrint(outputString);          
    
  	UF_MenuPrint_P(PSTR(": "));
-	if( GetChannelStatus(SelectedChannel) == CHANNEL_ON )
-	{
-		UF_MenuPrint_P( PSTR("On") );
-	}
-	else
-	{
-		UF_MenuPrint_P( PSTR("Off") );		
-	}   
+
+   if( UpDownPosition == 0 && enterCount)
+   {
+      UF_MenuPrint_P( PSTR("   ") );
+   }
+   else
+   {
+   	if( GetChannelStatus(SelectedChannel) == CHANNEL_ON )
+   	{
+   		UF_MenuPrint_P( PSTR("On") );
+   	}
+   	else
+   	{
+   		UF_MenuPrint_P( PSTR("Off") );		
+   	}
+   }   
    UF_MenuNewLine();
    
 
 	UF_MenuPrint_P(PSTR("Note: "));
 	
-	if( GetChannelCommand(SelectedChannel) == MIDI_NOTE_ON )
-	{
-   	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
-      UF_MenuPrint(outputString);
-      uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
-    	UF_MenuPrint(outputString); 	
+   if( UpDownPosition == 1 && enterCount)
+   {
+      UF_MenuPrint_P( PSTR("         ") );
    }
    else
    {
+   	if( GetChannelCommand(SelectedChannel) == MIDI_NOTE_ON )
+   	{
+      	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
+         UF_MenuPrint(outputString);
+         uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+       	UF_MenuPrint(outputString); 	
+      }
+      else
+      {
       
-      uint8toa( GetChannelCommand(SelectedChannel) >> 4, outputString);
-      UF_MenuPrint(outputString);
-      UF_MenuPrint_P( PSTR(" | ") );
-   	uint8toa( GetChannelKey(SelectedChannel), outputString);
- 		UF_MenuPrint(outputString);         
+         uint8toa( GetChannelCommand(SelectedChannel) >> 4, outputString);
+         UF_MenuPrint(outputString);
+         UF_MenuPrint_P( PSTR(" | ") );
+      	uint8toa( GetChannelKey(SelectedChannel), outputString);
+    		UF_MenuPrint(outputString);         
+      }
    }
    
 	UF_MenuNewLine();	   
@@ -954,8 +1009,16 @@ void ChannelSetup(void* data)
 		UF_MenuPrint_P( PSTR("Non-Linear ") );		
 	}
 	UF_MenuPrint_P(PSTR("Gain: "));
-	itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
-	UF_MenuPrint(outputString);
+
+   if( UpDownPosition == 2 && enterCount)
+   {
+      UF_MenuPrint_P( PSTR("      ") );
+   }
+   else
+   {
+   	itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
+   	UF_MenuPrint(outputString);
+   }
    UF_MenuNewLine();   
    
 //	Don't hide sub children.
@@ -1034,10 +1097,12 @@ void SetThreshold(void* data)
 	switch( *input )
 	{
          /* Up and down a Threshold Level */
+         case KP_UP:
          case KP_A:
 				SetChannelThresh(SelectedChannel, (((GetChannelThresh(SelectedChannel) >> THRESHOLD_LEVELS)+1) << THRESHOLD_LEVELS));
          break;
          
+         case KP_DOWN:
          case KP_B:
 				SetChannelThresh(SelectedChannel, (((GetChannelThresh(SelectedChannel) >> THRESHOLD_LEVELS)-1) << THRESHOLD_LEVELS));  
          break;
@@ -1105,10 +1170,12 @@ void SetRetrigger(void* data)
 				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) + 10 ));  
 	      break;  	           
          
+         case KP_UP:
          case KP_B:
 				SetChannelReTrig(SelectedChannel, (int16_t)(GetChannelReTrig(SelectedChannel) + 1));
          break;
          
+         case KP_DOWN:
          case KP_C:
 				SetChannelReTrig(SelectedChannel,  (int16_t)(GetChannelReTrig(SelectedChannel) -1 ));        			
          break;
@@ -1771,6 +1838,7 @@ void VUMeterSetup(void* data)
 	switch( *input )
 	{         
 			case KP_A:
+         case KP_UP:
 				VUSetRows(GetVURows() + 1);	
 			   SoftTimer2[SC_VUDecay].timeCompare = (MAX_ROWS + 1 - GetVURows()) << 2;
 						
@@ -2079,7 +2147,8 @@ void AdjustCrosstalk(void* data)
          break;
             
          /* Increment crosstalk delay by 1*/  
-         case 'a':                   
+         case 'a': 
+         case KP_UP:                  
          case KP_B:
 				crosstalk += 1;
             if( crosstalk > MAX_CROSSTALK)
@@ -2088,8 +2157,9 @@ void AdjustCrosstalk(void* data)
             }   
          break;
 
-         /* decrement crosstalk delay by 1*/  
-        case KP_C:
+         /* decrement crosstalk delay by 1*/
+         case KP_DOWN:  
+         case KP_C:
 				crosstalk -= 1;
             if(crosstalk < MIN_CROSSTALK)
             {
@@ -2157,6 +2227,7 @@ void ChangeChannelCode(void* data)
       {
          /* Increment channel # */
          case 'q':
+         case KP_UP:
          case KP_A:
             if( ++code > MAX_MIDI_CHANNEL)
             {
@@ -2165,7 +2236,8 @@ void ChangeChannelCode(void* data)
          break;
             
          /* Deccrement channel #*/  
-         case 'a':                   
+         case 'a':
+         case KP_DOWN:                   
          case KP_B:
             if(--code < 0)
             {

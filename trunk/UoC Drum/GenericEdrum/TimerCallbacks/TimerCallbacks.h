@@ -31,11 +31,13 @@ enum {
 extern volatile SoftTimer_8  SoftTimer1[];
 extern volatile SoftTimer_16  SoftTimer2[];
 
-#define KP_WAIT          (1)
+#define KP_WAIT          (3)
 #define KP_REPEAT_RATE   (3)
 #define KP_REPEAT_RATE_FAST   (2)
 #define KP_REPEAT_RATE_FASTEST   (1)
 #define KP_REPEAT_DELAY  (50)
+
+#define DEFAULT_AUTO_MENU_UPDATE (15)
 
 /* Critical timers */
 void Callback_MIDIScan(void);

@@ -25,7 +25,7 @@ volatile SoftTimer_8  SoftTimer1[TIMER1_COUNT] = { {1, 0, 0, Callback_MIDIScan} 
    Use a 10ms timer base*/
 volatile SoftTimer_16  SoftTimer2[TIMER2_COUNT] = { {100, 0, 0, Callback_OneSecond},
                                            {1, 0, 0, usbPoll},
-                                           {11, 0, 0, Callback_AutoMenuUpdate},  // Threshold Bar
+                                           {DEFAULT_AUTO_MENU_UPDATE, 0, 0, Callback_AutoMenuUpdate},  // Threshold Bar
                                            {7, 0, 0, Callback_VUMeterUpdate},  // VU Meter Update
                                            {7, 0, 0, Callback_DigitalVUUpdate},  // Digital VU Meter Update
                                            {3, 0, 0, Callback_VUDecay},  // VU Decay
@@ -76,7 +76,7 @@ void Callback_AutoMenuUpdate(void)
 {
    /* Update the Threshold and Retrigger bar */
    MenuSetInput(ActiveMenu, MENU_UPDATE);
-   MenuUpdate(ActiveMenu, RESET_MENU);
+   MenuUpdate(ActiveMenu, 0);
 }
 
 void Callback_VUDecay(void)

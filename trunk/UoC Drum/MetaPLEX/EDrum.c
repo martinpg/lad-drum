@@ -75,15 +75,15 @@ volatile uint8_t PrintChannel;
 int main(void)
 {
 
-
    //DDRD &= ~(1 << 3);
    //PORTD &= ~(1<<3);
 
    MCUCR = (1 << JTD);
    MCUCR = (1 << JTD);
 
+
    /* Setup the USB */
-   //sei();
+   sei();
    //usbInit();
    SoftTimer_TimerInit();
    //SoftTimerStart( SoftTimer2[SC_usbPoll] );
@@ -98,7 +98,8 @@ int main(void)
    UI_LCD_HWInit();
    _delay_ms(30);
    /* Enable Keypad */
-   //UI_KP_Init();   
+   UI_KP_Init();
+   ENABLE_KEYPAD();   
 	
 	/* Menu must be Initialised first */
 	/* Backlight 'off' is at 5% */
@@ -123,26 +124,26 @@ int main(void)
       bootloader_enter();
    }*/
    
-   //ProfileInit();   
+   ProfileInit();   
    /* Make profile 1 the default profile on start up */
-   //Profile_Read(1);
+   Profile_Read(1);
 
-   SensorInit();
-   SensorInputSelect(GetSensorInput());
+   //SensorInit();
+   //SensorInputSelect(GetSensorInput());
    //DigitalInputInit();
 
    /* Implement the changes */
-   MIDI_SetBaud(MIDI_GetBaud());
-   MIDI_SetChannelCode( MIDI_GetChannelCode() );
+   //MIDI_SetBaud(MIDI_GetBaud());
+   //MIDI_SetChannelCode( MIDI_GetChannelCode() );
 
    /* Update Activated Analogue Channels */
-   UpdateActiveChannels();
+   //UpdateActiveChannels();
 
    /* Update the Retrigger periods */
-   UpdateChannelRetriggers();
+   //UpdateChannelRetriggers();
 
    /* ADC Module Init */
-   ADC_Init();
+   //ADC_Init();
    
    /* Menu Setup */
    MenuSetInput(&primaryMenu, 0); 
@@ -166,7 +167,6 @@ int main(void)
 
    //SoftTimerStop(SoftTimer2[SC_usbPoll]);
    //SoftTimerStart(SoftTimer1[SC_MIDIScan]);
-
    //sei();
 
    uint8_t inByte;
@@ -226,6 +226,33 @@ uint8_t VerifyDownload(void)
 }
 
 
+ISR(PCINT0_vect, ISR_NOBLOCK)
+{
+
+   uint8_t result;
+
+/*
+   LCD_BL_PORT ^= (1 << LCD_BL_PIN);
+
+
+   result = UI_KP_GetPress();
+   uint8_t outputString[5];
+   utoa(result, outputString, 10);
+   UI_LCD_String(&PrimaryDisplay, outputString );
+
+   CLEAR_KEYPAD();*/
+   
+   /* Flag a MENU Update request */
+   LCD_BL_PORT ^= (1 << LCD_BL_PIN);
+
+   UI_KP_SetState(KP_NO_REPEAT);
+   SoftTimer2[SC_Keypress].timeCompare = KP_WAIT;
+   SoftTimerStart(SoftTimer2[SC_Keypress]);
+   ENABLE_AUXILIARY_TIMER();
+   DISABLE_KEYPAD();
+   CLEAR_KEYPAD();
+
+}
 
 
 ISR(TIMER1_COMPA_vect, ISR_NOBLOCK)
@@ -237,7 +264,7 @@ ISR(TIMER1_COMPA_vect, ISR_NOBLOCK)
 
 ISR(TIMER1_COMPB_vect, ISR_NOBLOCK)
 {  
-   OCR1B += (SAMPLE_10MS);
+   OCR1B += (SAMPLE_10MS_CRITICAL);
    RunAuxTimers();
 }
 
