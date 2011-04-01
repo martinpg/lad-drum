@@ -74,6 +74,7 @@ const MENU_TEXT  MT_CHANNEL_14[] = "Ch 14:";
 const MENU_TEXT  MT_CHANNEL_15[] = "Ch 15:";
 const MENU_TEXT  MT_CHANNEL_16[] = "Ch 16:";
 
+
 const MENU_TEXT  MT_DIGITAL_1[] = "Ch 1:(HiHat Pedal)";
 const MENU_TEXT  MT_DIGITAL_2[] = "Ch 2:(Bass Drum)";
 const MENU_TEXT  MT_DIGITAL_3[] = "Ch 3:(Bass Drum2)";
@@ -366,7 +367,10 @@ const menu_data MenuData[] MENU_SPACE = {
 };
   
 const menu_list AnalogueChannelSetupMenu[] MENU_SPACE = {
-   
+
+   {ST_ANALOGUE_SETUP, ST_CHANNEL_TOGGLE, 0},
+   {ST_ANALOGUE_SETUP, ST_NOTE_ADJUST, 1},
+   {ST_ANALOGUE_SETUP, ST_GAIN_ADJUST, 2},
    {ST_ANALOGUE_SETUP, ST_THRESHOLD, 3},
    {ST_ANALOGUE_SETUP, ST_RETRIGGER, 4},
    {ST_ANALOGUE_SETUP, ST_SETGAIN, 5},
@@ -386,6 +390,9 @@ const menu_data ChannelSetupMenu[] MENU_SPACE = {
    
    {ST_ANALOGUE_SETUP, 0, HandleSubMenu},
    {ST_DIGITAL_SETUP, 0, HandleSubMenu},
+   {ST_CHANNEL_TOGGLE, 0, 0},
+   {ST_NOTE_ADJUST, 0, 0},
+   {ST_GAIN_ADJUST, 0, 0},
 	{ST_THRESHOLD, MT_THRESHOLD, SetThreshold},
 	{ST_RETRIGGER, MT_RETRIGGER, SetRetrigger},   
 	{ST_SETGAIN, MT_SETGAIN, SetGainCurves},	
@@ -397,10 +404,10 @@ const menu_data ChannelSetupMenu[] MENU_SPACE = {
   
 
 Menu_t primaryMenu = {ST_MAIN, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0, (menu_list*)MenuState, (menu_data*)MenuData};
-Menu_t analogueMenu = {ST_ANALOGUE_SETUP, 0, 3, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0, 
+Menu_t analogueMenu = {ST_ANALOGUE_SETUP, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &primaryMenu, 0, 
                        (menu_list*)AnalogueChannelSetupMenu, (menu_data*)ChannelSetupMenu};
                        
-Menu_t digitalMenu = {ST_DIGITAL_SETUP, 0, 3, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0,
+Menu_t digitalMenu = {ST_DIGITAL_SETUP, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &primaryMenu, 0,
                        (menu_list*)DigitalChannelSetupMenu, (menu_data*)ChannelSetupMenu};                       
 
 Menu_t* ActiveMenu = &primaryMenu;

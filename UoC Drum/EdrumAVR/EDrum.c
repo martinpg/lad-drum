@@ -96,7 +96,7 @@ int main(void)
    /* Enable LCD */
    _delay_ms(10);
    UI_LCD_HWInit();
-   _delay_ms(10);
+   _delay_ms(20);
    /* Enable Keypad */
    UI_KP_Init();   
 	
@@ -369,9 +369,15 @@ ISR(USART_TXC_vect, ISR_NOBLOCK)
 {
    //sei();
    // Tx the next byte if there are still bytes in the buffer
-   if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
+   if( !ringbuffer_isEmpty((RINGBUFFER_T*)PrimaryUART.TransmitBuffer) )
    {
-      UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
+      
+      UDR = ringbuffer_get((RINGBUFFER_T*)PrimaryUART.TransmitBuffer);
+      transmitState--;
+   }
+   else
+   {     
+      transmitState = 0;
    }
 }
 

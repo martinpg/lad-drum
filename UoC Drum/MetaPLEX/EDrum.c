@@ -128,13 +128,13 @@ int main(void)
    /* Make profile 1 the default profile on start up */
    Profile_Read(1);
 
-   //SensorInit();
-   //SensorInputSelect(GetSensorInput());
+   SensorInit();
+   SensorInputSelect(GetSensorInput());
    //DigitalInputInit();
 
    /* Implement the changes */
-   //MIDI_SetBaud(MIDI_GetBaud());
-   //MIDI_SetChannelCode( MIDI_GetChannelCode() );
+   MIDI_SetBaud(MIDI_GetBaud());
+   MIDI_SetChannelCode( MIDI_GetChannelCode() );
 
    /* Update Activated Analogue Channels */
    //UpdateActiveChannels();

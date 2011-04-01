@@ -110,7 +110,8 @@ void UF_MenuUpOneLevel(Menu_t* menu)
 }
 
 /* End of wrapper functions */
-   
+
+//void nullFunction   
 
 void about(void* data)
 {
@@ -832,7 +833,7 @@ void ChannelSetup(void* data)
    uint8_t* input = data;
 
    static uint8_t enterCount;
-   static int8_t UpDownPosition;
+   int8_t UpDownPosition;
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 
@@ -844,29 +845,12 @@ void ChannelSetup(void* data)
          case KP_UP:
          case KP_DOWN:
 
-            if( UpDownPosition >= 3 )
+            //if( UpDownPosition >= MENU_GET_BYTE(analogueMenu.states[1].sequence) )
             {
                MenuSetInput( &analogueMenu, *input );
             }
 
-            if( *input == KP_UP )
-            {
-               UpDownPosition--;
-            }
-            else
-            {
-               UpDownPosition++;
-            }
-
-            if( UpDownPosition >= 7 )
-            {
-               UpDownPosition = 7;
-            }
-
-            if( UpDownPosition < 0 )
-            {
-               UpDownPosition = 0;
-            }
+            
 
             break;
          
@@ -937,14 +921,14 @@ void ChannelSetup(void* data)
 	}
 	   
 
-
+   UpDownPosition = analogueMenu.selectedItem;
 
    primaryMenu.firstEnter = 0;
    enterCount ^= (1);
-   SoftTimer2[SC_AutoMenuUpdate].timeCompare = 20;
+   //SoftTimer2[SC_AutoMenuUpdate].timeCompare = 20;
    SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
 
-	UF_MenuReset();
+	MenuLCD_SetPos(0, 0);
 		
 	/* Indicate the channel selected */
 	UF_MenuPrint_P(PSTR("Channel "));
@@ -998,7 +982,7 @@ void ChannelSetup(void* data)
    }
    
 	UF_MenuNewLine();	   
-	
+
 	/* Display the channel 'gain' */
 	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
 	{
@@ -1020,7 +1004,7 @@ void ChannelSetup(void* data)
    	UF_MenuPrint(outputString);
    }
    UF_MenuNewLine();   
-   
+
 //	Don't hide sub children.
    analogueMenu.updateOptions = SHOW_CHILDREN;
    SelectedSubMenu = &analogueMenu;
@@ -1119,6 +1103,8 @@ void SetThreshold(void* data)
 	}
 		
 	firstEnter = 0;
+
+   MenuLCD_SetPos(0, 0);
 
 	SetChannelThresh(SelectedChannel, GetChannelThresh(SelectedChannel) - lastPotValue + PotValue);
 	lastPotValue = PotValue;
