@@ -4,8 +4,9 @@
 #include "Menu/Menu.h"
 
 /* Menu Texts */
+
 enum {  
-   ST_MAIN = 10,
+   ST_MAIN = VISIBLE_STATE,
    ST_CONTROLLER_MODE,
    ST_PROFILES,
    ST_OPTIONS,
@@ -106,8 +107,11 @@ enum {
 
 /* Channel Setup Menus */
 enum {
+   ST_CHANNEL_TOGGLE = FIRST_STATE,
+   ST_NOTE_ADJUST,
+   ST_GAIN_ADJUST,
    /* The 'main' sub menu */
-   ST_ANALOGUE_SETUP = 10,
+   ST_ANALOGUE_SETUP = VISIBLE_STATE,
    ST_DIGITAL_SETUP,
    ST_THRESHOLD,
    ST_RETRIGGER,

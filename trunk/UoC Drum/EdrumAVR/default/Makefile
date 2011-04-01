@@ -15,7 +15,7 @@ COMMON = -mmcu=$(MCU)
 
 ## Compile options common for all C compilation units.
 CFLAGS = $(COMMON)
-CFLAGS += -Wall -gdwarf-2 -std=gnu99                                                                                                 -mcall-prologues                             -DF_CPU=20000000UL -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
+CFLAGS += -Wall -mcall-prologues  -std=gnu99    -gdwarf-2   -DF_CPU=20000000UL -Os -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 CFLAGS += -MD -MP -MT $(*F).o -MF dep/$(@F).d 
 
 ## Assembly specific flags
@@ -26,11 +26,12 @@ ASMFLAGS += -x assembler-with-cpp -Wa,-gdwarf2
 ## Linker flags
 LDFLAGS = $(COMMON)
 LDFLAGS +=  -Wl,-Map=EdrumAVR.map
-LDFLAGS += -Wl,-section-start=.data=0x8000ff
+LDFLAGS += -Wl,-section-start=.data=0x800100
 LDFLAGS += -Wl,-section-start=.PROFILE_0=0x6e54
 LDFLAGS += -Wl,-section-start=.PROFILE_1=0x6d28
 LDFLAGS += -Wl,-section-start=.PROFILE_2=0x6bfc
 LDFLAGS += -Wl,-section-start=.PROFILE_3=0x6ad0
+LDFLAGS += -Wl,-section-start=.PROFILE_START=0x6bfc
 
 
 ## Intel Hex file production flags
@@ -45,7 +46,7 @@ HEX_EEPROM_FLAGS += --change-section-lma .eeprom=0 --no-change-warnings
 INCLUDES = -I"M:\Robotics\Source\EdrumAVR\..\FuncLib" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Peripherals" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Other" -I"M:\Robotics\Source\EdrumAVR\..\GenericEdrum" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\Applications" -I"M:\Robotics\Source\EdrumAVR\..\FuncLib\External" -I"M:\Robotics\Source\EdrumAVR\." 
 
 ## Objects that must be built in order to link
-OBJECTS = EDrum.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o profiles.o SysEx.o hardwareSpecific.o TimerCallbacks.o flashmem.o USBMIDIThru.o UI_KP.o 
+OBJECTS = EDrum.o hardUart.o ringbuffer.o UI_LCD.o LCDSettings.o spi.o uint8toa.o sample.o sensor.o adc.o vumeter.o MenuSettings.o Menu.o userFunctions.o softtimer.o midi.o profiles.o SysEx.o hardwareSpecific.o TimerCallbacks.o flashmem.o USBMIDIThru.o UI_KP.o profileSettings.o 
 
 ## Objects explicitly added by the user
 LINKONLYOBJECTS = 
@@ -121,6 +122,9 @@ USBMIDIThru.o: ../../GenericEdrum/USBMIDIThru/USBMIDIThru.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 UI_KP.o: ../UI_KP/UI_KP.c
+	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
+
+profileSettings.o: ../profileSettings.c
 	$(CC) $(INCLUDES) $(CFLAGS) -c  $<
 
 ##Link

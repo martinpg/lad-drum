@@ -37,7 +37,7 @@ void uartInit(AVR_USART_t* port, uint8_t U2Xvalue)
 	/*Setup the U2X Bit*/
 	*port->UCSRxA	=	(*port->UCSRxA & (~(1<<U2X))) | (U2Xvalue << U2X);
 	
-	*port->UCSRxB |= (1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE);	/*Enable Rx and Tx modules*/
+	*port->UCSRxB |= ((1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE));	/*Enable Rx and Tx modules*/
 	*port->UCSRxB &= ~(1<<UCSZ2);				/*Set to 8bit mode*/
 	
 
@@ -98,18 +98,23 @@ void uartTx(AVR_USART_t* port, uint8_t byte)
 {
    /* If the buffer is full, then we have to wait until we have to send the data
     * to prevent data loss */
+    
    while(ringbuffer_put((RINGBUFFER_T*)port->TransmitBuffer, byte) == BUFFER_OVERFLOW)
    {
-      if( (*port->UCSRxA & (1<<UDRE)) )
-      {
-         *port->UDRx = ringbuffer_get((RINGBUFFER_T*)port->TransmitBuffer); 
-      }
+         if((*port->UCSRxA & (1<<UDRE)) && transmitState == 0 )
+      	{
+            
+         	*port->UDRx = ringbuffer_get((RINGBUFFER_T*)port->TransmitBuffer); 
+      	}	
    }
 
-   if( (*port->UCSRxA & (1<<UDRE)) )
-   {
+   if( (*port->UCSRxA & (1<<UDRE)) && transmitState == 0)
+   {   
+      
       *port->UDRx = ringbuffer_get((RINGBUFFER_T*)port->TransmitBuffer); 
    }
+
+   transmitState++;
 }
 
 

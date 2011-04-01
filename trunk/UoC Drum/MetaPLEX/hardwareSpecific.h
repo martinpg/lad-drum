@@ -63,8 +63,8 @@ extern AVR_USART_t PrimaryUART;
 #define UART_TxString(x)        uartTxString(&PrimaryUART, x)
 
 #define ANALOGUE_INPUTS	(40)
-#define METRONOME_INPUTS (8)
-#define DIGITAL_INPUTS	(8)
+#define METRONOME_INPUTS (16)
+#define DIGITAL_INPUTS	(0)
 
 /* Channel Select Defines */
 #define CHSELOUT  PORTA

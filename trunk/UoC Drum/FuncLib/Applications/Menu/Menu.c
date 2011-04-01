@@ -43,78 +43,86 @@ void MenuUpdate(Menu_t* menu, uint8_t options)
    if( !(menu->updateOptions & HIDE_CHILDREN) )
    {
 
-      MenuOffset = SmallestSequence(menu, menu->currentState);
-      MenuMax = LargestSequence(menu, menu->currentState);
+      MenuOffset = SmallestSequence(menu, menu->currentState, IGNORE_INVISIBLE_STATES);
+      MenuMax = LargestSequence(menu, menu->currentState, IGNORE_INVISIBLE_STATES);
    
-      
+      //menu->MenuSetPos(0, 0); 
       /** Print out the menu's sub-menu's */   
       /* Ensures that the screen limits are not exceeded */
-      for( i = 0, sequenceIndex = 0;  MENU_GET_BYTE(menu->states[i].parent) != 0 ; i++)
+      for( i = MenuOffset, sequenceIndex = 0;  MENU_GET_BYTE(menu->states[i].parent) != 0 ; i++)
       {  
+         
          /* Find the current state's sub children. */        
          if( MENU_GET_BYTE(menu->states[i].parent) == menu->currentState )
          {  
             sequenceIndex = MENU_GET_BYTE(menu->states[i].sequence);
-            
-            
+
+      
+            /* The upper and lower limits mean that menus have a hysteresis type effect */
             if( menu->selectedItem > menu->upperLimit )
             {
                menu->upperLimit = menu->selectedItem;
-               menu->lowerLimit = menu->upperLimit - windowSize + MenuOffset;   
+               menu->lowerLimit = menu->upperLimit + MenuOffset - windowSize;
             }
-               
+         
             if( menu->selectedItem < menu->lowerLimit )
             {
                menu->lowerLimit = menu->selectedItem;
                menu->upperLimit = menu->lowerLimit + windowSize - MenuOffset;               
             }
-            
+
+
+            if( menu->selectedItem < MenuOffset )
+            {  
+               menu->lowerLimit = MenuOffset;
+               menu->upperLimit = windowSize; 
+            }
+
+            if( menu->selectedItem > MenuMax )
+            {  
+               if( windowSize > (MenuOffset + MenuMax) )
+               {
+                   menu->lowerLimit = 0;
+               }
+               else
+               {
+                  menu->lowerLimit = MenuMax + MenuOffset - windowSize;
+               }
+               menu->upperLimit = MenuMax; 
+            }
+
+      
             /* If this is the selected item then prefix an asterix */
             if( (sequenceIndex <= menu->upperLimit) && (sequenceIndex >= menu->lowerLimit) )
             {
-               if(sequenceIndex > windowSize)
-               {
-                  scrollUp = SCROLL_BAR;
-               }
-               
-               if( MenuMax - sequenceIndex + MenuOffset  > windowSize)
-               {
-                  scrollDown = SCROLL_BAR;
-               }
-               
-               //menu->MenuSetPos(menu->RowPosition, 0); 
-               
-               if( MENU_GET_BYTE(menu->states[i].sequence) == menu->selectedItem)
-               {
-   #if MENU_DEBUG == 1  
-                  printf("*");    
-               }
-               else
-               {
-                  printf(" ");   
-               }
-   #else
-                  menu->MenuChar( '*' );    
-               }
-               else
-               {
-                  menu->MenuChar( ' ' );   
-               }
-   #endif
-                          
+
                outputString = MenuDescriptor(menu, MENU_GET_BYTE(menu->states[i].child) );
-               
-   #if MENU_DEBUG == 1                  
                if( outputString )
                {
-                  PRINT_FUNC("%s\n", (uint8_t*)outputString );
-               }
-   #else
-   
-               menu->MenuPrint_P(outputString);
-               menu->MenuNewLine();            
-   #endif            
+                  if(sequenceIndex > windowSize)
+                  {
+                     scrollUp = SCROLL_BAR;
+                  }
+         
+                  if( MenuMax - sequenceIndex + MenuOffset  > windowSize)
+                  {
+                     scrollDown = SCROLL_BAR;
+                  }
+         
+                  if( MENU_GET_BYTE(menu->states[i].sequence) == menu->selectedItem)
+                  {
+                     menu->MenuChar( '*' );    
+                  }
+                  else
+                  {
+                     menu->MenuChar( ' ' );   
+                  }     
+                
+                  menu->MenuPrint_P(outputString);
+                  menu->MenuNewLine(); 
+               }                  
             }
+            
          }  
          
          
@@ -154,7 +162,7 @@ void stateMachine(Menu_t* menu, uint8_t state)
    {
       case KB_UP:
       case KP_UP:
-         if(!(menu->selectedItem <= SmallestSequence(menu, menu->currentState)) )
+         if(!(menu->selectedItem <= SmallestSequence(menu, menu->currentState, COUNT_INVISIBLE_STATES)) )
          {
             menu->selectedItem--;
          }
@@ -163,9 +171,9 @@ void stateMachine(Menu_t* menu, uint8_t state)
       case KB_DOWN:   
       case KP_DOWN:
          menu->selectedItem++;          
-         if( menu->selectedItem - SmallestSequence(menu, menu->currentState) > maxStateItems )
+         if( menu->selectedItem - SmallestSequence(menu, menu->currentState, COUNT_INVISIBLE_STATES) > maxStateItems )
          {
-            menu->selectedItem = LargestSequence(menu, menu->currentState);
+            menu->selectedItem = LargestSequence(menu, menu->currentState, COUNT_INVISIBLE_STATES);
          }
       break;
       
@@ -173,7 +181,7 @@ void stateMachine(Menu_t* menu, uint8_t state)
       case KP_ENTER:
          /* Go into child sub menu */
          menu->currentState = GetMenuState(menu, menu->currentState, menu->selectedItem);
-         menu->selectedItem = SmallestSequence(menu, menu->currentState);
+         menu->selectedItem = SmallestSequence(menu, menu->currentState, COUNT_INVISIBLE_STATES);
          menu->upperLimit = menu->windowSize;
          menu->lowerLimit = 0;
          menu->firstEnter = 1; 
@@ -321,7 +329,7 @@ uint8_t SubItems(Menu_t* menu, uint8_t state)
 }
 
 /** Get the maximum sequence of the the passed state */
-uint8_t LargestSequence(Menu_t* menu, uint8_t state)
+uint8_t LargestSequence(Menu_t* menu, uint8_t state, uint8_t options)
 {
    int i;
    uint8_t StateItem = 0;    
@@ -330,16 +338,25 @@ uint8_t LargestSequence(Menu_t* menu, uint8_t state)
       if( MENU_GET_BYTE(menu->states[i].parent) == state)
       {
          /* Obtain the number of Menu Items in the given state */
-         if( MENU_GET_BYTE(menu->states[i].sequence) >= StateItem )
+         if( (MENU_GET_BYTE(menu->states[i].sequence) >= StateItem) )
          {
-            StateItem = MENU_GET_BYTE(menu->states[i].sequence);
+            if( options & IGNORE_INVISIBLE_STATES && (MENU_GET_BYTE(menu->states[i].child) > VISIBLE_STATE))
+            {
+               StateItem = MENU_GET_BYTE(menu->states[i].sequence);
+            }
+            
+            if( options & COUNT_INVISIBLE_STATES )
+            {
+               StateItem = MENU_GET_BYTE(menu->states[i].sequence);
+            }
+            
          } 
       }
    }
    return (StateItem);
 }
 
-uint8_t SmallestSequence(Menu_t* menu, uint8_t state)
+uint8_t SmallestSequence(Menu_t* menu, uint8_t state, uint8_t options)
 {
    int i;
    uint8_t StateItem = 0xFF;    
@@ -348,9 +365,18 @@ uint8_t SmallestSequence(Menu_t* menu, uint8_t state)
       if( MENU_GET_BYTE(menu->states[i].parent) == state)
       {
          /* Obtain the number of Menu Items in the given state */
-         if( MENU_GET_BYTE(menu->states[i].sequence) <= StateItem )
+         if( (MENU_GET_BYTE(menu->states[i].sequence) <= StateItem) )
          {
-            StateItem = MENU_GET_BYTE(menu->states[i].sequence);
+            if( options & IGNORE_INVISIBLE_STATES && (MENU_GET_BYTE(menu->states[i].child) > VISIBLE_STATE))
+            {
+               StateItem = MENU_GET_BYTE(menu->states[i].sequence);
+            }
+            
+            if( options & COUNT_INVISIBLE_STATES )
+            {
+               StateItem = MENU_GET_BYTE(menu->states[i].sequence);
+            }
+            
          } 
       }
    }
