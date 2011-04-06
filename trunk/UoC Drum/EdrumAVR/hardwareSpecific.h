@@ -18,7 +18,7 @@
 #include "hardUART/hardUart.h"
 #include "avrADC/adc.h"
 
-extern AVR_USART_t PrimaryUART;
+extern volatile AVR_USART_t PrimaryUART;
 
 
 /* Interrupts */
@@ -31,11 +31,11 @@ extern AVR_USART_t PrimaryUART;
 /* MIDI Defines */
 #define MIDI_Tx(x)   midiTx(x)
 #define MIDI_SetBaudRate(high,low) UART_SetBaud(high,low)
-#define MIDI_BAUD(x)   (((F_CPU / (x)) / 16) - 1)
-#define MIDI_BAUD_31250      MIDI_BAUD(31250)
-#define MIDI_BAUD_38400      MIDI_BAUD(38400)
-#define MIDI_BAUD_115200		MIDI_BAUD(115200)
-#define MIDI_BAUD_1M			MIDI_BAUD(1000000)
+#define MIDI_BAUD(x)   ((((F_CPU / (x))+8) / 16) - 1)
+#define MIDI_BAUD_31250      MIDI_BAUD(31250)  //0x27
+#define MIDI_BAUD_38400      MIDI_BAUD(38400)  //0x1F
+#define MIDI_BAUD_115200		MIDI_BAUD(115200) //0x0A
+#define MIDI_BAUD_1M			MIDI_BAUD(1250000)   //0x00
 
 /* SPI Defines */
 #define SPI_DDR   (DDRB)

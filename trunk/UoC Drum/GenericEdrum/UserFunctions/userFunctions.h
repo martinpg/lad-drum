@@ -20,6 +20,7 @@ enum {
 };
 
 extern uint8_t SelectedChannel;
+extern char outputString[];
 
 void UF_MenuSetInput(uint8_t NewInput);
 void UF_stateMachine(uint8_t CurrentState);
@@ -66,14 +67,14 @@ void SetMIDIRate(void* data);
 void EditMIDIRate(void* data);
 void PrintMIDIRate(void);
 
-
+void KeySelectFunction(void* data);
+void ChannelToggleFunction(void* data);
 void ChannelSetup(void* data);
-void HandleSubMenu(void* data);
+void PrintAnalogueChannelSetup(uint8_t UpDownPosition);
 
 void SetThreshold(void* data);
 void SetRetrigger(void* data);
 void MonitorChannel(void* data);
-void SetGainCurves(void* data);
 
 void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length);
 void LCD_Load_ProgressBar(void);

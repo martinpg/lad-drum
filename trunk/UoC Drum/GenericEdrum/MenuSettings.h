@@ -110,12 +110,17 @@ enum {
    ST_CHANNEL_TOGGLE = FIRST_STATE,
    ST_NOTE_ADJUST,
    ST_GAIN_ADJUST,
+   ST_GAIN_TYPE,
+   ST_GAIN_SLOPE1,
+   ST_GAIN_SLOPE2,
+   ST_GAIN_CROSSOVER,
+   ST_GAIN_PRESET,
+   ST_VELOCITY_ADJUST,
    /* The 'main' sub menu */
    ST_ANALOGUE_SETUP = VISIBLE_STATE,
    ST_DIGITAL_SETUP,
    ST_THRESHOLD,
    ST_RETRIGGER,
-   ST_SETGAIN,
    ST_DUALINPUT,
    ST_MONITORCHANNEL,
    /* For digital sub menu */
@@ -147,6 +152,6 @@ void MenuUart_Tx(char byte);
 
 void MenuSetDisplay(Menu_t* menu, uint8_t display);
 void Menu_UpOneLevel(Menu_t* menu);
-
+void HandleSubMenu(void* data);
 
 #endif
