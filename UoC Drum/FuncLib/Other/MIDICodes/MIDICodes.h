@@ -15,6 +15,8 @@
 #define MIDI_MAX_KEY    (127)
 #define MAX_MIDI_CHANNEL (0x0F)
 
+
+
 enum {
    MIDI_NOTE_OFF = 0x80,
    MIDI_NOTE_ON = 0x90,
@@ -27,6 +29,7 @@ enum {
    MIDI_TIME_CODE    = 0xF1,
    MIDI_SONG_POSITION =0xF2,
    MIDI_SONG_SELECT  = 0xF3,
+   MIDI_TUNE_REQUEST  = 0xF6,
    MIDI_SYSEX_STOP   = 0xF7,
    MIDI_TIMING_CLOCK = 0xF8,
    MIDI_RT_TICK = 0xF9,
@@ -36,6 +39,8 @@ enum {
    MIDI_RT_ACTIVE_SENSE = 0xFE,
    MIDI_RT_RESET = 0xFF
 } MIDI_Commands;
+
+#define MIDI_COMMAND_COUNT (20)
 
 enum {
    MN_C = 0,

@@ -38,7 +38,12 @@ void MenuUpdate(Menu_t* menu, uint8_t options)
    }
         
    /** Run the associated function if it has one */   
-   executeState(menu, menu->currentState);    
+   if( !(options & NO_EXECUTE) )
+   {
+      executeState(menu, menu->currentState);  
+   }
+      
+   
 
    if( !(menu->updateOptions & HIDE_CHILDREN) )
    {
@@ -340,7 +345,7 @@ uint8_t LargestSequence(Menu_t* menu, uint8_t state, uint8_t options)
          /* Obtain the number of Menu Items in the given state */
          if( (MENU_GET_BYTE(menu->states[i].sequence) >= StateItem) )
          {
-            if( options & IGNORE_INVISIBLE_STATES && (MENU_GET_BYTE(menu->states[i].child) > VISIBLE_STATE))
+            if( options & IGNORE_INVISIBLE_STATES && (MENU_GET_BYTE(menu->states[i].child) >= VISIBLE_STATE))
             {
                StateItem = MENU_GET_BYTE(menu->states[i].sequence);
             }
@@ -367,7 +372,7 @@ uint8_t SmallestSequence(Menu_t* menu, uint8_t state, uint8_t options)
          /* Obtain the number of Menu Items in the given state */
          if( (MENU_GET_BYTE(menu->states[i].sequence) <= StateItem) )
          {
-            if( options & IGNORE_INVISIBLE_STATES && (MENU_GET_BYTE(menu->states[i].child) > VISIBLE_STATE))
+            if( options & IGNORE_INVISIBLE_STATES && (MENU_GET_BYTE(menu->states[i].child) >= VISIBLE_STATE))
             {
                StateItem = MENU_GET_BYTE(menu->states[i].sequence);
             }
@@ -409,3 +414,5 @@ uint8_t GetState(Menu_t* menu)
 {
    return menu->currentState;  
 }
+
+

@@ -15,7 +15,59 @@ const PROGRAM_CHAR MIDI_BAUD[][11] PROGRAM_SPACE = {"31.25k",
 									                         "115.2kUSB",
 									                         "1.0M USB"};
 
+
+PROGRAM_CHAR MIDI_NOTE_OFF_STRING[] PROGRAM_SPACE = "NOTE OFF";
+PROGRAM_CHAR MIDI_NOTE_ON_STRING[] PROGRAM_SPACE = "NOTE ON";
+PROGRAM_CHAR MIDI_POLY_STRING[] PROGRAM_SPACE = "POLY.PRES";
+PROGRAM_CHAR MIDI_CONTROL_CHANGE_STRING[] PROGRAM_SPACE = "CONT.CHNG";
+PROGRAM_CHAR MIDI_PROGRAM_CHANGE_STRING[] PROGRAM_SPACE = "PROG.CHNG";
+PROGRAM_CHAR MIDI_CHANNEL_PRESSURE_STRING[] PROGRAM_SPACE= "CHAN.PRES";
+PROGRAM_CHAR MIDI_PITCH_WHEEL_STRING[] PROGRAM_SPACE = "PITCH W.";
+PROGRAM_CHAR MIDI_SYSEX_STRING[] PROGRAM_SPACE = "SYSEX";
+
+PROGRAM_CHAR MIDI_TIME_CODE_STRING[] PROGRAM_SPACE = "TIME.CODE";
+PROGRAM_CHAR MIDI_SONG_POS_STRING[] PROGRAM_SPACE = "SONG.POS";
+PROGRAM_CHAR MIDI_SONG_SEL_STRING[] PROGRAM_SPACE = "SONG.SEL";
+
+PROGRAM_CHAR MIDI_TUNE_REQUEST_STRING[] PROGRAM_SPACE = "TUNE REQ";
+PROGRAM_CHAR MIDI_END_SYSEX_STRING[] PROGRAM_SPACE = "END SYSX";
+
+PROGRAM_CHAR MIDI_TIMING_CLOCK_STRING[] PROGRAM_SPACE = "CLOCK";
+PROGRAM_CHAR MIDI_SEQ_START_STRING[] PROGRAM_SPACE = "START";
+PROGRAM_CHAR MIDI_SEQ_CONTINUE_STRING[] PROGRAM_SPACE = "CONTIN.";
+PROGRAM_CHAR MIDI_SEQ_STOP_STRING[] PROGRAM_SPACE = "STOP";
+
+PROGRAM_CHAR MIDI_ACTIVE_SENSING_STRING[] PROGRAM_SPACE = "ACT.SENS";
+PROGRAM_CHAR MIDI_RESET_STRING[] PROGRAM_SPACE = "RESET";
+
+PROGRAM_CHAR MIDI_UNDEFINED_STRING[] PROGRAM_SPACE = "UNDEF";
+
 static uint16_t MIDI_LastMIDIValue[ANALOGUE_INPUTS];
+
+const MidiLookup_t MidiLookUpTable[] PROGRAM_SPACE =
+{
+      {MIDI_NOTE_OFF, MIDI_NOTE_OFF_STRING},
+      {MIDI_NOTE_ON, MIDI_NOTE_ON_STRING},
+      {MIDI_AFTERTOUCH, MIDI_POLY_STRING},
+      {MIDI_CONTROL_CHANGE, MIDI_CONTROL_CHANGE_STRING},
+      {MIDI_PROGRAM_CHANGE, MIDI_PROGRAM_CHANGE_STRING},
+      {MIDI_CHANNEL_PRESSURE, MIDI_CHANNEL_PRESSURE_STRING},
+      {MIDI_PITCH_CHANGE, MIDI_PITCH_WHEEL_STRING},
+      {MIDI_SYSEX_START, MIDI_SYSEX_STRING},
+      {MIDI_TIME_CODE,MIDI_TIME_CODE_STRING  },
+      {MIDI_SONG_POSITION, MIDI_SONG_POS_STRING},
+      {MIDI_SONG_SELECT, MIDI_SONG_SEL_STRING },
+      {MIDI_TUNE_REQUEST, MIDI_TUNE_REQUEST_STRING},
+      {MIDI_SYSEX_STOP, MIDI_END_SYSEX_STRING  },
+      {MIDI_TIMING_CLOCK, MIDI_TIMING_CLOCK_STRING },
+      {MIDI_RT_TICK, MIDI_UNDEFINED_STRING },
+      {MIDI_RT_START, MIDI_SEQ_START_STRING },
+      {MIDI_RT_CONTINUE, MIDI_SEQ_CONTINUE_STRING},
+      {MIDI_RT_STOP, MIDI_SEQ_STOP_STRING },
+      {MIDI_RT_ACTIVE_SENSE, MIDI_ACTIVE_SENSING_STRING},
+      {MIDI_RT_RESET, MIDI_RESET_STRING},
+      {0, 0}
+};
 
 MidiSettings_t* MIDISettings;
 
@@ -193,7 +245,54 @@ void MIDI_SetChannelCode(uint8_t newCode)
    }
 }
 
+/* An invalid command code will return NOTE_OFF control code position*/
+uint8_t MIDI_GetControlCode(uint8_t command, uint8_t direction)
+{
+   uint8_t i;
+   uint8_t returnCode = 0xFE;
+   for(i = 0; FLASH_GET_PGM_BYTE(&MidiLookUpTable[i].MIDI_Commands); i++)
+   {
+      if( command == FLASH_GET_PGM_BYTE(&MidiLookUpTable[i].MIDI_Commands) )
+      {
+         returnCode = i;
+      }
+   }
+   if(returnCode != 0xFE )
+   {
+      if( direction == MIDI_NEXT_CONTROL_CODE )
+      {
+         if( (++returnCode) >= MIDI_COMMAND_COUNT )
+         {
+            returnCode = 0;
+         }
+      }
+      else
+      {
+         if( (--returnCode) >= MIDI_COMMAND_COUNT )
+         {
+            returnCode = MIDI_COMMAND_COUNT-1;
+         }
+      }
+      return FLASH_GET_PGM_BYTE(&MidiLookUpTable[returnCode].MIDI_Commands);
+   }
 
+   return FLASH_GET_PGM_BYTE(&MidiLookUpTable[0].MIDI_Commands);
+}
+
+/* Obtain the control code string */
+void MIDI_ControlString(uint8_t command, char* buffer)
+{
+   uint8_t i;
+   for(i = 0; FLASH_GET_PGM_BYTE(&MidiLookUpTable[i].MIDI_Commands); i++)
+   {
+      if( command == FLASH_GET_PGM_BYTE(&MidiLookUpTable[i].MIDI_Commands) )
+      {
+         strcpy_P(buffer, FLASH_GET_PGM_WORD(&MidiLookUpTable[i].MIDI_CommandString));
+         return;
+      }
+   }
+   strcpy_P(buffer, MIDI_UNDEFINED_STRING);
+}
 
 
 /* Pass any number from 0->127 and obtain the corresponding note in a string format */
@@ -210,6 +309,8 @@ uint8_t MIDI_Octave(uint8_t note)
 {
   return (note / NOTE_COUNT);
 }
+
+
 
 
 

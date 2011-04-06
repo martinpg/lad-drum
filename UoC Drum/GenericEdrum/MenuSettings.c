@@ -2,7 +2,8 @@
 #include <stdint.h>
 #include "MenuSettings.h"
 #include "hardwareSpecific.h"
-#include "UserFunctions/userFunctions.h"
+#include "userFunctions/userFunctions.h"
+#include "userFunctions/gainAdjustFunctions.h"
 #include "LCDSettings.h"
 
 #include "hardUart/hardUart.h"
@@ -73,6 +74,30 @@ const MENU_TEXT  MT_CHANNEL_13[] = "Ch 13:(Ride/Bell)";
 const MENU_TEXT  MT_CHANNEL_14[] = "Ch 14:";
 const MENU_TEXT  MT_CHANNEL_15[] = "Ch 15:";
 const MENU_TEXT  MT_CHANNEL_16[] = "Ch 16:";
+const MENU_TEXT  MT_CHANNEL_17[] = "Ch 17:";
+const MENU_TEXT  MT_CHANNEL_18[] = "Ch 18:";
+const MENU_TEXT  MT_CHANNEL_19[] = "Ch 19:";
+const MENU_TEXT  MT_CHANNEL_20[] = "Ch 20:";
+const MENU_TEXT  MT_CHANNEL_21[] = "Ch 21:";
+const MENU_TEXT  MT_CHANNEL_22[] = "Ch 22:";
+const MENU_TEXT  MT_CHANNEL_23[] = "Ch 23:";
+const MENU_TEXT  MT_CHANNEL_24[] = "Ch 24:";
+const MENU_TEXT  MT_CHANNEL_25[] = "Ch 25:";
+const MENU_TEXT  MT_CHANNEL_26[] = "Ch 26:";
+const MENU_TEXT  MT_CHANNEL_27[] = "Ch 27:";
+const MENU_TEXT  MT_CHANNEL_28[] = "Ch 28:";
+const MENU_TEXT  MT_CHANNEL_29[] = "Ch 29:";
+const MENU_TEXT  MT_CHANNEL_30[] = "Ch 30:";
+const MENU_TEXT  MT_CHANNEL_31[] = "Ch 31:";
+const MENU_TEXT  MT_CHANNEL_32[] = "Ch 32:";
+const MENU_TEXT  MT_CHANNEL_33[] = "Ch 33:";
+const MENU_TEXT  MT_CHANNEL_34[] = "Ch 34:";
+const MENU_TEXT  MT_CHANNEL_35[] = "Ch 35:";
+const MENU_TEXT  MT_CHANNEL_36[] = "Ch 36:";
+const MENU_TEXT  MT_CHANNEL_37[] = "Ch 37:";
+const MENU_TEXT  MT_CHANNEL_38[] = "Ch 38:";
+const MENU_TEXT  MT_CHANNEL_39[] = "Ch 39:";
+const MENU_TEXT  MT_CHANNEL_40[] = "Ch 40:";
 
 
 const MENU_TEXT  MT_DIGITAL_1[] = "Ch 1:(HiHat Pedal)";
@@ -117,7 +142,6 @@ const MENU_TEXT  MT_THRESHOLD[] = "Set Threshold";
 const MENU_TEXT  MT_TRIGGER_TYPE[] = "Switch Settings";
 const MENU_TEXT  MT_RETRIGGER[] = "Set Retrigger";
 const MENU_TEXT  MT_DUALINPUT[] = "Set Dual Trigger";
-const MENU_TEXT  MT_SETGAIN[] = "Set Gain Curves";
 const MENU_TEXT  MT_MONITORCHANNEL[] = "Monitor Channel";
 
 const MENU_TEXT  MT_FIXED_GAIN[] = "Fixed Gain (1x)";
@@ -373,14 +397,21 @@ const menu_list AnalogueChannelSetupMenu[] MENU_SPACE = {
    {ST_ANALOGUE_SETUP, ST_GAIN_ADJUST, 2},
    {ST_ANALOGUE_SETUP, ST_THRESHOLD, 3},
    {ST_ANALOGUE_SETUP, ST_RETRIGGER, 4},
-   {ST_ANALOGUE_SETUP, ST_SETGAIN, 5},
-   {ST_ANALOGUE_SETUP, ST_DUALINPUT, 6},
-   {ST_ANALOGUE_SETUP, ST_MONITORCHANNEL, 7},
+   {ST_ANALOGUE_SETUP, ST_DUALINPUT, 5},
+   {ST_ANALOGUE_SETUP, ST_MONITORCHANNEL, 6},
+
+   {ST_GAIN_ADJUST, ST_GAIN_TYPE, 0},
+   {ST_GAIN_ADJUST, ST_GAIN_SLOPE1, 1},
+   {ST_GAIN_ADJUST, ST_GAIN_SLOPE2, 2},
+   {ST_GAIN_ADJUST, ST_GAIN_CROSSOVER, 3},
+   {ST_GAIN_ADJUST, ST_GAIN_PRESET, 4},
    {0, 0, 0} 
 };
 
 const menu_list DigitalChannelSetupMenu[] MENU_SPACE = {
-   
+   {ST_DIGITAL_SETUP, ST_CHANNEL_TOGGLE, 0},
+   {ST_DIGITAL_SETUP, ST_NOTE_ADJUST, 1},
+   {ST_DIGITAL_SETUP, ST_VELOCITY_ADJUST, 2},
    {ST_DIGITAL_SETUP, ST_RETRIGGER, 3},
    {ST_DIGITAL_SETUP, ST_TRIGGER_TYPE, 4}, 
    {0, 0, 0} 
@@ -388,14 +419,19 @@ const menu_list DigitalChannelSetupMenu[] MENU_SPACE = {
 
 const menu_data ChannelSetupMenu[] MENU_SPACE = {
    
-   {ST_ANALOGUE_SETUP, 0, HandleSubMenu},
-   {ST_DIGITAL_SETUP, 0, HandleSubMenu},
-   {ST_CHANNEL_TOGGLE, 0, 0},
-   {ST_NOTE_ADJUST, 0, 0},
-   {ST_GAIN_ADJUST, 0, 0},
-	{ST_THRESHOLD, MT_THRESHOLD, SetThreshold},
+   {ST_ANALOGUE_SETUP,  0, HandleSubMenu},
+   {ST_DIGITAL_SETUP,   0, HandleSubMenu},
+   {ST_CHANNEL_TOGGLE,  0, ChannelToggleFunction},
+   {ST_NOTE_ADJUST,     0, KeySelectFunction},
+   {ST_GAIN_ADJUST,     0, GainAdjustFunction},
+   {ST_GAIN_TYPE,       0, GainTypeAdjustFunction},
+   {ST_GAIN_SLOPE1,     0, GainSlopeAdjustFunction},
+   {ST_GAIN_SLOPE2,     0, GainSlopeAdjustFunction},
+   {ST_GAIN_CROSSOVER,  0, GainCrossOverAdjustFunction},
+   {ST_GAIN_PRESET,     0, GainPresetAdjustFunction},
+//   {ST_VELOCITY_ADJUST, 0  VelocityAdjustFunction},
+	{ST_THRESHOLD,       MT_THRESHOLD, SetThreshold},
 	{ST_RETRIGGER, MT_RETRIGGER, SetRetrigger},   
-	{ST_SETGAIN, MT_SETGAIN, SetGainCurves},	
 	{ST_DUALINPUT, MT_DUALINPUT, SetDualInput},
    {ST_TRIGGER_TYPE, MT_TRIGGER_TYPE, SetSwitchType},
    {ST_MONITORCHANNEL, MT_MONITORCHANNEL, MonitorChannel},
@@ -513,5 +549,45 @@ void Menu_UpOneLevel(Menu_t* menu)
    executeState(menu, menu->currentState); 	
    //menu->firstEnter = 1;
    ActiveMenu = menu->parentMenu;
+}
+
+void HandleSubMenu(void* data)
+{
+   uint8_t* input = data;
+
+   /* This is effectively the KP Back routine which is invoked by
+    * the submenu functions via MenuUpOneLevel (provides a seamless UI
+    * going the up direction */
+   if( *input == MENU_UPDATE )
+   {
+      /* Stop looping from occuring */
+      MenuSetInput(ActiveMenu, KP_INVALID);
+      ActiveMenu->firstEnter = 1;
+
+      /* Show the parent options */
+      MenuSetInput(ActiveMenu->parentMenu, MENU_UPDATE);
+      MenuUpdate(ActiveMenu->parentMenu, RESET_MENU);
+
+      ActiveMenu->updateOptions = HIDE_CHILDREN;
+      ActiveMenu->firstEnter = 0;
+      return;
+   }
+
+   /* Effectively passes the KP_ENTER from the parent menu to the sub menu
+      thus executing the submenu's function (seamless between primaryMenu & submenu) */
+   if( *input != KP_BACK && !SelectedSubMenu->firstEnter )
+   {
+      stateMachine(SelectedSubMenu, SelectedSubMenu->currentState);
+      switch( *input )
+      {
+         case KP_ENTER:
+            MenuUpdate(SelectedSubMenu, !RESET_MENU);
+            SelectedSubMenu->firstEnter = 1;
+            return;
+         break;
+      }
+   }
+
+   SelectedSubMenu->firstEnter = 0;
 }
 

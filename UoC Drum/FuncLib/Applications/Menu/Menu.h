@@ -30,7 +30,7 @@
 //#define MENU_SPACE_PTR	PGM_P
 //#define PSTR(x)   (x) //for AVR include the pgmspace.h for this macro
 
-#define NO_STATE        (1)
+#define NO_STATE        (0)
 /* Anything less than the Visible State will not be printed, but they can still be selected */
 #define FIRST_STATE     (1)
 #define VISIBLE_STATE   (20)
@@ -39,7 +39,10 @@
 
 #define MENU_LCD        (0)
 #define MENU_UART    (1)
-#define RESET_MENU     (1)
+
+#define RESET_MENU     (1<<0)
+#define NO_EXECUTE     (1<<1)
+
 #define SHOW_CHILDREN (0x00)
 #define HIDE_CHILDREN (0x02)
 #define SCROLL_BAR   (1)
@@ -158,6 +161,8 @@ uint8_t LargestSequence(Menu_t* menu, uint8_t state, uint8_t options);
 uint8_t SmallestSequence(Menu_t* menu, uint8_t state, uint8_t options);
 
 uint8_t GetState(Menu_t* menu);
+
+
 
 #endif
 

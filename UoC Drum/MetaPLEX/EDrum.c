@@ -78,8 +78,8 @@ int main(void)
    //DDRD &= ~(1 << 3);
    //PORTD &= ~(1<<3);
 
-   MCUCR = (1 << JTD);
-   MCUCR = (1 << JTD);
+//   MCUCR = (1 << JTD);
+//   MCUCR = (1 << JTD);
 
 
    /* Setup the USB */

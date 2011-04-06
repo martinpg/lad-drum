@@ -7,6 +7,7 @@
 /* CCR1B associated timers */
 enum {  
    SC_MIDIScan = 0,
+   SC_usbPoll,
    TIMER1_COUNT 
    
 } timer1Ids;
@@ -14,7 +15,6 @@ enum {
 /* CCR2B associated timers */
 enum {  
    SC_OneSecond = 0,
-   SC_usbPoll,
    SC_AutoMenuUpdate,
    SC_VUMeterUpdate,
    SC_DigitalVUUpdate,
@@ -37,7 +37,10 @@ extern volatile SoftTimer_16  SoftTimer2[];
 #define KP_REPEAT_RATE_FASTEST   (1)
 #define KP_REPEAT_DELAY  (50)
 
-#define DEFAULT_AUTO_MENU_UPDATE (15)
+#define SMOOTH_AUTO_MENU_UPDATE  (5)
+#define SLOW_AUTO_MENU_UPDATE (30)
+#define FAST_AUTO_MENU_UPDATE (20)
+#define DEFAULT_AUTO_MENU_UPDATE    (FAST_AUTO_MENU_UPDATE)
 
 /* Critical timers */
 void Callback_MIDIScan(void);

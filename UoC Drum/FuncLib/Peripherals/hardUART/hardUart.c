@@ -25,6 +25,9 @@ RINGBUFFER_T ReceiveBuffer = {rxbuffer, sizeof(rxbuffer)};
 
 volatile uint8_t transmitState;
 
+
+#include "edrumAVRsharedfunctions.h"
+
 /* uartInit:
  * Initialises the baudrate, parity, stop bit generation and 8bit mode
  * It must be called before any hardUart function is used 
@@ -37,7 +40,7 @@ void uartInit(AVR_USART_t* port, uint8_t U2Xvalue)
 	/*Setup the U2X Bit*/
 	*port->UCSRxA	=	(*port->UCSRxA & (~(1<<U2X))) | (U2Xvalue << U2X);
 	
-	*port->UCSRxB |= ((1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE));	/*Enable Rx and Tx modules*/
+	*port->UCSRxB |= ((1<<RXEN) | (1<<TXEN) | (1<<RXCIE) | (1<<TXCIE));	/*Enable Rx and Tx modules*/
 	*port->UCSRxB &= ~(1<<UCSZ2);				/*Set to 8bit mode*/
 	
 
@@ -74,7 +77,7 @@ void uartSetBaud(AVR_USART_t* port, uint8_t baudrateH, uint8_t baudrateL)
 /* Disables the Receiver and Transmitter modules*/
 void uartDisable(AVR_USART_t* port)
 {
-	*port->UCSRxB &= ~((1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE));	/*Disable Rx and Tx modules*/
+	*port->UCSRxB &= ~((1<<RXEN) | (1<<TXEN) | (1<<TXCIE) | (1<<RXCIE) | (1<<UDRIE));	/*Disable Rx and Tx modules*/
 	
 }
 
@@ -98,23 +101,14 @@ void uartTx(AVR_USART_t* port, uint8_t byte)
 {
    /* If the buffer is full, then we have to wait until we have to send the data
     * to prevent data loss */
-    
    while(ringbuffer_put((RINGBUFFER_T*)port->TransmitBuffer, byte) == BUFFER_OVERFLOW)
    {
-         if((*port->UCSRxA & (1<<UDRE)) && transmitState == 0 )
-      	{
-            
-         	*port->UDRx = ringbuffer_get((RINGBUFFER_T*)port->TransmitBuffer); 
-      	}	
    }
 
-   if( (*port->UCSRxA & (1<<UDRE)) && transmitState == 0)
-   {   
-      
-      *port->UDRx = ringbuffer_get((RINGBUFFER_T*)port->TransmitBuffer); 
+   if( (*port->UCSRxA & (1 << UDRE)) && !ringbuffer_isEmpty((RINGBUFFER_T*)port->TransmitBuffer))
+   {
+      *port->UDRx = ringbuffer_get((RINGBUFFER_T*)port->TransmitBuffer);
    }
-
-   transmitState++;
 }
 
 
@@ -189,17 +183,28 @@ ISR(SIG_UART_RECV)
 
 /* Once a tx has completed, this is called */
 /*
-ISR(USART_TXC_vect, ISR_NOBLOCK)
+ISR(USART_UDRE_vect)
 {
-   //sei();
+   //return;
+   //
    // Tx the next byte if there are still bytes in the buffer
-   if( !ringbuffer_isEmpty((RINGBUFFER_T*)&TransmitBuffer) )
+   if( !ringbuffer_isEmpty((RINGBUFFER_T*)PrimaryUART.TransmitBuffer) )
    {
-      UDR = ringbuffer_get((RINGBUFFER_T*)&TransmitBuffer);
+      UDR = ringbuffer_get((RINGBUFFER_T*)PrimaryUART.TransmitBuffer);
+   }
+   else
+   {     
+      UCSRB &= ~(1<<UDRIE);
    }
 }
 
-
-
+ISR(USART_TXC_vect, ISR_NOBLOCK)
+{
+   // Tx the next byte if there are still bytes in the buffer
+   if( !ringbuffer_isEmpty((RINGBUFFER_T*)PrimaryUART.TransmitBuffer) )
+   {
+      UDR = ringbuffer_get((RINGBUFFER_T*)PrimaryUART.TransmitBuffer);
+   }
+}
 
 */

@@ -75,6 +75,8 @@ volatile uint8_t PrintChannel;
 int main(void)
 {
 
+   MIDI_GetControlCode(0x80,0);
+
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);
 
@@ -83,13 +85,16 @@ int main(void)
 
    /* Setup the USB */
    sei();
-   usbInit();
-   SoftTimer_TimerInit();
-   SoftTimerStart( SoftTimer2[SC_usbPoll] );
-   
+
    /* Setup the communications module */   
    UART_Init(0);
    UART_SetBaud(0, 39);
+
+   usbInit();
+   SoftTimer_TimerInit();
+   SoftTimerStart( SoftTimer1[SC_usbPoll] );
+   
+
    
    
    SPI_Init();
@@ -161,7 +166,7 @@ int main(void)
    /* Flush the buffer */
    Callback_Keypress();
 
-   SoftTimerStop(SoftTimer2[SC_usbPoll]);
+   SoftTimerStop(SoftTimer1[SC_usbPoll]);
    SoftTimerStart(SoftTimer1[SC_MIDIScan]);
 
    sei();
@@ -346,6 +351,7 @@ ISR(USART_RXC_vect)
    switch( ActiveProcess )
    {
       case PLAY_MODE:
+         //UART_Tx(buffer);
          //PrintChannel = buffer -'0';
       break;
       
@@ -364,20 +370,14 @@ ISR(USART_RXC_vect)
 }
 
 
+
 /* Once a tx has completed, this is called */
 ISR(USART_TXC_vect, ISR_NOBLOCK)
 {
-   //sei();
    // Tx the next byte if there are still bytes in the buffer
    if( !ringbuffer_isEmpty((RINGBUFFER_T*)PrimaryUART.TransmitBuffer) )
    {
-      
       UDR = ringbuffer_get((RINGBUFFER_T*)PrimaryUART.TransmitBuffer);
-      transmitState--;
-   }
-   else
-   {     
-      transmitState = 0;
    }
 }
 

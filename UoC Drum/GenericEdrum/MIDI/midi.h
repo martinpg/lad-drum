@@ -25,11 +25,14 @@
 
 
 #define DEFAULT_BAUD_RATE	MIDI_BAUD_31250
-#define DEFAULT_OUTPUT_RATE (10)
+#define DEFAULT_OUTPUT_RATE (1)
 #define DEFAULT_MIDI_CHANNEL (9)
 #define MAX_MIDI_CHANNEL (0x0F)
 #define MIDI_MANUFACTURER (0x7D) /* Educational Use */
 #define MIDI_DEVICE_CODE       (0x01)  /* LAD Drum */
+
+#define MIDI_NEXT_CONTROL_CODE      (1)
+#define MIDI_PREVIOUS_CONTROL_CODE  (0)
 
 extern const char MIDI_NOTES[];
 extern const char MIDI_BAUD[][11];
@@ -41,7 +44,12 @@ enum {
 	B1M
 } MIDIbauds;
 
+typedef struct {
 
+   uint8_t MIDI_Commands;
+   PROGRAM_CHAR* MIDI_CommandString;
+
+} MidiLookup_t;
 
 typedef struct {
 
@@ -70,6 +78,8 @@ void MIDI_SetBaud(uint16_t newBaud);
 uint8_t MIDI_GetChannelCode(void);
 void MIDI_SetChannelCode(uint8_t newCode);
 
+uint8_t MIDI_GetControlCode(uint8_t command, uint8_t direction);
+void MIDI_ControlString(uint8_t command, char* buffer);
 void MIDI_NoteString(uint8_t note, char* buffer);
 
 uint8_t MIDI_Octave(uint8_t note);

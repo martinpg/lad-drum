@@ -100,13 +100,13 @@ uint8_t GetChannelCommand(uint8_t channel)
 
 void SetChannelCommand(uint8_t channel, uint8_t command)
 {
-   if( command >= MIDI_SYSEX_START)
+   if( command == 0)
    {
       command = MIDI_NOTE_OFF;  
    }
    if( command < MIDI_NOTE_OFF)
    {
-      command = MIDI_NOTE_OFF;  
+      command = MIDI_RT_RESET;
    }   
 
    ChannelSettings->ChannelCommand[channel] = command;
@@ -119,17 +119,18 @@ uint8_t GetChannelKey(uint8_t channel)
    return ChannelSettings->ChannelKey[channel];
 }
 
-void SetChannelKey(uint8_t channel, int8_t key)
+void SetChannelKey(uint8_t channel, uint8_t key)
 {
+   uint8_t channelCommand = GetChannelCommand(channel);
 	/* Coming from 127 + 10 will be less than -50 */
-   if( key < -50)
+   if( key == UINT8_MAX)
    {
-      key = 0;  
+      key = MIDI_MAX_KEY;
    }
    /* zero - 15 will be less than 0, but not less than -50 */
-   if( key < 0)
+   if( key == MIDI_MAX_KEY + 1)
    {
-      key = MIDI_MAX_KEY;  
+      key = 0;
    }   
 
    ChannelSettings->ChannelKey[channel] = key;

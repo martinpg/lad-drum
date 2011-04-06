@@ -16,7 +16,8 @@
 
 
 /* These are the critical timers, 10ms resolution */
-volatile SoftTimer_8  SoftTimer1[TIMER1_COUNT] = { {1, 0, 0, Callback_MIDIScan} };   // MIDI Output
+volatile SoftTimer_8  SoftTimer1[TIMER1_COUNT] = { {1, 0, 0, Callback_MIDIScan}, // MIDI Output
+                                                   {1, 0, 0, usbPoll} };   
 
 
 
@@ -24,7 +25,6 @@ volatile SoftTimer_8  SoftTimer1[TIMER1_COUNT] = { {1, 0, 0, Callback_MIDIScan} 
    Functions which start these need to ensure they stop them for optimisation
    Use a 10ms timer base*/
 volatile SoftTimer_16  SoftTimer2[TIMER2_COUNT] = { {100, 0, 0, Callback_OneSecond},
-                                           {1, 0, 0, usbPoll},
                                            {DEFAULT_AUTO_MENU_UPDATE, 0, 0, Callback_AutoMenuUpdate},  // Threshold Bar
                                            {7, 0, 0, Callback_VUMeterUpdate},  // VU Meter Update
                                            {7, 0, 0, Callback_DigitalVUUpdate},  // Digital VU Meter Update

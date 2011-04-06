@@ -35,14 +35,14 @@
 
 static uint8_t SelectedProfile = PROFILE_1;
 uint8_t SelectedChannel;
-static char outputString[21];
+char outputString[21];
 
 
 void delayWithUSBPoll(uint8_t hundredms, uint8_t withDots)
 {
    uint8_t i;
    SoftTimerStop(SoftTimer1[SC_MIDIScan]);
-   SoftTimerStart(SoftTimer2[SC_usbPoll]);
+   SoftTimerStart(SoftTimer1[SC_usbPoll]);
 	for( i = 0; i < hundredms; i++ )
 	{
       if( withDots )
@@ -51,7 +51,7 @@ void delayWithUSBPoll(uint8_t hundredms, uint8_t withDots)
       }
 		_delay_ms(100);
 	}
-   SoftTimerStop(SoftTimer2[SC_usbPoll]);
+   SoftTimerStop(SoftTimer1[SC_usbPoll]);
    SoftTimerStart(SoftTimer1[SC_MIDIScan]);
 }
 
@@ -66,42 +66,42 @@ void reset(void* data)
 /* Menu wrapper functions */
 void UF_MenuSetInput(uint8_t NewInput)
 {
-   MenuSetInput(&primaryMenu, NewInput);
+   MenuSetInput(ActiveMenu, NewInput);
 }
 
 void UF_stateMachine(uint8_t CurrentState)
 {
-   stateMachine(&primaryMenu, CurrentState);
+   stateMachine(ActiveMenu, CurrentState);
 }
 
 void UF_executeState(uint8_t state)
 {
-   executeState(&primaryMenu, state);
+   executeState(ActiveMenu, state);
 }
 
 void UF_MenuReset(void)
 {
-   primaryMenu.MenuReset();
+   ActiveMenu->MenuReset();
 }
 
 void UF_MenuNewLine(void)
 {
-   primaryMenu.MenuNewLine();
+   ActiveMenu->MenuNewLine();
 }
 
 void UF_MenuChar(uint8_t data)
 {
-   primaryMenu.MenuChar(data);
+   ActiveMenu->MenuChar(data);
 }
 
 void UF_MenuPrint_P(PGM_P string)
 {
-   primaryMenu.MenuPrint_P(string);  
+   ActiveMenu->MenuPrint_P(string);  
 }   
 
 void UF_MenuPrint(char* string)
 {
-   primaryMenu.MenuPrint(string);    
+   ActiveMenu->MenuPrint(string);    
 }
 
 void UF_MenuUpOneLevel(Menu_t* menu)
@@ -705,9 +705,9 @@ void SetMIDIRate(void* data)
 			break;
 		}	
 	}
+	primaryMenu.firstEnter = 0;
 	
 	UF_MenuReset();
-	primaryMenu.firstEnter = 0;
    PrintMIDIRate();
    UF_MenuNewLine(); 
 }
@@ -823,17 +823,176 @@ void EditMIDIRate(void* data)
 }
 
 
+void ChannelToggleFunction(void* data)
+{
+	uint8_t* input;
+   ChannelToggle(SelectedChannel);
+	UF_MenuUpOneLevel(&analogueMenu);
+}
+
+void KeySelectFunction(void* data)
+{
+	uint8_t* input = data;
+   static uint8_t enterCount;
+   uint8_t channelCommand = GetChannelCommand(SelectedChannel);
+   uint8_t channelKey = GetChannelKey(SelectedChannel);
+
+   SoftTimer2[SC_AutoMenuUpdate].timeCompare = FAST_AUTO_MENU_UPDATE;
+   SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
+
+   switch( *input )
+   {
+
+      /* Up and down a Key */
+      case KP_UP:
+         if( channelCommand <= MIDI_SONG_SELECT )
+         {
+            if( ++channelKey == (MIDI_MAX_KEY + 1))
+            {
+               channelKey = 0;
+               SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_NEXT_CONTROL_CODE));
+            }
+         }
+         else
+         {
+            channelKey = 0;
+            SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_NEXT_CONTROL_CODE));
+         }
+         SetChannelKey(SelectedChannel, channelKey);
+
+      break;
+
+      case KP_DOWN:
+         if( channelCommand <= MIDI_SONG_SELECT )
+         {
+            if( --channelKey == UINT8_MAX)
+            {
+               channelKey = MIDI_MAX_KEY;
+               SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_PREVIOUS_CONTROL_CODE));
+            }
+         }
+         else
+         {
+            channelKey = 0;
+            SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_PREVIOUS_CONTROL_CODE));
+         }
+         SetChannelKey(SelectedChannel, channelKey);
+
+      break;
+
+      case KP_BACK:
+      	UF_MenuUpOneLevel(&analogueMenu); 
+      return;
+   }
+
+   PrintAnalogueChannelSetup(1);
+   MenuUpdate(&analogueMenu, NO_EXECUTE);
+   UF_MenuSetInput(KP_INVALID);
+}
 
 
+void PrintAnalogueChannelSetup(uint8_t UpDownPosition)
+{
 
+   
+   static uint8_t enterCount;
+   
+   primaryMenu.firstEnter = 0;
+   enterCount ^= (1);
+
+   SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
+
+	MenuLCD_SetPos(0, 0);
+		
+	/* Indicate the channel selected */
+	UF_MenuPrint_P(PSTR("Channel "));
+	uint8toa(SelectedChannel + 1, outputString);	
+	UF_MenuPrint(outputString);          
+   
+ 	UF_MenuPrint_P(PSTR(": "));
+
+   if( UpDownPosition == 0 && enterCount)
+   {
+      UF_MenuPrint_P( PSTR("   ") );
+   }
+   else
+   {
+   	if( GetChannelStatus(SelectedChannel) == CHANNEL_ON )
+   	{
+   		UF_MenuPrint_P( PSTR("On") );
+   	}
+   	else
+   	{
+   		UF_MenuPrint_P( PSTR("Off") );		
+   	}
+   }   
+   UF_MenuNewLine();
+   
+
+	UF_MenuPrint_P(PSTR("Note:"));
+	
+   if( UpDownPosition == 1 && enterCount)
+   {
+      UF_MenuPrint_P( PSTR("               ") );
+   }
+   else
+   {
+      MIDI_ControlString(GetChannelCommand(SelectedChannel), outputString);
+      UF_MenuPrint(outputString);
+      UF_MenuPrint_P( PSTR(" |") );
+      if( GetChannelCommand(SelectedChannel) <= MIDI_AFTERTOUCH )
+      {
+         MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);
+         UF_MenuPrint(outputString);
+         uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+      }
+      else
+      {
+         uint8toa( GetChannelKey(SelectedChannel), outputString);
+      }
+      UF_MenuPrint(outputString);
+   }
+   
+	UF_MenuNewLine();	   
+
+	/* Display the channel 'gain' */
+	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
+	{
+		UF_MenuPrint_P( PSTR("Linear ") );
+	}
+	else
+	{
+		UF_MenuPrint_P( PSTR("Non-Linear ") );		
+	}
+	UF_MenuPrint_P(PSTR("Gain: "));
+
+   if( UpDownPosition == 2 && enterCount)
+   {
+      UF_MenuPrint_P( PSTR("   ") );
+   }
+   else
+   {
+   	itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
+   	UF_MenuPrint(outputString);
+   }
+   UF_MenuNewLine();   
+
+//	Don't hide sub children.
+   analogueMenu.updateOptions = SHOW_CHILDREN;
+   SelectedSubMenu = &analogueMenu;
+   //MenuUpdate(&analogueMenu, 0);
+   /* Remember we're dealing with two menu's here */
+   //MenuSetInput( &analogueMenu, KP_INVALID );
+
+   UpdateActiveChannels();
+
+}
 
 /** Function to setup each individual analogue channel */
 void ChannelSetup(void* data)
 {
    uint8_t* input = data;
 
-   static uint8_t enterCount;
-   int8_t UpDownPosition;
    
    SelectedChannel = GetState(&primaryMenu) - ST_CHANNEL_1;
 
@@ -842,18 +1001,11 @@ void ChannelSetup(void* data)
       UF_stateMachine( primaryMenu.currentState );
 	   switch( *input )
 	   {
+
          case KP_UP:
          case KP_DOWN:
-
-            //if( UpDownPosition >= MENU_GET_BYTE(analogueMenu.states[1].sequence) )
-            {
-               MenuSetInput( &analogueMenu, *input );
-            }
-
-            
-
+            MenuSetInput( &analogueMenu, *input );
             break;
-         
          
 	      /* Up and down a Key */
 	      case KP_1:
@@ -891,28 +1043,29 @@ void ChannelSetup(void* data)
 	      case KP_A:
 				ChannelToggle(SelectedChannel);
 	      	break;
-	               
 	      
-			case KB_BACK:
-			case KP_BACK:
-            UpDownPosition = 0;
-            SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
-            MenuSetInput( &analogueMenu, 0 );
-				primaryMenu.firstEnter = 1;
-				return;
-			break;
-				
-			case KB_ENTER:
-			case KP_ENTER:
-				UF_MenuReset();
-				ActiveMenu = &analogueMenu;
-            MenuSetInput( &analogueMenu, *input );
-				executeState(&analogueMenu, analogueMenu.currentState);
-				primaryMenu.firstEnter = 1;
+        case KB_BACK:
+        case KP_BACK:
+                SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
+                MenuSetInput( &analogueMenu, 0 );
+                primaryMenu.firstEnter = 1;
+			return;
 
-				
-				return;	
-			break;
+        case KB_ENTER:
+        case KP_ENTER:
+                UF_MenuReset();
+                ActiveMenu = &analogueMenu;
+                UF_MenuSetInput(*input);
+                /* We need to explicitly switch the state since
+                 the submenu will need to parse the input, since the
+                 head function has a function (HandleSubMenu), the MenuUpdate
+                 will not switch the state for us.
+                 */
+                UF_stateMachine(analogueMenu.currentState);
+                MenuUpdate(&analogueMenu, 0);
+                primaryMenu.firstEnter = 1;
+            return;
+
 	         
 	         
 	      default:
@@ -920,142 +1073,10 @@ void ChannelSetup(void* data)
 	   }
 	}
 	   
-
-   UpDownPosition = analogueMenu.selectedItem;
-
-   primaryMenu.firstEnter = 0;
-   enterCount ^= (1);
-   //SoftTimer2[SC_AutoMenuUpdate].timeCompare = 20;
-   SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
-
-	MenuLCD_SetPos(0, 0);
-		
-	/* Indicate the channel selected */
-	UF_MenuPrint_P(PSTR("Channel "));
-	uint8toa(SelectedChannel + 1, outputString);	
-	UF_MenuPrint(outputString);          
-   
- 	UF_MenuPrint_P(PSTR(": "));
-
-   if( UpDownPosition == 0 && enterCount)
-   {
-      UF_MenuPrint_P( PSTR("   ") );
-   }
-   else
-   {
-   	if( GetChannelStatus(SelectedChannel) == CHANNEL_ON )
-   	{
-   		UF_MenuPrint_P( PSTR("On") );
-   	}
-   	else
-   	{
-   		UF_MenuPrint_P( PSTR("Off") );		
-   	}
-   }   
-   UF_MenuNewLine();
-   
-
-	UF_MenuPrint_P(PSTR("Note: "));
-	
-   if( UpDownPosition == 1 && enterCount)
-   {
-      UF_MenuPrint_P( PSTR("         ") );
-   }
-   else
-   {
-   	if( GetChannelCommand(SelectedChannel) == MIDI_NOTE_ON )
-   	{
-      	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);	
-         UF_MenuPrint(outputString);
-         uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
-       	UF_MenuPrint(outputString); 	
-      }
-      else
-      {
-      
-         uint8toa( GetChannelCommand(SelectedChannel) >> 4, outputString);
-         UF_MenuPrint(outputString);
-         UF_MenuPrint_P( PSTR(" | ") );
-      	uint8toa( GetChannelKey(SelectedChannel), outputString);
-    		UF_MenuPrint(outputString);         
-      }
-   }
-   
-	UF_MenuNewLine();	   
-
-	/* Display the channel 'gain' */
-	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
-	{
-		UF_MenuPrint_P( PSTR("Linear ") );
-	}
-	else
-	{
-		UF_MenuPrint_P( PSTR("Non-Linear ") );		
-	}
-	UF_MenuPrint_P(PSTR("Gain: "));
-
-   if( UpDownPosition == 2 && enterCount)
-   {
-      UF_MenuPrint_P( PSTR("      ") );
-   }
-   else
-   {
-   	itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
-   	UF_MenuPrint(outputString);
-   }
-   UF_MenuNewLine();   
-
-//	Don't hide sub children.
-   analogueMenu.updateOptions = SHOW_CHILDREN;
-   SelectedSubMenu = &analogueMenu;
-   MenuUpdate(&analogueMenu, !RESET_MENU);
-   /* Remember we're dealing with two menu's here */
+ 	SoftTimer2[SC_AutoMenuUpdate].timeCompare = SLOW_AUTO_MENU_UPDATE;
+   PrintAnalogueChannelSetup(analogueMenu.selectedItem);
+   MenuUpdate(&analogueMenu, 0);
    MenuSetInput( &analogueMenu, KP_INVALID );
-
-   UpdateActiveChannels();
-}
-
-
-void HandleSubMenu(void* data)
-{
-   uint8_t* input = data;
-   
-   /* This is effectively the KP Back routine which is invoked by
-    * the submenu functions via MenuUpOneLevel (provides a seamless UI
-    * going the up direction */
-   if( *input == MENU_UPDATE )
-   {
-      /* Stop looping from occuring */
-      MenuSetInput(ActiveMenu, KP_INVALID);
-      ActiveMenu->firstEnter = 1;
-      
-      /* Show the parent options */
-      MenuSetInput(ActiveMenu->parentMenu, MENU_UPDATE);   
-      MenuUpdate(ActiveMenu->parentMenu, RESET_MENU);
-
-      
-      ActiveMenu->updateOptions = HIDE_CHILDREN;
-      ActiveMenu->firstEnter = 0;
-      return;
-   }
-   
-   /* Effectively passes the KP_ENTER from the parent menu to the sub menu
-      thus executing the submenu's function (seamless between primaryMenu & submenu) */
-   if( *input != KP_BACK && !SelectedSubMenu->firstEnter )
-   {
-      stateMachine(SelectedSubMenu, SelectedSubMenu->currentState);
-      switch( *input )
-      {
-         case KP_ENTER:
-            MenuUpdate(SelectedSubMenu, !RESET_MENU);
-            SelectedSubMenu->firstEnter = 1;
-            return;
-            //executeState(&analogueMenu, analogueMenu.currentState);
-         break;
-      }  
-   }
-   
-   SelectedSubMenu->firstEnter = 0;
 }
 
 
@@ -1069,6 +1090,8 @@ void SetThreshold(void* data)
    input = data;
    
 	uint16_t PotValue = SensorPotValue() >> (THRESHOLD_ADJUST);
+
+	SoftTimer2[SC_AutoMenuUpdate].timeCompare = SMOOTH_AUTO_MENU_UPDATE;
 	SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
 	
 
@@ -1096,6 +1119,7 @@ void SetThreshold(void* data)
 	      break;  	  
 			       
          case KP_BACK:
+            SoftTimer2[SC_AutoMenuUpdate].timeCompare = DEFAULT_AUTO_MENU_UPDATE;
 				SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
          	UF_MenuUpOneLevel(&analogueMenu); 
             firstEnter = 1;
@@ -1148,6 +1172,7 @@ void SetRetrigger(void* data)
       LCD_Load_ProgressBar();
 	}	
 
+	SoftTimer2[SC_AutoMenuUpdate].timeCompare = SMOOTH_AUTO_MENU_UPDATE;
 
 	switch( *input )
 	{
@@ -1185,6 +1210,7 @@ void SetRetrigger(void* data)
 			break;
 			
          case KP_BACK:
+            SoftTimer2[SC_AutoMenuUpdate].timeCompare = DEFAULT_AUTO_MENU_UPDATE;
 				SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
 				adjustStyle = DIGITAL_ADJUST;
 				if( SelectedChannel >= ANALOGUE_INPUTS )
@@ -1200,6 +1226,7 @@ void SetRetrigger(void* data)
 	}
 		
 	firstEnter = 0;
+   MenuLCD_SetPos(0, 0);
 
 	if( adjustStyle == ANALOGUE_ADJUST )
 	{
@@ -1234,103 +1261,13 @@ void SetRetrigger(void* data)
 }
 
 
-void MonitorChannel(void* data)
-{
-	uint8_t* input = data;
-   
-	switch( *input )
-	{
-      case KP_BACK:
-         /* Stop and restore timers */
-         SoftTimerStart(SoftTimer1[SC_MIDIScan]);
-			SoftTimerStop(SoftTimer2[SC_MonitorChannel]);
-			if( SelectedChannel >= ANALOGUE_INPUTS )
-			{ 
-      	   UF_MenuUpOneLevel(&digitalMenu); 
-         }
-         else
-         {
-            UF_MenuUpOneLevel(&analogueMenu); 
-         }
-      return;
-	}
-
-   SoftTimerStop(SoftTimer1[SC_MIDIScan]);
-	SoftTimerStart(SoftTimer2[SC_MonitorChannel]);
-   
-}
-
-
-
-// progress bar defines
-#define PROGRESSPIXELS_PER_CHAR	6
-
-void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length)
-{
-	uint8_t i;
-	uint32_t pixelprogress;
-	uint8_t c;
-
-	// draw a progress bar displaying (progress / maxprogress)
-	// starting from the current cursor position
-	// with a total length of "length" characters
-	// ***note, LCD chars 0-5 must be programmed as the bar characters
-	// char 0 = empty ... char 5 = full
-
-	// total pixel length of bargraph equals length*PROGRESSPIXELS_PER_CHAR;
-	// pixel length of bar itself is
-	pixelprogress = ((progress*(length*PROGRESSPIXELS_PER_CHAR))/maxprogress);
-	
-	// print exactly "length" characters
-	for(i=0; i<length; i++)
-	{
-		// check if this is a full block, or partial or empty
-		// (uint16_t) cast is needed to avoid sign comparison warning
-		if( ((i*(uint16_t)PROGRESSPIXELS_PER_CHAR)+5) > pixelprogress )
-		{
-			// this is a partial or empty block
-			if( ((i*(uint16_t)PROGRESSPIXELS_PER_CHAR)) > pixelprogress )
-			{
-				// this is an empty block
-				// use space character?
-				c = 1;
-			}
-			else
-			{
-				// this is a partial block
-				c = (pixelprogress % PROGRESSPIXELS_PER_CHAR)+1;
-			}
-		}
-		else
-		{
-			// this is a full block
-			c = 6;
-		}
-		
-		// write character to display
-		UI_LCD_Char(&PrimaryDisplay, c);
-	}
-}
-
-void LCD_Load_ProgressBar(void)
-{
-	// load the progress bar Chars
-	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[0], 1);
-	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[1], 2);
-   UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[2], 3);
-	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[3], 4);
-	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[4], 5);
-	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[5], 6);
-   UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[6], 7);  
-}
-
-
 void SetGainCurves(void* data)
 {
 
    uint8_t* input;
    
    static int8_t presetSetting = CUSTOM;
+   uint8_t UpDownPosition;
 	input = data;
 
 
@@ -1404,67 +1341,102 @@ void SetGainCurves(void* data)
       default:
          break;
    }
-	
-
-	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
-	{
-		presetSetting = CUSTOM;
-	}   
-   
-	if( presetSetting != CUSTOM )
-	{
-		SetChannelGain(SelectedChannel, PresetGain1[presetSetting] );
-		SetSlope2Gain(SelectedChannel, PresetGain2[presetSetting] );
-		SetCrossover(SelectedChannel, PresetGainCrossover[presetSetting]);
-	}
-	
-	
-	UF_MenuReset();
-		
-	/* Indicate the channel selected */
- 	UF_MenuPrint_P(PSTR("Gain Type:"));
-	if( GetGainType(SelectedChannel) == LINEAR_GAIN )
-	{
-		UF_MenuPrint_P( PSTR("Linear") );
-		UF_MenuNewLine(); 		
-		/* Display the first slope channel 'gain' */
-		itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
-		UF_MenuPrint_P(PSTR("Gain1:"));
-		UF_MenuPrint(outputString);
-	   UF_MenuNewLine();
-		UF_MenuNewLine();		
-	}
-	else
-	{
-		UF_MenuPrint_P( PSTR("Non-Linear") );
-		UF_MenuNewLine(); 
-		/* Display the first slope channel 'gain' */
-		itoa( (int8_t)(GetChannelGain(SelectedChannel) - GAIN_OFFSET) , outputString, 10);
-		UF_MenuPrint_P(PSTR("Gain1:"));
-		UF_MenuPrint(outputString);
-		
-		/* Display the channel slope 2 'gain' */
-		itoa( (int8_t)(GetSlope2Gain(SelectedChannel) - GAIN_OFFSET), outputString, 10);
-		UF_MenuPrint_P(PSTR(" Gain2:"));
-		UF_MenuPrint(outputString);
-	   UF_MenuNewLine();   
-		
-		/* Display the gain crossover point */
-		itoa(GetCrossover(SelectedChannel), outputString, 10);
-		UF_MenuPrint_P(PSTR("Gain Crossover:"));
-		UF_MenuPrint(outputString);
-	   UF_MenuNewLine();			
-		
-		UF_MenuPrint_P(PSTR("Preset:"));
-		UF_MenuPrint_P(PresetGainStrings[presetSetting]);			
-	}   
-	
-	   
-
-   UF_MenuNewLine();   		
+    PrintGainInformation(0xFF);
 			
 	
-}	
+}
+void MonitorChannel(void* data)
+{
+	uint8_t* input = data;
+
+	switch( *input )
+	{
+      case KP_BACK:
+         /* Stop and restore timers */
+         SoftTimerStart(SoftTimer1[SC_MIDIScan]);
+			SoftTimerStop(SoftTimer2[SC_MonitorChannel]);
+			if( SelectedChannel >= ANALOGUE_INPUTS )
+			{
+      	   UF_MenuUpOneLevel(&digitalMenu);
+         }
+         else
+         {
+            UF_MenuUpOneLevel(&analogueMenu);
+         }
+      return;
+	}
+
+   SoftTimerStop(SoftTimer1[SC_MIDIScan]);
+	SoftTimerStart(SoftTimer2[SC_MonitorChannel]);
+
+}
+
+
+
+// progress bar defines
+#define PROGRESSPIXELS_PER_CHAR	6
+
+void lcdProgressBar(uint16_t progress, uint16_t maxprogress, uint8_t length)
+{
+	uint8_t i;
+	uint32_t pixelprogress;
+	uint8_t c;
+
+	// draw a progress bar displaying (progress / maxprogress)
+	// starting from the current cursor position
+	// with a total length of "length" characters
+	// ***note, LCD chars 0-5 must be programmed as the bar characters
+	// char 0 = empty ... char 5 = full
+
+	// total pixel length of bargraph equals length*PROGRESSPIXELS_PER_CHAR;
+	// pixel length of bar itself is
+	pixelprogress = ((progress*(length*PROGRESSPIXELS_PER_CHAR))/maxprogress);
+
+	// print exactly "length" characters
+	for(i=0; i<length; i++)
+	{
+		// check if this is a full block, or partial or empty
+		// (uint16_t) cast is needed to avoid sign comparison warning
+		if( ((i*(uint16_t)PROGRESSPIXELS_PER_CHAR)+5) > pixelprogress )
+		{
+			// this is a partial or empty block
+			if( ((i*(uint16_t)PROGRESSPIXELS_PER_CHAR)) > pixelprogress )
+			{
+				// this is an empty block
+				// use space character?
+				c = 1;
+			}
+			else
+			{
+				// this is a partial block
+				c = (pixelprogress % PROGRESSPIXELS_PER_CHAR)+1;
+			}
+		}
+		else
+		{
+			// this is a full block
+			c = 6;
+		}
+
+		// write character to display
+		UI_LCD_Char(&PrimaryDisplay, c);
+	}
+}
+
+void LCD_Load_ProgressBar(void)
+{
+	// load the progress bar Chars
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[0], 1);
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[1], 2);
+   UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[2], 3);
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[3], 4);
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[4], 5);
+	UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[5], 6);
+   UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)LcdCustomChar[6], 7);
+}
+
+
+
 		
 	
 
