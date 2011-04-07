@@ -46,32 +46,57 @@ static uint16_t MIDI_LastMIDIValue[ANALOGUE_INPUTS];
 
 const MidiLookup_t MidiLookUpTable[] PROGRAM_SPACE =
 {
-      {MIDI_NOTE_OFF, MIDI_NOTE_OFF_STRING},
-      {MIDI_NOTE_ON, MIDI_NOTE_ON_STRING},
-      {MIDI_AFTERTOUCH, MIDI_POLY_STRING},
-      {MIDI_CONTROL_CHANGE, MIDI_CONTROL_CHANGE_STRING},
-      {MIDI_PROGRAM_CHANGE, MIDI_PROGRAM_CHANGE_STRING},
-      {MIDI_CHANNEL_PRESSURE, MIDI_CHANNEL_PRESSURE_STRING},
-      {MIDI_PITCH_CHANGE, MIDI_PITCH_WHEEL_STRING},
-      {MIDI_SYSEX_START, MIDI_SYSEX_STRING},
-      {MIDI_TIME_CODE,MIDI_TIME_CODE_STRING  },
-      {MIDI_SONG_POSITION, MIDI_SONG_POS_STRING},
-      {MIDI_SONG_SELECT, MIDI_SONG_SEL_STRING },
-      {MIDI_TUNE_REQUEST, MIDI_TUNE_REQUEST_STRING},
-      {MIDI_SYSEX_STOP, MIDI_END_SYSEX_STRING  },
-      {MIDI_TIMING_CLOCK, MIDI_TIMING_CLOCK_STRING },
-      {MIDI_RT_TICK, MIDI_UNDEFINED_STRING },
-      {MIDI_RT_START, MIDI_SEQ_START_STRING },
-      {MIDI_RT_CONTINUE, MIDI_SEQ_CONTINUE_STRING},
-      {MIDI_RT_STOP, MIDI_SEQ_STOP_STRING },
-      {MIDI_RT_ACTIVE_SENSE, MIDI_ACTIVE_SENSING_STRING},
-      {MIDI_RT_RESET, MIDI_RESET_STRING},
+      {MIDI_NOTE_ON, MIDI_NOTE_ON_STRING,                   3},
+      {MIDI_NOTE_OFF, MIDI_NOTE_OFF_STRING,                 3},
+      {MIDI_AFTERTOUCH, MIDI_POLY_STRING,                   3},
+      {MIDI_CONTROL_CHANGE, MIDI_CONTROL_CHANGE_STRING,     3},
+      {MIDI_PROGRAM_CHANGE, MIDI_PROGRAM_CHANGE_STRING,     2},
+      {MIDI_CHANNEL_PRESSURE, MIDI_CHANNEL_PRESSURE_STRING, 2},
+      {MIDI_PITCH_CHANGE, MIDI_PITCH_WHEEL_STRING,          3},
+      {MIDI_SYSEX_START, MIDI_SYSEX_STRING,                 3},
+      {MIDI_TIME_CODE,MIDI_TIME_CODE_STRING,                2},
+      {MIDI_SONG_POSITION, MIDI_SONG_POS_STRING,            3},
+      {MIDI_SONG_SELECT, MIDI_SONG_SEL_STRING,              2},
+      {MIDI_TUNE_REQUEST, MIDI_TUNE_REQUEST_STRING,         1},
+      {MIDI_SYSEX_STOP, MIDI_END_SYSEX_STRING,              1},
+      {MIDI_TIMING_CLOCK, MIDI_TIMING_CLOCK_STRING,         1},
+      {MIDI_RT_TICK, MIDI_UNDEFINED_STRING,                 1},
+      {MIDI_RT_START, MIDI_SEQ_START_STRING,                1},
+      {MIDI_RT_CONTINUE, MIDI_SEQ_CONTINUE_STRING,          1},
+      {MIDI_RT_STOP, MIDI_SEQ_STOP_STRING,                  1},
+      {MIDI_RT_ACTIVE_SENSE, MIDI_ACTIVE_SENSING_STRING,    1},
+      {MIDI_RT_RESET, MIDI_RESET_STRING,                    1},
       {0, 0}
 };
 
 MidiSettings_t* MIDISettings;
 
+/* This checks to format the messages, ie, ChannelCode has no effect
+ * if StatusCodes > MIDI_PITCH_CHANGE, number of bytes to send also depends on
+ * the StatusCode, see MidiLookUpTable[] */
+void MIDI_SendMsg(MIDI_MSG_t* msg)
+{
+   uint8_t StatusCode = msg->StatusCode;
+   uint8_t bytesToSend = MIDI_CommandSize(StatusCode);
+   if(StatusCode <= MIDI_PITCH_CHANGE)
+   {
+      StatusCode |= MIDISettings->MIDI_ChannelCode;;
+   }
+   midiTx(StatusCode);
+   bytesToSend--;
 
+   if( bytesToSend-- )
+   {
+      midiTx(msg->Data[0]);
+      if( bytesToSend )
+      {
+         midiTx(msg->Data[1]);
+      }
+   }
+
+}
+
+/* This is a RAW send */
 void midiTx(uint8_t inbyte)
 {
    USBMIDI_PutByte(inbyte);
@@ -81,6 +106,7 @@ void midiTx(uint8_t inbyte)
 
 void MIDI_OutputAnalogueChannel(uint8_t channel)
 {
+   MIDI_MSG_t msg;
    if( GetChannelStatus(channel) && 
        (RetriggerPeriod[channel].timerEnable == SOFTTIMER_DISABLED) && 
        (SignalPeak[channel]) )
@@ -95,28 +121,26 @@ void MIDI_OutputAnalogueChannel(uint8_t channel)
          /* Make it slightly larger, so we can reach 0x7F */
          conditionedSignal++;
          /* Send a NOTE ON (default) | Channel */
-         MIDI_Tx( (GetChannelCommand(channel)) | MIDISettings->MIDI_ChannelCode);
+         msg.StatusCode = GetChannelCommand(channel);
       
          /* Output the correct Closed or Open Key */
          if( GetDualMode(channel) && 
    			 GetDigitalState(GetDigitalTrigger(channel)) == GetActiveState(GetDigitalTrigger(channel)) )
    		{
-         	MIDI_Tx(GetChannelKeyClosed(channel));
+            msg.Data[0] = GetChannelKeyClosed(channel);
    		}
    		else
    		{
-   			MIDI_Tx(GetChannelKey(channel));
+   		   msg.Data[0] = GetChannelKey(channel);
    		}
       
    		if( conditionedSignal > MIDI_MAX_DATA )
          {
    			conditionedSignal = MIDI_MAX_DATA;
-            MIDI_Tx( MIDI_MAX_DATA );   
          }
-         else
-         {
-            MIDI_Tx( (uint8_t)conditionedSignal  );
-         } 
+
+   		msg.Data[1] = (uint8_t)(conditionedSignal);
+   		MIDI_SendMsg(&msg);
 
          /* Auxiliary MIDI functions */
          MIDI_LastMIDIValue[channel] = conditionedSignal;
@@ -148,17 +172,22 @@ void MIDI_Output(void)
 void MIDI_DigitalOutput(void)
 {
    uint8_t i;
-   for( i = ANALOGUE_INPUTS; i < NUMBER_OF_REAL_INPUTS; i++)
+   MIDI_MSG_t msg;
+
+   for( i = ANALOGUE_INPUTS; i < NUMBER_OF_INPUTS; i++)
    {      
       if( GetChannelStatus(i) && 
           (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED))
       {
-   		if( SignalPeak[i] )
+   		if( SignalPeak[i] || (i >= ANALOGUE_INPUTS + DIGITAL_INPUTS))
    		{	
 	         /* Send a NOTE ON (default) | Channel */
-	         MIDI_Tx((GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
-	         MIDI_Tx(GetChannelKey(i));
-	         MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
+   		   msg.StatusCode = GetChannelCommand(i);
+   		   msg.Data[0] = GetChannelKey(i);
+   		   msg.Data[1] = GetDigitalVelocity(i - ANALOGUE_INPUTS);
+
+   		   MIDI_SendMsg(&msg);
+
 				SoftTimerStart(RetriggerPeriod[i]);
 
 				if( SoftTimer2[SC_DigitalVUUpdate].timerEnable )
@@ -170,31 +199,6 @@ void MIDI_DigitalOutput(void)
       }
    }
 }
-
-
-
-void MIDI_MetronomeOutput(void)
-{
-   uint8_t i;
-   for( i = (ANALOGUE_INPUTS + DIGITAL_INPUTS); i < (ANALOGUE_INPUTS + DIGITAL_INPUTS + METRONOME_INPUTS); i++)
-   {      
-      if( GetChannelStatus(i) && 
-          (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED))
-      {
-	      /* Send a NOTE ON (default) | Channel */
-	      MIDI_Tx((GetChannelCommand(i)) | MIDISettings->MIDI_ChannelCode);
-	      MIDI_Tx(GetChannelKey(i));
-	      MIDI_Tx( GetDigitalVelocity(i - ANALOGUE_INPUTS) );
-			SoftTimerStart(RetriggerPeriod[i]);
-			
-			if( SoftTimer2[SC_DigitalVUUpdate].timerEnable )
-	      {
-	         VUValues[i-ANALOGUE_INPUTS] = GetDigitalVelocity(i - ANALOGUE_INPUTS);
-			}
-      }
-   }
-}
-
 
 
 #if CONTROLLER_MODE
@@ -249,7 +253,7 @@ void MIDI_SetChannelCode(uint8_t newCode)
 uint8_t MIDI_GetControlCode(uint8_t command, uint8_t direction)
 {
    uint8_t i;
-   uint8_t returnCode = 0xFE;
+   uint8_t returnCode = 0x70;
    for(i = 0; FLASH_GET_PGM_BYTE(&MidiLookUpTable[i].MIDI_Commands); i++)
    {
       if( command == FLASH_GET_PGM_BYTE(&MidiLookUpTable[i].MIDI_Commands) )
@@ -257,7 +261,7 @@ uint8_t MIDI_GetControlCode(uint8_t command, uint8_t direction)
          returnCode = i;
       }
    }
-   if(returnCode != 0xFE )
+   if(returnCode != 0x70 )
    {
       if( direction == MIDI_NEXT_CONTROL_CODE )
       {
@@ -292,6 +296,21 @@ void MIDI_ControlString(uint8_t command, char* buffer)
       }
    }
    strcpy_P(buffer, MIDI_UNDEFINED_STRING);
+}
+
+
+/* Obtain the control code size */
+uint8_t MIDI_CommandSize(uint8_t command)
+{
+   uint8_t i;
+   for(i = 0; FLASH_GET_PGM_BYTE(&MidiLookUpTable[i].MIDI_Commands); i++)
+   {
+      if( command == FLASH_GET_PGM_BYTE(&MidiLookUpTable[i].MIDI_Commands) )
+      {
+         return FLASH_GET_PGM_BYTE(&MidiLookUpTable[i].MIDI_MsgSize);
+      }
+   }
+   return 1;
 }
 
 

@@ -46,8 +46,16 @@ enum {
 
 typedef struct {
 
+   uint8_t StatusCode;
+   uint8_t Data[2];
+
+} MIDI_MSG_t;
+
+typedef struct {
+
    uint8_t MIDI_Commands;
    PROGRAM_CHAR* MIDI_CommandString;
+   uint8_t MIDI_MsgSize;
 
 } MidiLookup_t;
 
@@ -63,12 +71,12 @@ typedef struct {
 
 extern MidiSettings_t* MIDISettings;
 
+void MIDI_SendMsg(MIDI_MSG_t* msg);
 void midiTx(uint8_t inbyte);
 
 void MIDI_Output(void);
 void MIDI_OutputAnalogueChannel(uint8_t channel);
 void MIDI_DigitalOutput(void);
-void MIDI_MetronomeOutput(void);
 void MIDI_KeypadOutput(uint8_t kpButton);
 
 uint16_t MIDI_GetBaud(void);
@@ -81,6 +89,8 @@ void MIDI_SetChannelCode(uint8_t newCode);
 uint8_t MIDI_GetControlCode(uint8_t command, uint8_t direction);
 void MIDI_ControlString(uint8_t command, char* buffer);
 void MIDI_NoteString(uint8_t note, char* buffer);
+/* Obtain the control code size */
+uint8_t MIDI_CommandSize(uint8_t command);
 
 uint8_t MIDI_Octave(uint8_t note);
 

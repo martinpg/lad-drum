@@ -1,8 +1,8 @@
 
 #include <stdint.h>
-#include "MIDI/midi.h"
-#include "hardwareSpecific.h"
 
+#include "hardwareSpecific.h"
+#include "MIDI/midi.h"
 #include "firmwareUpdate/firmwareUpdate.h"
 
 #include "flashmem/lowlevel_flashmem.h"
