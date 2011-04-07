@@ -429,7 +429,7 @@ const menu_data ChannelSetupMenu[] MENU_SPACE = {
    {ST_GAIN_SLOPE2,     0, GainSlopeAdjustFunction},
    {ST_GAIN_CROSSOVER,  0, GainCrossOverAdjustFunction},
    {ST_GAIN_PRESET,     0, GainPresetAdjustFunction},
-//   {ST_VELOCITY_ADJUST, 0  VelocityAdjustFunction},
+   {ST_VELOCITY_ADJUST, 0,  VelocityAdjustFunction},
 	{ST_THRESHOLD,       MT_THRESHOLD, SetThreshold},
 	{ST_RETRIGGER, MT_RETRIGGER, SetRetrigger},   
 	{ST_DUALINPUT, MT_DUALINPUT, SetDualInput},

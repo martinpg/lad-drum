@@ -61,7 +61,6 @@ void Callback_MIDIScan(void)
    /* Update the Digital States */
    ScanDigitalInputs();
    MIDI_DigitalOutput();
-   MIDI_MetronomeOutput();
 #endif
 }
 

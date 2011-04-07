@@ -83,11 +83,11 @@ void SetDualInput(void* data);
 
 void ChangeChannelCode(void* data);
 
-
+void PrintDigitalChannelSetup(uint8_t UpDownPosition);
 /** Function to setup each individual digial channel */
 void DigitalChannelSettings(void* data);
 void SetSwitchType(void* data);
-
+void VelocityAdjustFunction(void* data);
 
 /** Keypad setups */
 void KeypadButtonSettings(void* data);
