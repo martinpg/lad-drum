@@ -17,7 +17,8 @@
    #define PROFILE_LOCATION(x) EEMEM
    #define PROFILE(x)    		(sizeof(Profile_t)*(x))
 #else
-   #define PROFILE_START (FLASH_TEMP_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE)) 
+   //#define PROFILE_START (0x6A00)
+   #define PROFILE_START (FLASH_TEMP_BUFFER - (SEGMENTS_TO_USE*FLASH_BLOCK_SIZE))
    #define PROFILE_LOCATION(x) SET_SECTION(".PROFILE_"#x)
    #define PROFILE(x)    		(FLASH_TEMP_BUFFER - (sizeof(Profile_t)*(x+1)))
 #endif

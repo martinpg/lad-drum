@@ -129,9 +129,20 @@ enum {
 } channelSetupIds;
 
 
+/* Channel Setup Menus */
+enum {
+   /* The 'main' sub menu */
+   ST_DUAL_MODE_TOGGLE = FIRST_STATE,
+   ST_SET_OPEN_NOTE,
+   ST_SET_CLOSED_NOTE,
+   ST_SET_TRIGGER_CHANNEL,
+   ST_DUAL_INPUT = VISIBLE_STATE,
+} dualTrigIds;
+
 extern Menu_t primaryMenu;
 extern Menu_t analogueMenu;
 extern Menu_t digitalMenu;
+extern Menu_t dualTrigMenu;
 
 extern Menu_t* ActiveMenu;
 extern Menu_t* SelectedSubMenu;

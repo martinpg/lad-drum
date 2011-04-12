@@ -12,6 +12,9 @@
 #define DOWNLOAD_FAILED (1)
 #define WITH_DOTS (1)
 
+#define OPEN_KEY  (0)
+#define CLOSED_KEY (1)
+
 enum {
 	MAIN_SCREEN = 0,
    TECH_SPECS,
@@ -67,9 +70,11 @@ void SetMIDIRate(void* data);
 void EditMIDIRate(void* data);
 void PrintMIDIRate(void);
 
+void NoteEditor(void* data, uint8_t keyType);
 void KeySelectFunction(void* data);
 void ChannelToggleFunction(void* data);
 void ChannelSetup(void* data);
+void PrintNoteFormat(uint8_t keyType);
 void PrintAnalogueChannelSetup(uint8_t UpDownPosition);
 
 void SetThreshold(void* data);

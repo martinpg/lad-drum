@@ -4,6 +4,7 @@
 #include "hardwareSpecific.h"
 #include "userFunctions/userFunctions.h"
 #include "userFunctions/gainAdjustFunctions.h"
+#include "userFunctions/dualTriggerAdjustFunctions.h"
 #include "LCDSettings.h"
 
 #include "hardUart/hardUart.h"
@@ -437,7 +438,26 @@ const menu_data ChannelSetupMenu[] MENU_SPACE = {
    {ST_MONITORCHANNEL, MT_MONITORCHANNEL, MonitorChannel},
    {0, 0, 0}
 };  
-  
+
+
+const menu_list DualTriggerMenu[] MENU_SPACE = {
+   {ST_DUAL_INPUT, ST_DUAL_MODE_TOGGLE, 0},
+   {ST_DUAL_INPUT, ST_SET_OPEN_NOTE, 1},
+   {ST_DUAL_INPUT, ST_SET_CLOSED_NOTE, 2},
+   {ST_DUAL_INPUT, ST_SET_TRIGGER_CHANNEL, 3},
+   {0, 0, 0}
+};
+
+const menu_data DualTriggerFnTable[] MENU_SPACE = {
+
+   {ST_DUAL_INPUT,            0, HandleSubMenu},
+   {ST_DUAL_MODE_TOGGLE,      0, DualTriggerToggle},
+   {ST_SET_OPEN_NOTE,         0, DualTriggerNoteAdjust},
+   {ST_SET_CLOSED_NOTE,       0, DualTriggerNoteAdjust},
+   {ST_SET_TRIGGER_CHANNEL,   0, 0},
+   {0, 0, 0}
+};
+
 
 Menu_t primaryMenu = {ST_MAIN, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0, (menu_list*)MenuState, (menu_data*)MenuData};
 Menu_t analogueMenu = {ST_ANALOGUE_SETUP, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &primaryMenu, 0, 
@@ -445,6 +465,11 @@ Menu_t analogueMenu = {ST_ANALOGUE_SETUP, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 
                        
 Menu_t digitalMenu = {ST_DIGITAL_SETUP, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &primaryMenu, 0,
                        (menu_list*)DigitalChannelSetupMenu, (menu_data*)ChannelSetupMenu};                       
+
+Menu_t dualTrigMenu = {ST_DUAL_INPUT, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &analogueMenu, 0,
+                       (menu_list*)DualTriggerMenu, (menu_data*)DualTriggerFnTable};
+
+
 
 Menu_t* ActiveMenu = &primaryMenu;
 Menu_t* SelectedSubMenu = &primaryMenu;
@@ -573,21 +598,22 @@ void HandleSubMenu(void* data)
       return;
    }
 
+   Menu_t* selectedSubMenu = SelectedSubMenu;
    /* Effectively passes the KP_ENTER from the parent menu to the sub menu
       thus executing the submenu's function (seamless between primaryMenu & submenu) */
-   if( *input != KP_BACK && !SelectedSubMenu->firstEnter )
+   if( *input != KP_BACK && !selectedSubMenu->firstEnter )
    {
-      stateMachine(SelectedSubMenu, SelectedSubMenu->currentState);
+      stateMachine(selectedSubMenu, selectedSubMenu->currentState);
       switch( *input )
       {
          case KP_ENTER:
-            MenuUpdate(SelectedSubMenu, !RESET_MENU);
-            SelectedSubMenu->firstEnter = 1;
+            MenuUpdate(selectedSubMenu, !RESET_MENU);
+            selectedSubMenu->firstEnter = 1;
             return;
          break;
       }
    }
 
-   SelectedSubMenu->firstEnter = 0;
+   selectedSubMenu->firstEnter = 0;
 }
 

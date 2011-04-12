@@ -12,6 +12,7 @@
 #include "UI_LCD/UI_LCD.h"
 #include "UserFunctions/userFunctions.h"
 #include "UserFunctions/gainAdjustFunctions.h"
+#include "UserFunctions/dualTriggerAdjustFunctions.h"
 #include "mmculib/uint16toa.h"
 #include "mmculib/uint8toa.h"
 #include "MIDI/midi.h"
@@ -196,7 +197,7 @@ void aboutScroll(uint8_t nameIndex)
 			UF_MenuChar(0x01);
 		   UF_MenuNewLine();
 			UF_MenuPrint_P(PSTR("Version:") );
-			UF_MenuPrint_P(VersionId);		   
+			UF_MenuPrint_P(VersionId);
 		break;	
       
 		case TECH_SPECS:
@@ -830,59 +831,81 @@ void ChannelToggleFunction(void* data)
 	UF_MenuUpOneLevel(ActiveMenu);
 }
 
-void KeySelectFunction(void* data)
+/* Handles the incrementing and decrementing of notes */
+void NoteEditor(void* data, uint8_t keyType)
 {
-	uint8_t* input = data;
    uint8_t channelCommand = GetChannelCommand(SelectedChannel);
-   uint8_t channelKey = GetChannelKey(SelectedChannel);
+   uint8_t channelKey;
+   uint8_t* input = data;
 
-   SoftTimer2[SC_AutoMenuUpdate].timeCompare = FAST_AUTO_MENU_UPDATE;
-   SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
+   if( keyType == OPEN_KEY)
+   {
+      channelKey  = GetChannelKey(SelectedChannel);
+   }
+   else
+   {
+      channelKey  = GetChannelKeyClosed(SelectedChannel);
+   }
+
 
    switch( *input )
    {
-
-      /* Up and down a Key */
-      case KP_UP:
-         if( channelCommand <= MIDI_SONG_SELECT )
-         {
-            if( ++channelKey == (MIDI_MAX_KEY + 1))
+         /* Up and down a Key */
+         case KP_UP:
+            if( channelCommand <= MIDI_SONG_SELECT )
+            {
+               if( ++channelKey == (MIDI_MAX_KEY + 1))
+               {
+                  channelKey = 0;
+                  SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_NEXT_CONTROL_CODE));
+               }
+            }
+            else
             {
                channelKey = 0;
                SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_NEXT_CONTROL_CODE));
             }
-         }
-         else
-         {
-            channelKey = 0;
-            SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_NEXT_CONTROL_CODE));
-         }
-         SetChannelKey(SelectedChannel, channelKey);
+            SetChannelKey(SelectedChannel, channelKey);
 
-      break;
+         break;
 
-      case KP_DOWN:
-         if( channelCommand <= MIDI_SONG_SELECT )
-         {
-            if( --channelKey == UINT8_MAX)
+         case KP_DOWN:
+            if( channelCommand <= MIDI_SONG_SELECT )
             {
-               channelKey = MIDI_MAX_KEY;
+               if( --channelKey == UINT8_MAX)
+               {
+                  channelKey = MIDI_MAX_KEY;
+                  SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_PREVIOUS_CONTROL_CODE));
+               }
+            }
+            else
+            {
+               channelKey = 0;
                SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_PREVIOUS_CONTROL_CODE));
             }
-         }
-         else
-         {
-            channelKey = 0;
-            SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_PREVIOUS_CONTROL_CODE));
-         }
-         SetChannelKey(SelectedChannel, channelKey);
+            SetChannelKey(SelectedChannel, channelKey);
 
-      break;
+         break;
 
+
+      }
+
+}
+
+void KeySelectFunction(void* data)
+{
+	uint8_t* input = data;
+
+   SoftTimer2[SC_AutoMenuUpdate].timeCompare = FAST_AUTO_MENU_UPDATE;
+   SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
+
+   NoteEditor(data, OPEN_KEY);
+
+   switch( *input )
+   {
       case KP_BACK:
          UF_MenuUpOneLevel(ActiveMenu);
-
-      return;
+         return;
    }
 
    if( SelectedChannel >= ANALOGUE_INPUTS )
@@ -898,13 +921,39 @@ void KeySelectFunction(void* data)
 
 }
 
+void PrintNoteFormat(uint8_t keyType)
+{
+   MIDI_ControlString(GetChannelCommand(SelectedChannel), outputString);
+   UF_MenuPrint(outputString);
+   UF_MenuPrint_P( PSTR(")") );
+   if( GetChannelCommand(SelectedChannel) <= MIDI_AFTERTOUCH )
+   {
+      if( keyType == OPEN_KEY)
+      {
+         MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);
+         UF_MenuPrint(outputString);
+         uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
+      }
+      else
+      {
+         MIDI_NoteString(GetChannelKeyClosed(SelectedChannel), outputString);
+         UF_MenuPrint(outputString);
+         uint8toa( MIDI_Octave(GetChannelKeyClosed(SelectedChannel)), outputString);
+      }
+   }
+   else
+   {
+      uint8toa( GetChannelKey(SelectedChannel), outputString);
+   }
+   UF_MenuPrint(outputString);
+}
 
 /** Function to setup each individual analogue channel */
 void PrintAnalogueChannelSetup(uint8_t UpDownPosition)
 {
    static uint8_t enterCount;
 
-   primaryMenu.firstEnter = 0;
+   ActiveMenu->parentMenu->firstEnter = 0;
    enterCount ^= (1);
 
    SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
@@ -944,20 +993,7 @@ void PrintAnalogueChannelSetup(uint8_t UpDownPosition)
    }
    else
    {
-      MIDI_ControlString(GetChannelCommand(SelectedChannel), outputString);
-      UF_MenuPrint(outputString);
-      UF_MenuPrint_P( PSTR(" |") );
-      if( GetChannelCommand(SelectedChannel) <= MIDI_AFTERTOUCH )
-      {
-         MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);
-         UF_MenuPrint(outputString);
-         uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
-      }
-      else
-      {
-         uint8toa( GetChannelKey(SelectedChannel), outputString);
-      }
-      UF_MenuPrint(outputString);
+      PrintNoteFormat(OPEN_KEY);
    }
 
 	UF_MenuNewLine();
@@ -987,6 +1023,7 @@ void PrintAnalogueChannelSetup(uint8_t UpDownPosition)
 //	Don't hide sub children.
    analogueMenu.updateOptions = SHOW_CHILDREN;
    SelectedSubMenu = &analogueMenu;
+   //ActiveMenu = &analogueMenu;
    UpdateActiveChannels();
 
 }
@@ -1051,9 +1088,9 @@ void ChannelSetup(void* data)
 
         case KB_BACK:
         case KP_BACK:
-                SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
-                MenuSetInput( &analogueMenu, 0 );
-                primaryMenu.firstEnter = 1;
+           SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
+           MenuSetInput( &analogueMenu, 0 );
+           primaryMenu.firstEnter = 1;
 			return;
 
         case KB_ENTER:
@@ -1083,6 +1120,119 @@ void ChannelSetup(void* data)
    MenuUpdate(&analogueMenu, 0);
    MenuSetInput( &analogueMenu, KP_INVALID );
 }
+
+
+void SetDualInput(void* data)
+{
+   uint8_t* input;
+	input = data;
+
+   if( analogueMenu.firstEnter != 1 )
+   {
+
+      switch( *input )
+      {
+
+         case KP_UP:
+         case KP_DOWN:
+            MenuSetInput( &dualTrigMenu, *input );
+            break;
+
+         /* Up and down a Key for Open Key*/
+         case KP_1:
+            SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+1);
+         break;
+
+         case KP_7:
+            SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)-1);
+         break;
+
+         /* Up an octave */
+         case KP_STAR:
+            SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+NOTE_COUNT);
+         break;
+
+         /* Up and down a Key for Closed */
+         case KP_3:
+            SetChannelKeyClosed(SelectedChannel, GetChannelKeyClosed(SelectedChannel)+1);
+         break;
+
+         case KP_9:
+            SetChannelKeyClosed(SelectedChannel, GetChannelKeyClosed(SelectedChannel)-1);
+         break;
+
+         /* Up an octave */
+         case KP_HASH:
+            SetChannelKeyClosed(SelectedChannel, GetChannelKeyClosed(SelectedChannel)+NOTE_COUNT);
+         break;
+
+         /* Setting Modifiers */
+         case KP_A:
+            DualModeToggle(SelectedChannel);
+         break;
+
+         /* Digital Trigger Select */
+         case KP_B:
+            SetTrigger(SelectedChannel, GetTrigger(SelectedChannel)+1);
+         break;
+
+         case KP_C:
+            SetTrigger(SelectedChannel, GetTrigger(SelectedChannel)-1);
+         break;
+
+         case KB_BACK:
+         case KP_BACK:
+            SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
+            UF_stateMachine( analogueMenu.currentState );
+
+            ActiveMenu = &primaryMenu;
+            SelectedSubMenu = &analogueMenu;
+            MenuSetInput( &analogueMenu, KP_INVALID );
+            executeState(ActiveMenu, ActiveMenu->currentState);
+            analogueMenu.updateOptions = RESET_MENU | HIDE_CHILDREN;
+            analogueMenu.firstEnter = 1;
+            return;
+
+         case KB_ENTER:
+         case KP_ENTER:
+
+            UF_MenuReset();
+            ActiveMenu = &dualTrigMenu;
+            SelectedSubMenu = &dualTrigMenu;
+            MenuSetInput( &dualTrigMenu, *input );
+            //stateMachine(&dualTrigMenu, dualTrigMenu.currentState);
+            //UF_MenuSetInput(*input);
+
+            UF_stateMachine(dualTrigMenu.currentState);
+            MenuUpdate(&dualTrigMenu, 0);
+            //MenuUpdate(&dualTrigMenu, 0);
+            analogueMenu.firstEnter = 1;
+
+            //SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
+            MenuSetInput( &dualTrigMenu, 0 );
+
+
+            return;
+         break;
+
+         default:
+            break;
+      }
+   }
+
+   analogueMenu.firstEnter = 0;
+
+   SoftTimer2[SC_AutoMenuUpdate].timeCompare = SLOW_AUTO_MENU_UPDATE;
+
+
+   MenuUpdate(&dualTrigMenu, RESET_MENU);
+   MenuSetInput( &dualTrigMenu, KP_INVALID );
+
+   PrintDualTriggerInformation(dualTrigMenu.selectedItem);
+
+   //
+}
+
 
 
 void SetThreshold(void* data)
@@ -1468,7 +1618,7 @@ void PrintDigitalChannelSetup(uint8_t UpDownPosition)
       uint8toa(SelectedDigitalChannel + 1, outputString);
    }
    UF_MenuPrint(outputString);
-   UF_MenuPrint_P(PSTR(": "));
+   UF_MenuPrint_P(PSTR(":"));
 
    if( UpDownPosition == 0 && enterCount)
    {
@@ -1495,20 +1645,7 @@ void PrintDigitalChannelSetup(uint8_t UpDownPosition)
    }
    else
    {
-      MIDI_ControlString(GetChannelCommand(SelectedChannel), outputString);
-      UF_MenuPrint(outputString);
-      UF_MenuPrint_P( PSTR(" |") );
-      if( GetChannelCommand(SelectedChannel) <= MIDI_AFTERTOUCH )
-      {
-         MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);
-         UF_MenuPrint(outputString);
-         uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
-      }
-      else
-      {
-         uint8toa( GetChannelKey(SelectedChannel), outputString);
-      }
-      UF_MenuPrint(outputString);
+      PrintNoteFormat(OPEN_KEY);
    }
    UF_MenuNewLine();
 
@@ -1657,124 +1794,6 @@ void DigitalChannelSettings(void* data)
 
 
 
-void SetDualInput(void* data)
-{
-   uint8_t* input;
-	input = data;
-
-
-   switch( *input )
-   {
-      /* Up and down a Key for Open Key*/
-      case KP_1:
-			SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+1);
-      break;
-
-      case KP_7:
-			SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)-1);
-      break;
-
-      /* Up an octave */
-      case KP_STAR:
-			SetChannelKey(SelectedChannel, GetChannelKey(SelectedChannel)+NOTE_COUNT);
-      break;
-
-      /* Up and down a Key for Closed */
-      case KP_3:
-			SetChannelKeyClosed(SelectedChannel, GetChannelKeyClosed(SelectedChannel)+1);
-      break;
-
-      case KP_9:
-			SetChannelKeyClosed(SelectedChannel, GetChannelKeyClosed(SelectedChannel)-1);
-      break;
-
-      /* Up an octave */
-      case KP_HASH:
-			SetChannelKeyClosed(SelectedChannel, GetChannelKeyClosed(SelectedChannel)+NOTE_COUNT);
-      break;
-
-      /* Setting Modifiers */
-      case KP_A:
-			DualModeToggle(SelectedChannel);
-      break;
-
-      /* Digital Trigger Select */
-      case KP_B:
-			SetDigitalTrigger(SelectedChannel, (int16_t)GetDigitalTrigger(SelectedChannel)+1);
-      break;
-
-      case KP_C:
-			SetDigitalTrigger(SelectedChannel, (int16_t)GetDigitalTrigger(SelectedChannel)-1);
-      break;
-
-      case KB_BACK:
-      case KP_BACK:
-      	UF_MenuUpOneLevel(&analogueMenu);
-         return;
-
-      default:
-         break;
-   }
-
-	UF_MenuReset();
-
-	/* Indicate the channel selected */
-	UF_MenuPrint_P(PSTR("CH"));
-	uint8toa(SelectedChannel + 1, outputString);
-	UF_MenuPrint(outputString);
-
- 	UF_MenuPrint_P(PSTR(" Dual Input: "));
-	if( GetDualMode(SelectedChannel) == HAS_DUAL_INPUT )
-	{
-		UF_MenuPrint_P( PSTR("On") );
-	}
-	else
-	{
-		UF_MenuPrint_P( PSTR("Off") );
-	}
-   UF_MenuNewLine();
-
-
-	UF_MenuPrint_P(PSTR("Open Note:"));
-	MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);
-   UF_MenuPrint(outputString);
-	if( MIDI_Octave(GetChannelKey(SelectedChannel)) == 0 )
-	{
-      UF_MenuPrint_P( PSTR("0"));
-   }
-   else
-   {
-   	uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
- 		UF_MenuPrint(outputString);
-   }
-
-	UF_MenuNewLine();
-	UF_MenuPrint_P(PSTR("Closed Note:"));
-	MIDI_NoteString(GetChannelKeyClosed(SelectedChannel), outputString);
-   UF_MenuPrint(outputString);
-	if( MIDI_Octave(GetChannelKeyClosed(SelectedChannel)) == 0 )
-	{
-      UF_MenuPrint_P( PSTR("0"));
-   }
-   else
-   {
-   	uint8toa( MIDI_Octave(GetChannelKeyClosed(SelectedChannel)), outputString);
- 		UF_MenuPrint(outputString);
-   }
-
-
-	UF_MenuNewLine();
-
-	/* Display the channel velocity */
-	uint8toa(GetDigitalTrigger(SelectedChannel)+1, outputString);
-	UF_MenuPrint_P(PSTR("Activated by: D"));
-	UF_MenuPrint(outputString);
-   UF_MenuNewLine();
-}
-
-
-
-
 /** Function to setup each individual digital channel */
 void SetSwitchType(void* data)
 {
@@ -1804,10 +1823,12 @@ void SetSwitchType(void* data)
 	switch( *input )
 	{
 			/* Active High/Low toggle */
+         case KP_UP:
          case KP_A:
 				ActiveStateToggle(SelectedDigitalChannel);
          break;
          
+         case KP_DOWN:
          case KP_B:
 				TriggerModeToggle(SelectedDigitalChannel);         
 			break;

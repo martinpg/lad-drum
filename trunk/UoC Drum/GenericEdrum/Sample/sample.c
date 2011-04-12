@@ -64,7 +64,7 @@ void UpdateActiveChannels(void)
    
    for( i = 0; i < ANALOGUE_INPUTS; i++)
    {
-      if( ((ChannelSettings->ChannelStatus) & ((uint32_t)1 << i)) != 0 )
+      if( GetChannelStatus(i) != 0 )
       {
          ActiveChannels[ChannelIndex++] = i;
       }
@@ -74,22 +74,20 @@ void UpdateActiveChannels(void)
 }
 
 
-uint8_t GetChannelStatus(uint8_t channel)
-{
-   return ((ChannelSettings->ChannelStatus & ((uint32_t)1 << channel)) != 0);
-}
-
 
 void ChannelToggle(uint8_t channel)
 {
    SetChannelStatus( channel, !GetChannelStatus(channel) );
 }
 
+uint8_t GetChannelStatus(uint8_t channel)
+{
+   return GET_BIT_FIELD(ChannelSettings->ChannelStatus, channel) != 0;
+}
 /* This is the only place where channel settings can be adjusted */
 void SetChannelStatus(uint8_t channel, uint8_t status)
 {
-   ChannelSettings->ChannelStatus &=  ~((uint32_t)1 << channel);
-   ChannelSettings->ChannelStatus |=   ((uint32_t)status << channel);
+   SET_BIT_FIELD(ChannelSettings->ChannelStatus, channel, status);
 }
 
 /* Channel Codes  */
@@ -196,10 +194,13 @@ void SetChannelReTrig(uint8_t channel, int16_t retrig)
    ChannelSettings->ChannelRetrigger[channel] = retrig;
 }
 
+
+
+
 /* Setup Analogue Dual Inputs */
 uint8_t GetDualMode(uint8_t channel)
 {
-   return ((ChannelSettings->HasDualInput & (1 << channel)) != 0);
+   return GET_BIT_FIELD(ChannelSettings->HasDualInput, channel) != 0;
 }
 
 
@@ -210,53 +211,23 @@ void DualModeToggle(uint8_t channel)
 
 void SetDualMode(uint8_t channel, uint8_t dualInputMode)
 {
-   ChannelSettings->HasDualInput &=  ~(1 << channel);
-   ChannelSettings->HasDualInput |=   (dualInputMode << channel);
+   SET_BIT_FIELD(ChannelSettings->HasDualInput, channel, dualInputMode);
 }
 
 /* Dual Input digital triggering map */
 /* The channel passed is the Analogue channel */
-uint8_t GetDigitalTrigger(uint8_t AnalogueChannel)
+uint8_t GetTrigger(uint8_t channel)
 {
-	if( AnalogueChannel < 8 )
-	{
-   	return (ChannelSettings->AnalogueTrigger[0] & 
-				 (0x0F << (AnalogueChannel << 2)  )) >> (AnalogueChannel << 2);		
-	}
-	else
-	{
-		return (ChannelSettings->AnalogueTrigger[1] & 
-		 		 (0x0F << ((AnalogueChannel-8) << 2))) >> (AnalogueChannel << 2);
-	}
+	return ChannelSettings->AltTrigger[channel];
 }
 
-void SetDigitalTrigger(uint8_t AnalogueChannel, int8_t DigitalChannel)
+void SetTrigger(uint8_t channel, uint8_t triggerChannel)
 {
-	if( DigitalChannel >= DIGITAL_INPUTS)
-	{
-		DigitalChannel = 0;		
-	}
-	
-	if( DigitalChannel < 0 )
-	{
-		DigitalChannel = DIGITAL_INPUTS - 1;	
-	}
-	
-	
-	if( AnalogueChannel < ANALOGUE_INPUTS )
-	{
-		if( AnalogueChannel < 8 )
-		{
-	   	ChannelSettings->AnalogueTrigger[0] &=  ~(0x0F << (AnalogueChannel << 2));
-			ChannelSettings->AnalogueTrigger[0] |=  (DigitalChannel << (AnalogueChannel << 2));			
-		}
-		else
-		{
-	   	ChannelSettings->AnalogueTrigger[1] &=  ~(0x0F << ((AnalogueChannel-8) << 2));
-			ChannelSettings->AnalogueTrigger[1] |=  (DigitalChannel << ((AnalogueChannel-8) << 2));
-		}
-		
-	}
+   if( triggerChannel == 0xFF )
+   {
+      triggerChannel == NUMBER_OF_INPUTS-1;
+   }
+   ChannelSettings->AltTrigger[channel] = triggerChannel;
 }
 
 
@@ -319,6 +290,20 @@ void SetTriggerMode(uint8_t DigitalChannel, uint8_t triggerMode)
    DigitalSettings->DigitalTriggerMode |=   (triggerMode << DigitalChannel);
 }
 
+/* Returns either 1 or 0 to represent whether there is an active signal on
+ * the channel.
+ */
+uint8_t GetChannelState(uint8_t channel)
+{
+   if( channel >= ANALOGUE_INPUTS )
+   {
+      return GetDigitalState(channel) == GetActiveState(channel);
+   }
+   else
+   {
+      return SignalPeak[channel];
+   }
+}
 
 /* Initiate changes */
 void UpdateChannelRetriggers(void)
