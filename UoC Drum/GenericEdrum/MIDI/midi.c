@@ -18,14 +18,14 @@ const PROGRAM_CHAR MIDI_BAUD[][11] PROGRAM_SPACE = {"31.25k",
 
 PROGRAM_CHAR MIDI_NOTE_OFF_STRING[] PROGRAM_SPACE = "NOTE OFF";
 PROGRAM_CHAR MIDI_NOTE_ON_STRING[] PROGRAM_SPACE = "NOTE ON";
-PROGRAM_CHAR MIDI_POLY_STRING[] PROGRAM_SPACE = "POLY.PRES";
+PROGRAM_CHAR MIDI_POLY_STRING[] PROGRAM_SPACE = "AFTRTCH";
 PROGRAM_CHAR MIDI_CONTROL_CHANGE_STRING[] PROGRAM_SPACE = "CONT.CHNG";
 PROGRAM_CHAR MIDI_PROGRAM_CHANGE_STRING[] PROGRAM_SPACE = "PROG.CHNG";
 PROGRAM_CHAR MIDI_CHANNEL_PRESSURE_STRING[] PROGRAM_SPACE= "CHAN.PRES";
 PROGRAM_CHAR MIDI_PITCH_WHEEL_STRING[] PROGRAM_SPACE = "PITCH W.";
 PROGRAM_CHAR MIDI_SYSEX_STRING[] PROGRAM_SPACE = "SYSEX";
 
-PROGRAM_CHAR MIDI_TIME_CODE_STRING[] PROGRAM_SPACE = "TIME.CODE";
+PROGRAM_CHAR MIDI_TIME_CODE_STRING[] PROGRAM_SPACE = "TIMECODE";
 PROGRAM_CHAR MIDI_SONG_POS_STRING[] PROGRAM_SPACE = "SONG.POS";
 PROGRAM_CHAR MIDI_SONG_SEL_STRING[] PROGRAM_SPACE = "SONG.SEL";
 
@@ -124,8 +124,7 @@ void MIDI_OutputAnalogueChannel(uint8_t channel)
          msg.StatusCode = GetChannelCommand(channel);
       
          /* Output the correct Closed or Open Key */
-         if( GetDualMode(channel) && 
-   			 GetDigitalState(GetDigitalTrigger(channel)) == GetActiveState(GetDigitalTrigger(channel)) )
+         if( GetDualMode(channel) && GetChannelState(GetTrigger(channel)) )
    		{
             msg.Data[0] = GetChannelKeyClosed(channel);
    		}
@@ -183,7 +182,14 @@ void MIDI_DigitalOutput(void)
    		{	
 	         /* Send a NOTE ON (default) | Channel */
    		   msg.StatusCode = GetChannelCommand(i);
-   		   msg.Data[0] = GetChannelKey(i);
+   		   if( GetDualMode(i) && GetChannelState(GetTrigger(i)) )
+   		   {
+   		      msg.Data[0] = GetChannelKeyClosed(i);
+   		   }
+   		   else
+   		   {
+   		      msg.Data[0] = GetChannelKey(i);
+   		   }
    		   msg.Data[1] = GetDigitalVelocity(i - ANALOGUE_INPUTS);
 
    		   MIDI_SendMsg(&msg);

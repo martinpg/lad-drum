@@ -68,6 +68,9 @@
 #define SAMPLE_IS_FALLING (1)
 #define SAMPLE_BELOW_THRESHOLD (2)
 
+#define GET_BIT_FIELD(FIELD, BIT) (FIELD[BIT>>3] & (1<<(BIT-((BIT>>3)<<3))))
+#define SET_BIT_FIELD(FIELD, BIT, STATE)  FIELD[BIT>>3] &= ~(1<<(BIT-((BIT>>3)<<3)));  FIELD[BIT>>3] |= (STATE<<(BIT-((BIT>>3)<<3)))
+
 enum {
 	D0 = 0,
 	D1,
@@ -86,7 +89,7 @@ enum {
 typedef struct {
 
 	/* For both Analogue and Digital Channels */
-   uint32_t  ChannelStatus;
+   uint8_t  ChannelStatus[(NUMBER_OF_INPUTS+8)/8];
 
    uint8_t   ChannelCommand[NUMBER_OF_INPUTS+KEYPAD_INPUTS];
    
@@ -99,12 +102,12 @@ typedef struct {
    uint8_t	 ChannelRetrigger[NUMBER_OF_INPUTS];
    
    /* Associating an analogue input with a digital one */
-   uint16_t	 HasDualInput;
-   /* Each analogue channel occupies a Nibble and corresponds to the 
-    * digital input which activates the closed note */
-   uint32_t	 AnalogueTrigger[ANALOGUE_INPUTS/8];
+   uint8_t	 HasDualInput[(NUMBER_OF_INPUTS+8)/8];
+
+   /* The channels can have any input as it's dual trigger */
+   uint8_t	 AltTrigger[NUMBER_OF_INPUTS];
    /* For the 'closed' notes */
-   uint8_t	 ClosedChannelKey[ANALOGUE_INPUTS];   
+   uint8_t	 ClosedChannelKey[NUMBER_OF_INPUTS];
 
 	
 } ChannelSettings_t;
@@ -201,8 +204,8 @@ void SetDualMode(uint8_t channel, uint8_t dualInputMode);
 
 
 /* The channel passed is the Analogue channel */
-uint8_t GetDigitalTrigger(uint8_t AnalogueChannel);
-void SetDigitalTrigger(uint8_t AnalogueChannel, int8_t DigitalChannel);
+uint8_t GetTrigger(uint8_t channel);
+void SetTrigger(uint8_t channel, uint8_t triggerChannel);
 
 
 uint8_t GetDigitalVelocity(uint8_t DigitalChannel);
@@ -221,7 +224,10 @@ uint8_t GetTriggerMode(uint8_t DigitalChannel);
 void TriggerModeToggle(uint8_t DigitalChannel);
 void SetTriggerMode(uint8_t DigitalChannel, uint8_t triggerMode);
 
-
+/* Returns either 1 or 0 to represent whether there is an active signal on
+ * the channel.
+ */
+uint8_t GetChannelState(uint8_t channel);
 
 /* Channel Gain */
 int8_t GetChannelGain(uint8_t channel);
