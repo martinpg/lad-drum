@@ -9,9 +9,11 @@
 //#define ANALOGUE_INPUTS	(16)
 //#define METRONOME_INPUTS (8)
 //#define DIGITAL_INPUTS	(8)
+//#define KEYPAD_INPUTS (16)
 #define NUMBER_OF_REAL_INPUTS (ANALOGUE_INPUTS + DIGITAL_INPUTS)
-#define NUMBER_OF_INPUTS   (ANALOGUE_INPUTS + DIGITAL_INPUTS + METRONOME_INPUTS)
-#define KEYPAD_INPUTS (16)
+#define NUMBER_OF_SWITCH_INPUTS (DIGITAL_INPUTS + METRONOME_INPUTS + KEYPAD_INPUTS)
+#define NUMBER_OF_INPUTS   (ANALOGUE_INPUTS + DIGITAL_INPUTS + METRONOME_INPUTS + KEYPAD_INPUTS)
+
 
 #define LAST_CHANNEL_INDEX (0xFF)
 
@@ -88,27 +90,32 @@ enum {
 
 typedef struct {
 
-	/* For both Analogue and Digital Channels */
+	/* For both Analogue and Digital Channels
+	 * Bitmap (ON / OFF) of the Channel status. */
    uint8_t  ChannelStatus[(NUMBER_OF_INPUTS+8)/8];
 
-   uint8_t   ChannelCommand[NUMBER_OF_INPUTS+KEYPAD_INPUTS];
+   /* Each Channel key has a corresponding channel command */
+   uint8_t   ChannelCommand[NUMBER_OF_INPUTS];
    
-   /* For Open notes, Digital Inputs have only Open notes */
-   uint8_t   ChannelKey[NUMBER_OF_INPUTS+KEYPAD_INPUTS];
+   /* For Open notes */
+   uint8_t   ChannelKey[NUMBER_OF_INPUTS];
 
    uint16_t  ChannelThreshold[ANALOGUE_INPUTS];
    
    /* in 10ms resolution for both Analogue and Digital Settings */
    uint8_t	 ChannelRetrigger[NUMBER_OF_INPUTS];
    
-   /* Associating an analogue input with a digital one */
+   /* Associating an input with another one */
    uint8_t	 HasDualInput[(NUMBER_OF_INPUTS+8)/8];
 
    /* The channels can have any input as it's dual trigger */
    uint8_t	 AltTrigger[NUMBER_OF_INPUTS];
+
    /* For the 'closed' notes */
    uint8_t	 ClosedChannelKey[NUMBER_OF_INPUTS];
 
+   /* Each Channel key has a corresponding channel command */
+   uint8_t   ClosedChannelCommand[NUMBER_OF_INPUTS];
 	
 } ChannelSettings_t;
 
@@ -123,19 +130,20 @@ typedef struct {
    /* Crossover Level from Gain 1 to Gain 2*/
    int16_t  Crossover[ANALOGUE_INPUTS];
 	
-	uint16_t   GainType;
+   /* Linear or non linear gain */
+	uint16_t   GainType[(ANALOGUE_INPUTS+8)/8];
 	
 } GainSettings_t;
 
 typedef struct {
 
    /* The velocity of the digital outputs is constant */
-   uint8_t	 DigitalVelocity[DIGITAL_INPUTS+METRONOME_INPUTS+KEYPAD_INPUTS];
+   uint8_t	 DigitalVelocity[NUMBER_OF_SWITCH_INPUTS];
    
    /* Sets the input to either active high/low */
-   uint8_t 	 DigitalActiveState;
+   uint8_t 	 DigitalActiveState[(NUMBER_OF_SWITCH_INPUTS+8)/8];
    /* Either single shot (needs to be reset) or continuous */
-   uint8_t	 DigitalTriggerMode;
+   uint8_t	 DigitalTriggerMode[(NUMBER_OF_SWITCH_INPUTS+8)/8];
 	
 } DigitalSettings_t;
 
@@ -179,6 +187,9 @@ void SetChannelStatus(uint8_t channel, uint8_t status);
 /* Channel Commands */
 uint8_t GetChannelCommand(uint8_t channel);
 void SetChannelCommand(uint8_t channel, uint8_t command);
+
+uint8_t GetClosedChannelCommand(uint8_t channel);
+void SetClosedChannelCommand(uint8_t channel, uint8_t command);
 
 /* Channel Key */
 uint8_t GetChannelKey(uint8_t channel);

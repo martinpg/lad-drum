@@ -120,16 +120,17 @@ void MIDI_OutputAnalogueChannel(uint8_t channel)
    	{
          /* Make it slightly larger, so we can reach 0x7F */
          conditionedSignal++;
-         /* Send a NOTE ON (default) | Channel */
-         msg.StatusCode = GetChannelCommand(channel);
-      
+
          /* Output the correct Closed or Open Key */
          if( GetDualMode(channel) && GetChannelState(GetTrigger(channel)) )
    		{
+            /* The channel code is appended at the midi_send function */
+            msg.StatusCode = GetClosedChannelCommand(channel);
             msg.Data[0] = GetChannelKeyClosed(channel);
    		}
    		else
    		{
+   		   msg.StatusCode = GetChannelCommand(channel);
    		   msg.Data[0] = GetChannelKey(channel);
    		}
       
@@ -143,7 +144,7 @@ void MIDI_OutputAnalogueChannel(uint8_t channel)
 
          /* Auxiliary MIDI functions */
          MIDI_LastMIDIValue[channel] = conditionedSignal;
-         SoftTimerStart(RetriggerPeriod[channel]); 
+
    		if( SoftTimer2[SC_VUMeterUpdate].timerEnable )
          {
             if( SignalPeak[channel] > VUValues[channel] )
@@ -152,6 +153,7 @@ void MIDI_OutputAnalogueChannel(uint8_t channel)
             }
    		}
 
+   		SoftTimerStart(RetriggerPeriod[channel]);
    	}
    }  
 }
@@ -181,13 +183,15 @@ void MIDI_DigitalOutput(void)
    		if( SignalPeak[i] || (i >= ANALOGUE_INPUTS + DIGITAL_INPUTS))
    		{	
 	         /* Send a NOTE ON (default) | Channel */
-   		   msg.StatusCode = GetChannelCommand(i);
+
    		   if( GetDualMode(i) && GetChannelState(GetTrigger(i)) )
    		   {
+   		      msg.StatusCode = GetClosedChannelCommand(i);
    		      msg.Data[0] = GetChannelKeyClosed(i);
    		   }
    		   else
    		   {
+   		      msg.StatusCode = GetChannelCommand(i);
    		      msg.Data[0] = GetChannelKey(i);
    		   }
    		   msg.Data[1] = GetDigitalVelocity(i - ANALOGUE_INPUTS);

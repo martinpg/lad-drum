@@ -14,36 +14,72 @@
 #include "SysEx.h"
 
 #include "hardUart/hardUart.h"
+#include "edrumAVRsharedfunctions.h"
 
 static uint16_t DataCount;
+#define putMIDI(x) MIDI_Tx(x)
 
-void SysexSend(void* data, uint16_t len)
+void SysExSendNextByte(void* data, uint16_t count)
+{
+   uint8_t* buffer = (uint8_t*)data;
+
+
+   switch(count)
+   {
+      case 0:
+         MIDI_Tx(MIDI_SYSEX_START);
+         break;
+      case 1:
+         MIDI_Tx(MIDI_MANUFACTURER);
+         break;
+      case 2:
+         MIDI_Tx(MIDI_DEVICE_CODE);
+         break;
+      case (sizeof(Profile_t)+3):
+         MIDI_Tx(MIDI_SYSEX_STOP);
+         break;
+      default:
+         if( ((buffer[count-3]) & 0x80) )
+         {
+            MIDI_Tx(1);
+         }
+         else
+         {
+            MIDI_Tx(0);
+         }
+         MIDI_Tx( (buffer[count-3]) & 0x7F );
+         break;
+   }
+
+}
+/*
+void SysexSend(void* data, uint16_t len, uint8_t outStream)
 {
    uint16_t i = 0;
    uint8_t* buffer = (uint8_t*)data;
-   
-   MIDI_Tx(MIDI_SYSEX_START);
-   MIDI_Tx(MIDI_MANUFACTURER);
-   MIDI_Tx(MIDI_DEVICE_CODE);
+
+   putMIDI(MIDI_SYSEX_START);
+   putMIDI(MIDI_MANUFACTURER);
+   putMIDI(MIDI_DEVICE_CODE);
    
 
 	while( i++ < len )
 	{
-      /* Ensure all bytes sent are less than 128 or 0x7F */
+      // Ensure all bytes sent are less than 128 or 0x7F
       if( (*buffer & 0x80) )
       {
-         MIDI_Tx(1);
+         putMIDI(1);
       }
       else
       {
-         MIDI_Tx(0);   
+         putMIDI(0);
       }
       
-      MIDI_Tx( (*buffer++) & 0x7F );
+      putMIDI( (*buffer++) & 0x7F );
 	}
 
-   MIDI_Tx(MIDI_SYSEX_STOP);
-}
+	putMIDI(MIDI_SYSEX_STOP);
+}*/
 
 uint8_t IsReceivingSysExData(uint8_t state)
 {  

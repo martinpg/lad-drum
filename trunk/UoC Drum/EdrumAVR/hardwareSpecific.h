@@ -66,6 +66,7 @@ extern volatile AVR_USART_t PrimaryUART;
 #define ANALOGUE_INPUTS	(16)
 #define METRONOME_INPUTS (8)
 #define DIGITAL_INPUTS	(8)
+#define KEYPAD_INPUTS (0)
 
 /* Channel Select Defines */
 #define CHSELOUT  PORTB

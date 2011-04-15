@@ -20,6 +20,7 @@ extern const char VersionId[];
 enum {
    PLAY_MODE = 0,
    RECEIVE_SYSEX,
+   SENDING_SYSEX,
    CONTROLLER_MODE,
    FIRMWARE_UPGRADE,
    USB_MIDI_THRU,

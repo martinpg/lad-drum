@@ -415,6 +415,7 @@ const menu_list DigitalChannelSetupMenu[] MENU_SPACE = {
    {ST_DIGITAL_SETUP, ST_VELOCITY_ADJUST, 2},
    {ST_DIGITAL_SETUP, ST_RETRIGGER, 3},
    {ST_DIGITAL_SETUP, ST_TRIGGER_TYPE, 4}, 
+   {ST_DIGITAL_SETUP, ST_DUALINPUT, 5},
    {0, 0, 0} 
 };
 
@@ -454,7 +455,7 @@ const menu_data DualTriggerFnTable[] MENU_SPACE = {
    {ST_DUAL_MODE_TOGGLE,      0, DualTriggerToggle},
    {ST_SET_OPEN_NOTE,         0, DualTriggerNoteAdjust},
    {ST_SET_CLOSED_NOTE,       0, DualTriggerNoteAdjust},
-   {ST_SET_TRIGGER_CHANNEL,   0, 0},
+   {ST_SET_TRIGGER_CHANNEL,   0, DualTriggerControlAdjust},
    {0, 0, 0}
 };
 
