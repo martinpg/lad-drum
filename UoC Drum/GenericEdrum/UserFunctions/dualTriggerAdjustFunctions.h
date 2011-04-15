@@ -7,6 +7,8 @@
 void DualTriggerAdjustFunction(void* data);
 void DualTriggerToggle(void* data);
 void DualTriggerNoteAdjust(void* data);
+void DualTriggerControlAdjust(void* data);
+
 void PrintDualTriggerInformation(uint8_t UpDownPosition);
 
 

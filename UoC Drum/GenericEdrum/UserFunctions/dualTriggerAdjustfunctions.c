@@ -51,8 +51,32 @@ void DualTriggerNoteAdjust(void* data)
 
    /* print the open or closed key */
    PrintDualTriggerInformation(keyType + 1);
+}
 
+void DualTriggerControlAdjust(void* data)
+{
+   uint8_t* input = data;
+   SoftTimer2[SC_AutoMenuUpdate].timeCompare = FAST_AUTO_MENU_UPDATE;
+   SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
 
+   switch( *input )
+   {
+      case KP_UP:
+         SetTrigger(SelectedChannel, GetTrigger(SelectedChannel)+1);
+      break;
+
+      case KP_DOWN:
+         SetTrigger(SelectedChannel, GetTrigger(SelectedChannel)-1);
+      break;
+
+      case KP_BACK:
+         UF_MenuUpOneLevel(ActiveMenu);
+      return;
+   }
+
+   MenuUpdate(ActiveMenu, RESET_MENU | NO_EXECUTE);
+   UF_MenuSetInput(KP_INVALID);
+   PrintDualTriggerInformation(3);
 }
 
 

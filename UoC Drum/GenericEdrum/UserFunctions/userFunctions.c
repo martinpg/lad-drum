@@ -187,7 +187,7 @@ void aboutScroll(uint8_t nameIndex)
 			UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)lightning[0], 0);
 			UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)lightning[1], 1);
 			
-			UF_MenuReset();
+			/*UF_MenuReset();
 			UF_MenuPrint_P( PSTR("  Roberto & Adrian"));
 			UF_MenuNewLine();
 			UF_MenuPrint_P(PSTR("      present:") );
@@ -197,7 +197,16 @@ void aboutScroll(uint8_t nameIndex)
 			UF_MenuChar(0x01);
 		   UF_MenuNewLine();
 			UF_MenuPrint_P(PSTR("Version:") );
-			UF_MenuPrint_P(VersionId);
+			UF_MenuPrint_P(VersionId);*/
+
+			UF_MenuReset();
+         UF_MenuPrint_P( PSTR("Hi Jenny... *POKE*"));
+         UF_MenuNewLine();
+         UF_MenuPrint_P(PSTR("My name is Jessica") );
+         UF_MenuNewLine();
+         UF_MenuPrint_P( PSTR("Adrian's Girlfriend"));
+         UF_MenuNewLine();
+         UF_MenuPrint_P(PSTR("Kay is here too!!!") );
 		break;	
       
 		case TECH_SPECS:
@@ -425,16 +434,7 @@ void DumpSysEx(void* data)
 
    /* Stop output timers */
    SoftTimerStop(SoftTimer1[SC_MIDIScan]);
-   SysexSend(&CurrentProfile, sizeof(Profile_t));
-   SoftTimerStart(SoftTimer1[SC_MIDIScan]);
-
-	UF_MenuPrint_P( PSTR("Profile sucessfully"));			
-   UF_MenuNewLine();		
-	UF_MenuPrint_P( PSTR("uploaded!") );
-
-   delayWithUSBPoll(8, 0);
-
-   UF_MenuUpOneLevel(&primaryMenu);  
+   ActiveProcess = SENDING_SYSEX;
 }
 
 
@@ -476,6 +476,7 @@ void GetSysEx(void* data)
 			break;
 		}	
 	}
+	SysExFlush();
    ActiveProcess = RECEIVE_SYSEX;
    
    /* Stop the Auxuliary Timer */
@@ -834,17 +835,26 @@ void ChannelToggleFunction(void* data)
 /* Handles the incrementing and decrementing of notes */
 void NoteEditor(void* data, uint8_t keyType)
 {
-   uint8_t channelCommand = GetChannelCommand(SelectedChannel);
+   uint8_t channelCommand;
    uint8_t channelKey;
    uint8_t* input = data;
+
+   void (*setChannelKey)(uint8_t channel, uint8_t key);
+   void (*setChannelCommand)(uint8_t channel, uint8_t command);
 
    if( keyType == OPEN_KEY)
    {
       channelKey  = GetChannelKey(SelectedChannel);
+      channelCommand = GetChannelCommand(SelectedChannel);
+      setChannelKey = &SetChannelKey;
+      setChannelCommand = &SetChannelCommand;
    }
    else
    {
       channelKey  = GetChannelKeyClosed(SelectedChannel);
+      channelCommand = GetClosedChannelCommand(SelectedChannel);
+      setChannelKey = &SetChannelKeyClosed;
+      setChannelCommand = &SetClosedChannelCommand;
    }
 
 
@@ -857,15 +867,14 @@ void NoteEditor(void* data, uint8_t keyType)
                if( ++channelKey == (MIDI_MAX_KEY + 1))
                {
                   channelKey = 0;
-                  SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_NEXT_CONTROL_CODE));
+                  setChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_NEXT_CONTROL_CODE));
                }
             }
             else
             {
                channelKey = 0;
-               SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_NEXT_CONTROL_CODE));
+               setChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_NEXT_CONTROL_CODE));
             }
-            SetChannelKey(SelectedChannel, channelKey);
 
          break;
 
@@ -875,21 +884,17 @@ void NoteEditor(void* data, uint8_t keyType)
                if( --channelKey == UINT8_MAX)
                {
                   channelKey = MIDI_MAX_KEY;
-                  SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_PREVIOUS_CONTROL_CODE));
+                  setChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_PREVIOUS_CONTROL_CODE));
                }
             }
             else
             {
                channelKey = 0;
-               SetChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_PREVIOUS_CONTROL_CODE));
+               setChannelCommand(SelectedChannel,MIDI_GetControlCode(channelCommand, MIDI_PREVIOUS_CONTROL_CODE));
             }
-            SetChannelKey(SelectedChannel, channelKey);
-
          break;
-
-
       }
-
+      setChannelKey(SelectedChannel, channelKey);
 }
 
 void KeySelectFunction(void* data)
@@ -923,27 +928,34 @@ void KeySelectFunction(void* data)
 
 void PrintNoteFormat(uint8_t keyType)
 {
-   MIDI_ControlString(GetChannelCommand(SelectedChannel), outputString);
-   UF_MenuPrint(outputString);
-   UF_MenuPrint_P( PSTR(")") );
-   if( GetChannelCommand(SelectedChannel) <= MIDI_AFTERTOUCH )
+   uint8_t channelKey;
+   uint8_t channelCommand;
+
+   if( keyType == OPEN_KEY)
    {
-      if( keyType == OPEN_KEY)
-      {
-         MIDI_NoteString(GetChannelKey(SelectedChannel), outputString);
-         UF_MenuPrint(outputString);
-         uint8toa( MIDI_Octave(GetChannelKey(SelectedChannel)), outputString);
-      }
-      else
-      {
-         MIDI_NoteString(GetChannelKeyClosed(SelectedChannel), outputString);
-         UF_MenuPrint(outputString);
-         uint8toa( MIDI_Octave(GetChannelKeyClosed(SelectedChannel)), outputString);
-      }
+      channelKey  = GetChannelKey(SelectedChannel);
+      channelCommand = GetChannelCommand(SelectedChannel);
    }
    else
    {
-      uint8toa( GetChannelKey(SelectedChannel), outputString);
+      channelKey  = GetChannelKeyClosed(SelectedChannel);
+      channelCommand = GetClosedChannelCommand(SelectedChannel);
+   }
+
+   MIDI_ControlString(channelCommand, outputString);
+   UF_MenuPrint(outputString);
+   UF_MenuPrint_P( PSTR(")") );
+
+   if( channelCommand <= MIDI_AFTERTOUCH )
+   {
+      MIDI_NoteString(channelKey, outputString);
+      UF_MenuPrint(outputString);
+      uint8toa( MIDI_Octave(channelKey), outputString);
+   }
+   else
+   {
+      
+      uint8toa( channelKey, outputString);
    }
    UF_MenuPrint(outputString);
 }
@@ -1127,7 +1139,20 @@ void SetDualInput(void* data)
    uint8_t* input;
 	input = data;
 
-   if( analogueMenu.firstEnter != 1 )
+	Menu_t* newParentMenu;
+
+   if( SelectedChannel < ANALOGUE_INPUTS)
+   {
+      newParentMenu = &analogueMenu;
+   }
+   else
+   {
+      newParentMenu = &digitalMenu;
+   }
+   dualTrigMenu.parentMenu = newParentMenu;
+
+
+   if( ActiveMenu->firstEnter != 1 )
    {
 
       switch( *input )
@@ -1183,14 +1208,18 @@ void SetDualInput(void* data)
          case KB_BACK:
          case KP_BACK:
             SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
-            UF_stateMachine( analogueMenu.currentState );
-
+            //UF_stateMachine( analogueMenu.currentState );
+            UF_stateMachine(newParentMenu->currentState );
             ActiveMenu = &primaryMenu;
-            SelectedSubMenu = &analogueMenu;
-            MenuSetInput( &analogueMenu, KP_INVALID );
+            SelectedSubMenu = newParentMenu;
+
+            MenuSetInput(newParentMenu, KP_INVALID);
             executeState(ActiveMenu, ActiveMenu->currentState);
-            analogueMenu.updateOptions = RESET_MENU | HIDE_CHILDREN;
-            analogueMenu.firstEnter = 1;
+
+            newParentMenu->updateOptions = RESET_MENU | HIDE_CHILDREN;
+            newParentMenu->firstEnter = 1;
+
+
             return;
 
          case KB_ENTER:
@@ -1199,16 +1228,11 @@ void SetDualInput(void* data)
             UF_MenuReset();
             ActiveMenu = &dualTrigMenu;
             SelectedSubMenu = &dualTrigMenu;
-            MenuSetInput( &dualTrigMenu, *input );
-            //stateMachine(&dualTrigMenu, dualTrigMenu.currentState);
-            //UF_MenuSetInput(*input);
 
+            MenuSetInput( &dualTrigMenu, *input );
             UF_stateMachine(dualTrigMenu.currentState);
             MenuUpdate(&dualTrigMenu, 0);
-            //MenuUpdate(&dualTrigMenu, 0);
-            analogueMenu.firstEnter = 1;
-
-            //SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
+            newParentMenu->firstEnter = 1;
             MenuSetInput( &dualTrigMenu, 0 );
 
 
@@ -1220,7 +1244,7 @@ void SetDualInput(void* data)
       }
    }
 
-   analogueMenu.firstEnter = 0;
+   ActiveMenu->firstEnter = 0;
 
    SoftTimer2[SC_AutoMenuUpdate].timeCompare = SLOW_AUTO_MENU_UPDATE;
 

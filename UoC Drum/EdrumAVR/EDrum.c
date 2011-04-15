@@ -74,8 +74,7 @@ volatile uint8_t PrintChannel;
 
 int main(void)
 {
-
-   MIDI_GetControlCode(0x80,0);
+ 
 
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);
@@ -118,7 +117,7 @@ int main(void)
    MenuSetDisplay(&primaryMenu, MENU_LCD);
    MenuSetDisplay(&analogueMenu, MENU_LCD);
    MenuSetDisplay(&digitalMenu, MENU_LCD);      
-
+   MenuSetDisplay(&dualTrigMenu, MENU_LCD);
 
    if( VerifyDownload() == 0)
    {  
@@ -172,6 +171,7 @@ int main(void)
    sei();
 
    uint8_t inByte;
+   uint16_t sysExCount = 0;
    while (1)
    {   
       usbPoll();
@@ -199,8 +199,27 @@ int main(void)
             {  
                Play();
             }
+            //UART_Tx(SignalPeak[0]>>8);
 #endif
          break;
+
+         case SENDING_SYSEX:
+            SysExSendNextByte(&CurrentProfile, sysExCount++);
+            /* Send the header and sysex end bytes */
+            if( sysExCount == (sizeof(Profile_t)+4))
+            {
+               sysExCount = 0;
+               SoftTimerStart(SoftTimer1[SC_MIDIScan]);
+               UF_MenuPrint_P( PSTR("Profile sucessfully"));
+               UF_MenuNewLine();
+               UF_MenuPrint_P( PSTR("uploaded!") );
+               delayWithUSBPoll(8, 0);
+               UF_MenuUpOneLevel(&primaryMenu);
+               ActiveProcess = DEFAULT_PROCESS;
+            }
+
+         break;
+
 
          case RECEIVE_SYSEX:
             inByte = USBMIDI_GetByte();

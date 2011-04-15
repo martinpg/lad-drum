@@ -110,6 +110,25 @@ void SetChannelCommand(uint8_t channel, uint8_t command)
    ChannelSettings->ChannelCommand[channel] = command;
 }
 
+uint8_t GetClosedChannelCommand(uint8_t channel)
+{
+   return ChannelSettings->ClosedChannelCommand[channel];
+}
+
+void SetClosedChannelCommand(uint8_t channel, uint8_t command)
+{
+   if( command == 0)
+   {
+      command = MIDI_NOTE_OFF;
+   }
+   if( command < MIDI_NOTE_OFF)
+   {
+      command = MIDI_RT_RESET;
+   }
+
+   ChannelSettings->ClosedChannelCommand[channel] = command;
+}
+
 
 /* General Channel Key Notes, and also the Dual Input Open Notes */
 uint8_t GetChannelKey(uint8_t channel)
@@ -225,7 +244,11 @@ void SetTrigger(uint8_t channel, uint8_t triggerChannel)
 {
    if( triggerChannel == 0xFF )
    {
-      triggerChannel == NUMBER_OF_INPUTS-1;
+      triggerChannel = NUMBER_OF_INPUTS-1;
+   }
+   if( triggerChannel == NUMBER_OF_INPUTS)
+   {
+      triggerChannel = 0;
    }
    ChannelSettings->AltTrigger[channel] = triggerChannel;
 }
@@ -257,7 +280,12 @@ void SetDigitalVelocity(uint8_t DigitalChannel, int8_t velocity)
 /* To alter the switch type from Active Low/High */
 uint8_t GetActiveState(uint8_t DigitalChannel)
 {
-   return ((DigitalSettings->DigitalActiveState & (1 << DigitalChannel)) != 0);
+   return (GET_BIT_FIELD(DigitalSettings->DigitalActiveState, DigitalChannel) != 0);
+}
+/* This is the only place where channel settings can be adjusted */
+void SetActiveState(uint8_t DigitalChannel, uint8_t activeState)
+{
+   SET_BIT_FIELD(DigitalSettings->DigitalActiveState, DigitalChannel, activeState);
 }
 
 void ActiveStateToggle(uint8_t DigitalChannel)
@@ -265,18 +293,18 @@ void ActiveStateToggle(uint8_t DigitalChannel)
    SetActiveState( DigitalChannel, !GetActiveState(DigitalChannel) );
 }
 
-void SetActiveState(uint8_t DigitalChannel, uint8_t activeState)
-{
-   DigitalSettings->DigitalActiveState &=  ~(1 << DigitalChannel);
-   DigitalSettings->DigitalActiveState |=   (activeState << DigitalChannel);
-}
-
 
 /* Trigger mode is either Single shot (needs to reset before next retrigger)
  * or continuous is triggering while switch is in active state. */
 uint8_t GetTriggerMode(uint8_t DigitalChannel)
 {
-   return ((DigitalSettings->DigitalTriggerMode & (1 << DigitalChannel)) != 0);
+   return (GET_BIT_FIELD(DigitalSettings->DigitalTriggerMode, DigitalChannel) != 0);
+}
+
+/* This is the only place where channel settings can be adjusted */
+void SetTriggerMode(uint8_t DigitalChannel, uint8_t triggerMode)
+{
+   SET_BIT_FIELD(DigitalSettings->DigitalTriggerMode, DigitalChannel, triggerMode);
 }
 
 void TriggerModeToggle(uint8_t DigitalChannel)
@@ -284,11 +312,6 @@ void TriggerModeToggle(uint8_t DigitalChannel)
    SetTriggerMode( DigitalChannel, !GetTriggerMode(DigitalChannel) );
 }
 
-void SetTriggerMode(uint8_t DigitalChannel, uint8_t triggerMode)
-{
-   DigitalSettings->DigitalTriggerMode &=  ~(1 << DigitalChannel);
-   DigitalSettings->DigitalTriggerMode |=   (triggerMode << DigitalChannel);
-}
 
 /* Returns either 1 or 0 to represent whether there is an active signal on
  * the channel.
@@ -301,7 +324,7 @@ uint8_t GetChannelState(uint8_t channel)
    }
    else
    {
-      return SignalPeak[channel];
+      return (SignalPeak[channel] != 0);
    }
 }
 
@@ -368,7 +391,13 @@ void SetSlope2Gain(uint8_t channel, int8_t Gain)
 /* Gain Type setup */
 uint8_t GetGainType(uint8_t channel)
 {
-   return ((GainSettings->GainType & ((uint16_t)(1) << channel)) != 0);
+   return (GET_BIT_FIELD(GainSettings->GainType, channel) != 0);
+}
+
+/* This is the only place where channel settings can be adjusted */
+void SetGainType(uint8_t channel, uint8_t status)
+{
+   SET_BIT_FIELD(GainSettings->GainType, channel, status);
 }
 
 
@@ -377,11 +406,6 @@ void GainTypeToggle(uint8_t channel)
    SetGainType( channel, !GetGainType(channel) );
 }
 
-void SetGainType(uint8_t channel, uint8_t status)
-{
-   GainSettings->GainType &=  ~((uint16_t)1 << channel);
-   GainSettings->GainType |=   ((uint16_t)status << channel);
-}
 
 
 /* Gain Crossover Levels */

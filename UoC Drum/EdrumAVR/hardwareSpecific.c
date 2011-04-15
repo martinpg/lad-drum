@@ -55,7 +55,7 @@ uint8_t getDigitalState(uint8_t DigitalChannel)
 {
    if( DigitalChannel < DIGITAL_INPUTS)
 	{
-      return (*DIGITAL_INPUT_MAP[DigitalChannel].PIN) & (DIGITAL_INPUT_MAP[DigitalChannel].pinMask);
+      return (*DIGITAL_INPUT_MAP[DigitalChannel].PIN) & (DIGITAL_INPUT_MAP[DigitalChannel].pinMask) ? 1 : 0;
    }
    else
    {

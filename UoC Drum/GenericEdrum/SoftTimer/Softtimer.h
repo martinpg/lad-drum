@@ -37,7 +37,7 @@ typedef struct _softTimer32
 #define SoftTimerCallback(x)     if(x.timerCallback) (void)(x.timerCallback())
 
 
-#define SoftTimerStart(x)        x.timerEnable = SOFTTIMER_ENABLED; SoftTimerReset(x)
+#define SoftTimerStart(x)        SoftTimerReset(x); x.timerEnable = SOFTTIMER_ENABLED
 #define SoftTimerStop(x)         x.timerEnable = SOFTTIMER_DISABLED
 #define SoftTimerIsEnabled(x)    (x.timerEnable)
 
