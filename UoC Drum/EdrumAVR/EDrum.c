@@ -215,6 +215,7 @@ int main(void)
                UF_MenuPrint_P( PSTR("uploaded!") );
                delayWithUSBPoll(8, 0);
                UF_MenuUpOneLevel(&primaryMenu);
+               MenuUpdate(ActiveMenu, NO_EXECUTE);
                ActiveProcess = DEFAULT_PROCESS;
             }
 
