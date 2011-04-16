@@ -320,7 +320,8 @@ uint8_t GetChannelState(uint8_t channel)
 {
    if( channel >= ANALOGUE_INPUTS )
    {
-      return GetDigitalState(channel) == GetActiveState(channel);
+      /* Need to minus the offset */
+      return GetDigitalState(channel-ANALOGUE_INPUTS) == GetActiveState(channel-ANALOGUE_INPUTS);
    }
    else
    {
@@ -518,10 +519,10 @@ uint16_t GetLastSampleValue(uint8_t channel)
 	return LastSampleValue[channel];	
 }
 
-void ResetAnalogueValues(void)
+void ResetValues(void)
 {
    uint8_t i;
-   for( i = 0; i < ANALOGUE_INPUTS; i++)
+   for( i = 0; i < NUMBER_OF_INPUTS; i++)
    {
       SignalPeak[i] = 0;  
    }
@@ -534,14 +535,17 @@ void ResetAnalogueValues(void)
 
 uint8_t ObtainPeak(uint8_t channel, uint16_t sample)
 {
+   /* This must come first, otherwise, two consecutive samples
+    * either side of the threshold will not result in a trigger
+    */
+   if( sample < SignalPeak[channel] )
+   {
+      return SAMPLE_IS_FALLING;
+   }
+
    if( sample < ChannelSettings->ChannelThreshold[channel] )
    {
       return SAMPLE_BELOW_THRESHOLD;  
-   }
-
-   if( sample < SignalPeak[channel] )
-   {
-      return SAMPLE_IS_FALLING;  
    }
 
    /* Update the largest sample */
