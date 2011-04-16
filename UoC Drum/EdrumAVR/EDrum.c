@@ -140,6 +140,7 @@ int main(void)
 
    /* Update Activated Analogue Channels */
    UpdateActiveChannels();
+   ResetValues();
 
    /* Update the Retrigger periods */
    UpdateChannelRetriggers();
@@ -273,7 +274,7 @@ void Play(void)
 	while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
 	{
       SelectedChannel = ActiveChannels[i++];
-      if( !(RetriggerPeriod[ SelectedChannel ].timerEnable) )
+      if( !SoftTimerIsEnabled(RetriggerPeriod[SelectedChannel]) )
       {
          SensorChannel(SelectedChannel);
          _delay_loop_1(SensorSettings->CrosstalkDelay << 1);

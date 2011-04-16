@@ -172,7 +172,7 @@ extern const int8_t PresetGain1[];
 extern const int8_t PresetGain2[];
 extern const int16_t PresetGainCrossover[];
 
-void ResetAnalogueValues(void);
+void ResetValues(void);
 
 void UpdateActiveChannels(void);
 

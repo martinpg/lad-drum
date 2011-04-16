@@ -155,6 +155,7 @@ void MIDI_OutputAnalogueChannel(uint8_t channel)
 
    		SoftTimerStart(RetriggerPeriod[channel]);
    	}
+
    }  
 }
 
