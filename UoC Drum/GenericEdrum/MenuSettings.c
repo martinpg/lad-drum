@@ -24,11 +24,11 @@ const MENU_TEXT  MT_PROFILES[] = "Profiles";
 const MENU_TEXT  MT_LOAD_PROFILE[] = "Load Profile";
 const MENU_TEXT  MT_SAVE_PROFILE[] = "Save Profile As...";
 
-const MENU_TEXT  MT_PROFILE_1[] = "Profile 1";
-const MENU_TEXT  MT_PROFILE_2[] = "Profile 2";
-const MENU_TEXT  MT_PROFILE_3[] = "Profile 3";
-const MENU_TEXT  MT_PROFILE_4[] = "Profile 4";
-const MENU_TEXT  MT_PROFILE_DEF[] = "Default Profile";
+const MENU_TEXT  MT_PROFILE_1[] = "Dance/Techno";
+const MENU_TEXT  MT_PROFILE_2[] = "Hip-Hop";
+const MENU_TEXT  MT_PROFILE_3[] = "MeTaL Kit";
+const MENU_TEXT  MT_PROFILE_4[] = "Special Fx";
+const MENU_TEXT  MT_PROFILE_DEF[] = "Pop Kit";
 
 
 const MENU_TEXT  MT_VUMETER[] = "Analogue VU Meter";

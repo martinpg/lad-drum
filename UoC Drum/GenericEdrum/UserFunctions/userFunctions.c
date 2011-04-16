@@ -1988,16 +1988,8 @@ void ShowProfile(void* data)
 	UF_MenuPrint_P( PSTR("Current Profile: ") );
    UF_MenuNewLine();
    
-   if( SelectedProfile == DEFAULT_PROFILE )
-   {
-		UF_MenuPrint_P( PSTR("Default Profile") );	
-	}
-	else
-	{
-		UF_MenuPrint_P( PSTR("Profile ") );
-		uint8toa(SelectedProfile, outputString );
-		UF_MenuPrint(outputString);
-	}
+   UF_MenuPrint_P((PROGRAM_PTR)MenuDescriptor(&primaryMenu, ST_LOAD_PROFILE_DEF+SelectedProfile));
+
    UF_MenuNewLine();	
 }
 
@@ -2025,17 +2017,14 @@ void SaveProfile(void* data)
 
    	UF_MenuPrint_P( PSTR("Profile successfully") );
       UF_MenuNewLine();		
-   	UF_MenuPrint_P( PSTR("saved to: ") );				
-   	UF_MenuPrint_P( PSTR("Profile ") );	
-   	uint8toa( ProfileSlot, outputString );
-   	UF_MenuPrint(outputString);
+   	UF_MenuPrint_P( PSTR("saved!") );
    }
    else
    {
       Profile_Error();
    }
 
-   delayWithUSBPoll(7, 0);
+   delayWithUSBPoll(10, 0);
 
 	UF_MenuUpOneLevel(&primaryMenu);
 	UF_MenuReset();
@@ -2072,16 +2061,7 @@ void LoadProfile(void* data)
       UpdateChannelRetriggers();
       UpdateActiveChannels();
 
-      UF_MenuPrint_P( PSTR("Profile:"));
-      if( ProfileSlot == DEFAULT_PROFILE )
-      {
-   		UF_MenuPrint_P( PSTR("Default") );	
-   	}
-      else
-   	{
-         uint8toa( ProfileSlot, outputString );
-   	   UF_MenuPrint(outputString);				
-      } 
+      UF_MenuPrint_P((PROGRAM_PTR)MenuDescriptor(&primaryMenu, ST_LOAD_PROFILE_DEF+ProfileSlot));
       UF_MenuNewLine();		
    	UF_MenuPrint_P( PSTR("successfully loaded!") );
 
