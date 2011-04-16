@@ -30,8 +30,6 @@ void DualTriggerToggle(void* data)
 void DualTriggerNoteAdjust(void* data)
 {
    uint8_t* input = data;
-   uint8_t channelCommand = GetChannelCommand(SelectedChannel);
-   uint8_t channelKey = GetChannelKey(SelectedChannel);
    uint8_t keyType = GetState(ActiveMenu) - ST_SET_OPEN_NOTE;
 
    SoftTimer2[SC_AutoMenuUpdate].timeCompare = FAST_AUTO_MENU_UPDATE;

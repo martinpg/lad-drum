@@ -20,6 +20,8 @@
 #include "USBMIDIThru/USBMIDIThru.h"
 #include "MIDI/SysEx/SysEx.h"
 #include "Sample/sample.h"
+#include "Sample/analogueSample.h"
+#include "Sample/digitalSample.h"
 #include "Sensor/sensor.h"
 #include "TimerCallbacks/TimerCallbacks.h"
 
@@ -187,7 +189,7 @@ void aboutScroll(uint8_t nameIndex)
 			UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)lightning[0], 0);
 			UI_LCD_LoadCustomChar(&PrimaryDisplay, (uint8_t*)lightning[1], 1);
 			
-			/*UF_MenuReset();
+			UF_MenuReset();
 			UF_MenuPrint_P( PSTR("  Roberto & Adrian"));
 			UF_MenuNewLine();
 			UF_MenuPrint_P(PSTR("      present:") );
@@ -197,16 +199,7 @@ void aboutScroll(uint8_t nameIndex)
 			UF_MenuChar(0x01);
 		   UF_MenuNewLine();
 			UF_MenuPrint_P(PSTR("Version:") );
-			UF_MenuPrint_P(VersionId);*/
-
-			UF_MenuReset();
-         UF_MenuPrint_P( PSTR("Hi Jenny... *POKE*"));
-         UF_MenuNewLine();
-         UF_MenuPrint_P(PSTR("My name is Jessica") );
-         UF_MenuNewLine();
-         UF_MenuPrint_P( PSTR("Adrian's Girlfriend"));
-         UF_MenuNewLine();
-         UF_MenuPrint_P(PSTR("Kay is here too!!!") );
+			UF_MenuPrint_P(VersionId);
 		break;	
       
 		case TECH_SPECS:
@@ -1696,7 +1689,6 @@ void VelocityAdjustFunction(void* data)
 {
    uint8_t* input = data;
    uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
-   uint8_t channelVelocity = GetDigitalVelocity(SelectedDigitalChannel);
 
    SoftTimer2[SC_AutoMenuUpdate].timeCompare = FAST_AUTO_MENU_UPDATE;
    SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
@@ -1815,78 +1807,6 @@ void DigitalChannelSettings(void* data)
 }
 
 
-
-
-
-/** Function to setup each individual digital channel */
-void SetSwitchType(void* data)
-{
-	uint8_t* input;
-   uint8_t SelectedDigitalChannel = SelectedChannel - ANALOGUE_INPUTS;
-   
-   input = data;
-
-   
-
-   if( SelectedDigitalChannel >= DIGITAL_INPUTS )
-   {
-      UF_MenuPrint_P(PSTR("Metronome inputs are"));
-      UF_MenuNewLine();
-      UF_MenuPrint_P(PSTR("fixed at:"));
-      UF_MenuNewLine();
-      UF_MenuPrint_P(PSTR("Active Low & "));
-      UF_MenuNewLine();
-      UF_MenuPrint_P(PSTR("Continuous"));
-
-      delayWithUSBPoll(15, 0);
-
-      UF_MenuUpOneLevel(&digitalMenu);
-      return;
-   }
-
-	switch( *input )
-	{
-			/* Active High/Low toggle */
-         case KP_UP:
-         case KP_A:
-				ActiveStateToggle(SelectedDigitalChannel);
-         break;
-         
-         case KP_DOWN:
-         case KP_B:
-				TriggerModeToggle(SelectedDigitalChannel);         
-			break;
-	
-         case KP_BACK:
-         	UF_MenuUpOneLevel(&digitalMenu);
-         return;
-	}
-	/* Switch Type */
-	UF_MenuPrint_P(PSTR("Type: Active "));
-
-	if( GetActiveState(SelectedDigitalChannel) == ACTIVE_HIGH )
-	{
-		UF_MenuPrint_P(PSTR("High"));
-	}
-	else
-	{
-		UF_MenuPrint_P(PSTR("Low"));
-	}
-   UF_MenuNewLine();
-
-
-	/* Trigger Mode */
-	UF_MenuPrint_P(PSTR("Mode: "));
-
-	if( GetTriggerMode(SelectedDigitalChannel) == SINGLE_SHOT )
-	{
-		UF_MenuPrint_P(PSTR("Single Shot"));
-	}
-	else
-	{
-		UF_MenuPrint_P(PSTR("Continuous"));
-	}
-}
 
 
 

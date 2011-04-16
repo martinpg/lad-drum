@@ -35,7 +35,7 @@ void SysExSendNextByte(void* data, uint16_t count)
       case 2:
          MIDI_Tx(MIDI_DEVICE_CODE);
          break;
-      case (sizeof(Profile_t)+3):
+      case SEND_SYSEX_STOP:
          MIDI_Tx(MIDI_SYSEX_STOP);
          break;
       default:
@@ -52,34 +52,7 @@ void SysExSendNextByte(void* data, uint16_t count)
    }
 
 }
-/*
-void SysexSend(void* data, uint16_t len, uint8_t outStream)
-{
-   uint16_t i = 0;
-   uint8_t* buffer = (uint8_t*)data;
 
-   putMIDI(MIDI_SYSEX_START);
-   putMIDI(MIDI_MANUFACTURER);
-   putMIDI(MIDI_DEVICE_CODE);
-   
-
-	while( i++ < len )
-	{
-      // Ensure all bytes sent are less than 128 or 0x7F
-      if( (*buffer & 0x80) )
-      {
-         putMIDI(1);
-      }
-      else
-      {
-         putMIDI(0);
-      }
-      
-      putMIDI( (*buffer++) & 0x7F );
-	}
-
-	putMIDI(MIDI_SYSEX_STOP);
-}*/
 
 uint8_t IsReceivingSysExData(uint8_t state)
 {  
