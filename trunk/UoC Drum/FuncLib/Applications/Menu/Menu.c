@@ -223,7 +223,8 @@ void stateMachine(Menu_t* menu, uint8_t state)
    }
 }
 
-/* Returns the Menu descriptor given the menu Item / Index */
+/* Returns the Menu descriptor given the menu Item / Index
+ * the pointer returned is of type MENU_SPACE_PTR */
 char* MenuDescriptor(Menu_t* menu, uint8_t menuItem)
 {
 
