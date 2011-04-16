@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include "hardwareSpecific.h"
 #include "sample.h"
+#include "digitalSample.h"
+#include "analogueSample.h"
 #include "MIDI/midi.h"
 #include "Profiles/profiles.h"
 #include "SoftTimer/Softtimer.h"
@@ -31,32 +33,6 @@ GainSettings_t* GainSettings;
 
 static uint16_t LastSampleValue[ANALOGUE_INPUTS];
 
-PROGRAM_CHAR PRESET_1[] = "Exponential X";
-PROGRAM_CHAR PRESET_2[] = "Exponential";
-PROGRAM_CHAR PRESET_3[] = "Logorithmic";
-PROGRAM_CHAR PRESET_4[] = "Logorithmic X";
-PROGRAM_CHAR PRESET_5[] = "Custom";
-
-PROGRAM_PTR PresetGainStrings[] = {PRESET_1, PRESET_2, PRESET_3, PRESET_4, PRESET_5};
-
-
-#define EXPONENTIALX_CROSSOVER      (((1 << ADC_RESOLUTION)*24)/30)
-#define EXPONENTIAL_CROSSOVER       (((1 << ADC_RESOLUTION)*17)/30)
-#define LOGARITHMIC_CROSSOVER       (((1 << ADC_RESOLUTION)*10)/30)
-#define LOGARITHMIC_X_CROSSOVER     (((1 << ADC_RESOLUTION)*6)/30)
-
-const int8_t PresetGain1[] = {5, 5 , 8, 9};
-const int8_t PresetGain2[] = {9, 8 , 6, 5};
-
-const int16_t PresetGainCrossover[] = 
-{
-   EXPONENTIALX_CROSSOVER, 
-   EXPONENTIAL_CROSSOVER,
-   LOGARITHMIC_CROSSOVER, 
-   LOGARITHMIC_X_CROSSOVER
-};
-
-
 void UpdateActiveChannels(void)
 {
    uint8_t i;
@@ -72,7 +48,6 @@ void UpdateActiveChannels(void)
    
    ActiveChannels[ChannelIndex] = LAST_CHANNEL_INDEX;
 }
-
 
 
 void ChannelToggle(uint8_t channel)
@@ -138,7 +113,6 @@ uint8_t GetChannelKey(uint8_t channel)
 
 void SetChannelKey(uint8_t channel, uint8_t key)
 {
-   uint8_t channelCommand = GetChannelCommand(channel);
 	/* Coming from 127 + 10 will be less than -50 */
    if( key == UINT8_MAX)
    {
@@ -175,25 +149,6 @@ void SetChannelKeyClosed(uint8_t channel, int8_t key)
 
 
 
-/* Channel Threshold */
-uint16_t GetChannelThresh(uint8_t channel)
-{
-   return ChannelSettings->ChannelThreshold[channel];
-}
-
-void SetChannelThresh(uint8_t channel, int16_t thresh)
-{
-   if( thresh > MAX_THRESHOLD)
-   {
-      thresh = MIN_THRESHOLD;  
-   }
-   if( thresh < MIN_THRESHOLD )
-   {
-		thresh = MAX_THRESHOLD;	
-	}
-   ChannelSettings->ChannelThreshold[channel] = thresh;
-}
-
 /* Setup Channel Retrigger times */
 uint8_t GetChannelReTrig(uint8_t channel)
 {
@@ -216,12 +171,11 @@ void SetChannelReTrig(uint8_t channel, int16_t retrig)
 
 
 
-/* Setup Analogue Dual Inputs */
+/* Setup Dual Trigger Inputs */
 uint8_t GetDualMode(uint8_t channel)
 {
    return GET_BIT_FIELD(ChannelSettings->HasDualInput, channel) != 0;
 }
-
 
 void DualModeToggle(uint8_t channel)
 {
@@ -256,63 +210,6 @@ void SetTrigger(uint8_t channel, uint8_t triggerChannel)
 
 
 
-/* Digital Channel Velocity Outputs */
-uint8_t GetDigitalVelocity(uint8_t DigitalChannel)
-{
-   return DigitalSettings->DigitalVelocity[DigitalChannel];
-}
-
-void SetDigitalVelocity(uint8_t DigitalChannel, int8_t velocity)
-{
-	
-	if( velocity < -50)
-	{
-		velocity = 0;	
-	}
-   if( velocity < 0)
-   {
-		velocity = MAX_VELOCITY;	
-	}
-
-   DigitalSettings->DigitalVelocity[DigitalChannel] = velocity;
-}
-
-/* To alter the switch type from Active Low/High */
-uint8_t GetActiveState(uint8_t DigitalChannel)
-{
-   return (GET_BIT_FIELD(DigitalSettings->DigitalActiveState, DigitalChannel) != 0);
-}
-/* This is the only place where channel settings can be adjusted */
-void SetActiveState(uint8_t DigitalChannel, uint8_t activeState)
-{
-   SET_BIT_FIELD(DigitalSettings->DigitalActiveState, DigitalChannel, activeState);
-}
-
-void ActiveStateToggle(uint8_t DigitalChannel)
-{
-   SetActiveState( DigitalChannel, !GetActiveState(DigitalChannel) );
-}
-
-
-/* Trigger mode is either Single shot (needs to reset before next retrigger)
- * or continuous is triggering while switch is in active state. */
-uint8_t GetTriggerMode(uint8_t DigitalChannel)
-{
-   return (GET_BIT_FIELD(DigitalSettings->DigitalTriggerMode, DigitalChannel) != 0);
-}
-
-/* This is the only place where channel settings can be adjusted */
-void SetTriggerMode(uint8_t DigitalChannel, uint8_t triggerMode)
-{
-   SET_BIT_FIELD(DigitalSettings->DigitalTriggerMode, DigitalChannel, triggerMode);
-}
-
-void TriggerModeToggle(uint8_t DigitalChannel)
-{
-   SetTriggerMode( DigitalChannel, !GetTriggerMode(DigitalChannel) );
-}
-
-
 /* Returns either 1 or 0 to represent whether there is an active signal on
  * the channel.
  */
@@ -321,7 +218,7 @@ uint8_t GetChannelState(uint8_t channel)
    if( channel >= ANALOGUE_INPUTS )
    {
       /* Need to minus the offset */
-      return GetDigitalState(channel-ANALOGUE_INPUTS) == GetActiveState(channel-ANALOGUE_INPUTS);
+      return GetDigitalState(channel-ANALOGUE_INPUTS) == GetActivePolarity(channel-ANALOGUE_INPUTS);
    }
    else
    {
@@ -342,171 +239,6 @@ void UpdateChannelRetriggers(void)
 }
 
 
-
-
-
-/****** GAIN SETTINGS ******/
-/* Channel Gain 1st Slope*/
-int8_t GetChannelGain(uint8_t channel)
-{
-   return GainSettings->ChannelGain[channel];
-}
-
-void SetChannelGain(uint8_t channel, int8_t Gain)
-{
-   if( Gain > MAX_GAIN)
-   {
-      Gain = MIN_GAIN;  
-   }
-   if( Gain < MIN_GAIN)
-   {
-      Gain = MAX_GAIN;  
-   }   
-
-   GainSettings->ChannelGain[channel] = Gain;
-}
-
-
-/* Channel Gain 2nd Slope*/
-int8_t GetSlope2Gain(uint8_t channel)
-{
-   return GainSettings->ChannelGain2[channel];
-}
-
-void SetSlope2Gain(uint8_t channel, int8_t Gain)
-{
-   if( Gain > MAX_GAIN)
-   {
-      Gain = MIN_GAIN;  
-   }
-   if( Gain < MIN_GAIN)
-   {
-      Gain = MAX_GAIN;  
-   }   
-
-   GainSettings->ChannelGain2[channel] = Gain;
-}
-
-
-
-/* Gain Type setup */
-uint8_t GetGainType(uint8_t channel)
-{
-   return (GET_BIT_FIELD(GainSettings->GainType, channel) != 0);
-}
-
-/* This is the only place where channel settings can be adjusted */
-void SetGainType(uint8_t channel, uint8_t status)
-{
-   SET_BIT_FIELD(GainSettings->GainType, channel, status);
-}
-
-
-void GainTypeToggle(uint8_t channel)
-{
-   SetGainType( channel, !GetGainType(channel) );
-}
-
-
-
-/* Gain Crossover Levels */
-int16_t GetCrossover(uint8_t channel)
-{
-   return GainSettings->Crossover[channel];
-}
-
-void SetCrossover(uint8_t channel, int16_t crossover)
-{
-   if( crossover > MAX_CROSSOVER)
-   {
-      crossover = MIN_CROSSOVER;  
-   }
-   if( crossover < MIN_CROSSOVER)
-   {
-		crossover = MAX_CROSSOVER;	
-	}
-   
-   GainSettings->Crossover[channel] = crossover;
-}
-
-/* Returns the conditioned signal after being passed through the
- * configured gain settings */
-uint16_t GainFunction(uint8_t channel, uint16_t signalValue)
-{
-	if( GetGainType(channel) == NON_LINEAR_GAIN )
-	{
-		/* Signal > Crossover */
-		uint16_t crossover = GetCrossover(channel);
-		
-      int16_t signalOffset = signalValue - crossover;
-		if( (signalOffset > 0) )
-		{
-			return ApplyGain(signalOffset , GetSlope2Gain(channel)) +
-					 ApplyGain(crossover, GetChannelGain(channel));	
-		}	
-	}
-
-	return ApplyGain(signalValue, GetChannelGain(channel));		
-}
-
-/* The signal is multiplied by 2^ (gain - ADCBitResolution) */
-uint16_t ApplyGain(uint16_t signalValue, int8_t gain)
-{
-   int8_t gainToApply = gain - GAIN_OFFSET;
-   
-	if( (gainToApply) > 0 )
-	{
-		signalValue = signalValue << gainToApply;
-	}
-	else
-	{
-		signalValue = signalValue >> (-gainToApply);	
-	}
-	
-	return signalValue;
-	
-}
-
-
-/* Updates the SignalPeak Variable regardless of whether the Digital Input is
- * Active */
-void ScanDigitalInputs(void)
-{
-	uint8_t i;
-	
-	for( i = 0; i < DIGITAL_INPUTS; i++)
-	{
-		if( GetDigitalState(i) == GetActiveState(i) )
-		{
-			if( GetTriggerMode(i) == SINGLE_SHOT )
-			{
-				/* Schmitt Trigger Type Operation */
-				if( DigitalCycle[i] == INPUT_HAS_BEEN_CYCLED )
-				{
-					SignalPeak[i + ANALOGUE_INPUTS] = 1;
-					DigitalCycle[i] = INPUT_IS_DOWN;	
-				}
-				else
-				{
-					/* Reset Value */
-					SignalPeak[i + ANALOGUE_INPUTS] = 0;						
-				}
-			}
-			else
-			{
-				SignalPeak[i + ANALOGUE_INPUTS] = 1;
-			}
-		}
-		else
-		{
-			/* Reset Value */
-			SignalPeak[i + ANALOGUE_INPUTS] = 0;
-			DigitalCycle[i] = INPUT_HAS_BEEN_CYCLED;
-		}
-
-	}
-	
-}
 
 void SetLastSampleValue(uint8_t channel, uint16_t value)
 {

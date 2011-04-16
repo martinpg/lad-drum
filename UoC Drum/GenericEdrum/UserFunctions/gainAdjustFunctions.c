@@ -8,6 +8,8 @@
 #include "Menu/Menu.h"
 #include "UI_KP/UI_KP.h"
 
+#include "Sample/analogueSample.h"
+
 #include "TimerCallbacks/TimerCallbacks.h"
 #include "userFunctions/userFunctions.h"
 #include "MenuSettings.h"
@@ -18,9 +20,6 @@
 void GainAdjustFunction(void* data)
 {
    uint8_t* input;
-
-   static int8_t presetSetting = CUSTOM;
-   uint8_t UpDownPosition;
    input = data;
 
    if( ActiveMenu->firstEnter == 0 )
@@ -109,7 +108,6 @@ void GainSlopeAdjustFunction(void* data)
 
 void GainTypeAdjustFunction(void* data)
 {
-   uint8_t* input = data;
 
    SoftTimer2[SC_AutoMenuUpdate].timeCompare = FAST_AUTO_MENU_UPDATE;
    SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);

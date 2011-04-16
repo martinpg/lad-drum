@@ -17,15 +17,6 @@
 
 #define LAST_CHANNEL_INDEX (0xFF)
 
-/* The number of bits in the ADC Reading */
-#define MAX_THRESHOLD      (1 << ADC_RESOLUTION)
-/* Set to x% of the ADC input */
-#define DEFAULT_THRESHOLD	(MAX_THRESHOLD / 50)
-#define MIN_THRESHOLD      (0)
-/* Number of levels actually equals 2^(ADC_RESOLUTION - THRESHOLD_LEVELS) */
-#define THRESHOLD_LEVELS	(ADC_RESOLUTION - 5)
-#define THRESHOLD_ADJUST   (ADC_RESOLUTION - THRESHOLD_LEVELS)
-
 #define MAX_VELOCITY			(127)
 #define DEFAULT_VELOCITY (0x64)
 
@@ -37,33 +28,12 @@
 #define MIN_RETRIGGER         (1)
 #define RETRIGGER_ADJUST   (ADC_RESOLUTION - 8)
 
-#define ACTIVE_HIGH	(1)
-#define ACTIVE_LOW	(0)
-
 #define CHANNEL_ON 	1
 #define CHANNEL_OFF 	0
-
-#define SINGLE_SHOT	(0)
-#define CONTINUOUS	(1)
 
 /* Dual Input Defines */
 #define HAS_DUAL_INPUT	(1)
 #define NO_DUAL_INPUT	(0)
-
-/* Gain Curve Defines */
-#define LINEAR_GAIN		(0)
-#define NON_LINEAR_GAIN	(1)
-
-/* Amplification */
-#define MAX_GAIN           (ADC_RESOLUTION + 7)
-/* Attenuation */
-#define MIN_GAIN				(1)
-#define GAIN_OFFSET        (ADC_RESOLUTION) //Effective number of bits of 
-#define MAX_CROSSOVER	(1 << ADC_RESOLUTION)
-#define MIN_CROSSOVER	(0)
-
-/* Most significant seven bits */
-#define DEFAULT_GAIN		(7)
 
 /* Obtain Peak defines */
 #define SAMPLE_IS_PEAK (0)
@@ -73,20 +43,6 @@
 #define GET_BIT_FIELD(FIELD, BIT) (FIELD[BIT>>3] & (1<<(BIT-((BIT>>3)<<3))))
 #define SET_BIT_FIELD(FIELD, BIT, STATE)  FIELD[BIT>>3] &= ~(1<<(BIT-((BIT>>3)<<3)));  FIELD[BIT>>3] |= (STATE<<(BIT-((BIT>>3)<<3)))
 
-enum {
-	D0 = 0,
-	D1,
-	D2,
-	D3,
-	D4,
-	D5,
-	D6,
-	D7	
-} digitalPort1;
-
-
-#define INPUT_HAS_BEEN_CYCLED	(0)
-#define INPUT_IS_DOWN (1)
 
 typedef struct {
 
@@ -141,21 +97,15 @@ typedef struct {
    uint8_t	 DigitalVelocity[NUMBER_OF_SWITCH_INPUTS];
    
    /* Sets the input to either active high/low */
-   uint8_t 	 DigitalActiveState[(NUMBER_OF_SWITCH_INPUTS+8)/8];
+   uint8_t 	 DigitalActivePolarity[(NUMBER_OF_SWITCH_INPUTS+8)/8];
    /* Either single shot (needs to be reset) or continuous */
    uint8_t	 DigitalTriggerMode[(NUMBER_OF_SWITCH_INPUTS+8)/8];
-	
+   /* Trigger the closed key on release */
+   uint8_t   DigitalReleaseMode[(DIGITAL_INPUTS+8)/8];
+
+
 } DigitalSettings_t;
 
-
-enum {
-	EXPONENTIAL_1 = 0,
-	LOGORITHMIC_1,
-	EXPONENTIAL_2,
-	LOGORITHMIC_2,
-	CUSTOM,
-	NUMBER_OF_GAIN_PRESETS
-};
 
 extern volatile uint16_t SignalPeak[];
 extern volatile SoftTimer_8   RetriggerPeriod[];
@@ -166,19 +116,11 @@ extern ChannelSettings_t* ChannelSettings;
 extern DigitalSettings_t* DigitalSettings;
 extern GainSettings_t*	 GainSettings;
 
-
-extern PROGRAM_PTR PresetGainStrings[];
-extern const int8_t PresetGain1[];
-extern const int8_t PresetGain2[];
-extern const int16_t PresetGainCrossover[];
-
 void ResetValues(void);
 
 void UpdateActiveChannels(void);
 
 uint8_t ObtainPeak(uint8_t channel, uint16_t sample);
-
-
 
 void ChannelToggle(uint8_t channel);
 uint8_t GetChannelStatus(uint8_t channel);
@@ -218,23 +160,6 @@ void SetDualMode(uint8_t channel, uint8_t dualInputMode);
 uint8_t GetTrigger(uint8_t channel);
 void SetTrigger(uint8_t channel, uint8_t triggerChannel);
 
-
-uint8_t GetDigitalVelocity(uint8_t DigitalChannel);
-void SetDigitalVelocity(uint8_t DigitalChannel, int8_t velocity);
-
-
-/* Switch Type */
-uint8_t GetActiveState(uint8_t DigitalChannel);
-void ActiveStateToggle(uint8_t DigitalChannel);
-void SetActiveState(uint8_t DigitalChannel, uint8_t activeState);
-
-
-/* Trigger mode is either Single shot (needs to reset before next retrigger)
- * or continuous is triggering while switch is in active state. */
-uint8_t GetTriggerMode(uint8_t DigitalChannel);
-void TriggerModeToggle(uint8_t DigitalChannel);
-void SetTriggerMode(uint8_t DigitalChannel, uint8_t triggerMode);
-
 /* Returns either 1 or 0 to represent whether there is an active signal on
  * the channel.
  */
@@ -262,9 +187,6 @@ void SetCrossover(uint8_t channel, int16_t  crossover);
 uint16_t GainFunction(uint8_t channel, uint16_t signalValue);
 /* The signal is multiplied by 2^ (gain) */
 uint16_t ApplyGain(uint16_t signalValue, int8_t gain);
-
-#define GetDigitalState(x) getDigitalState(x)
-void ScanDigitalInputs(void);
 
 void SetLastSampleValue(uint8_t channel, uint16_t value);
 uint16_t GetLastSampleValue(uint8_t channel);

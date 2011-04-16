@@ -5,6 +5,7 @@
 #include "userFunctions/userFunctions.h"
 #include "userFunctions/gainAdjustFunctions.h"
 #include "userFunctions/dualTriggerAdjustFunctions.h"
+#include "userFunctions/switchTypeAdjustFunctions.h"
 #include "LCDSettings.h"
 
 #include "hardUart/hardUart.h"
@@ -416,6 +417,10 @@ const menu_list DigitalChannelSetupMenu[] MENU_SPACE = {
    {ST_DIGITAL_SETUP, ST_RETRIGGER, 3},
    {ST_DIGITAL_SETUP, ST_TRIGGER_TYPE, 4}, 
    {ST_DIGITAL_SETUP, ST_DUALINPUT, 5},
+
+   {ST_TRIGGER_TYPE, ST_SWITCH_POLARITY, 0},
+   {ST_TRIGGER_TYPE, ST_SWITCH_MODE, 1},
+   {ST_TRIGGER_TYPE, ST_SWITCH_RELEASE, 2},
    {0, 0, 0} 
 };
 
@@ -435,7 +440,11 @@ const menu_data ChannelSetupMenu[] MENU_SPACE = {
 	{ST_THRESHOLD,       MT_THRESHOLD, SetThreshold},
 	{ST_RETRIGGER, MT_RETRIGGER, SetRetrigger},   
 	{ST_DUALINPUT, MT_DUALINPUT, SetDualInput},
-   {ST_TRIGGER_TYPE, MT_TRIGGER_TYPE, SetSwitchType},
+   {ST_TRIGGER_TYPE, MT_TRIGGER_TYPE, SwitchTypeAdjustFunction},
+   {ST_SWITCH_POLARITY, 0, SwitchPolarityAdjustFunction},
+   {ST_SWITCH_MODE, 0, SwitchModeAdjustFunction},
+   {ST_SWITCH_RELEASE, 0, SwitchReleaseAdjustFunction},
+
    {ST_MONITORCHANNEL, MT_MONITORCHANNEL, MonitorChannel},
    {0, 0, 0}
 };  

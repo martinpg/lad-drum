@@ -4,6 +4,8 @@
 #include "VUMeter/vumeter.h"
 #include "MIDI/midi.h"
 #include "Sample/sample.h"
+#include "Sample/digitalSample.h"
+#include "Sample/analogueSample.h"
 #include "Menu/Menu.h"
 #include "EDrum.h"
 #include "MenuSettings.h"

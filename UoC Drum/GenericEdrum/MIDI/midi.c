@@ -2,6 +2,7 @@
 #include <string.h>
 #include "hardwareSpecific.h"
 #include "Sample/sample.h"
+#include "Sample/digitalSample.h"
 #include "midi.h"
 #include "VUMeter/vumeter.h"
 
@@ -175,16 +176,20 @@ void MIDI_DigitalOutput(void)
 {
    uint8_t i;
    MIDI_MSG_t msg;
+   uint8_t selectedDigitalInput;
 
    for( i = ANALOGUE_INPUTS; i < NUMBER_OF_INPUTS; i++)
    {      
+      selectedDigitalInput = i - ANALOGUE_INPUTS;
       if( GetChannelStatus(i) && 
           (RetriggerPeriod[i].timerEnable == SOFTTIMER_DISABLED))
       {
+         /* If the channel selected in a MetroNome one, automatically
+          * trigger a signal.
+          */
    		if( SignalPeak[i] || (i >= ANALOGUE_INPUTS + DIGITAL_INPUTS))
    		{	
 	         /* Send a NOTE ON (default) | Channel */
-
    		   if( GetDualMode(i) && GetChannelState(GetTrigger(i)) )
    		   {
    		      msg.StatusCode = GetClosedChannelCommand(i);
@@ -192,20 +197,32 @@ void MIDI_DigitalOutput(void)
    		   }
    		   else
    		   {
-   		      msg.StatusCode = GetChannelCommand(i);
-   		      msg.Data[0] = GetChannelKey(i);
+               msg.StatusCode = GetChannelCommand(i);
+               msg.Data[0] = GetChannelKey(i);
+               /* If the channel is a metronome input, do not check
+                * to see if it has an active release */
+               if((i >= ANALOGUE_INPUTS + DIGITAL_INPUTS) )
+               {
+               }
+               else
+               {
+                  if( GetActiveRelease(selectedDigitalInput) && SignalPeak[i] == INPUT_IS_RELEASED )
+                  {
+                      msg.StatusCode = GetClosedChannelCommand(i);
+                      msg.Data[0] = GetChannelKeyClosed(i);
+                  }
+               }
    		   }
-   		   msg.Data[1] = GetDigitalVelocity(i - ANALOGUE_INPUTS);
+   		   msg.Data[1] = GetDigitalVelocity(selectedDigitalInput);
 
    		   MIDI_SendMsg(&msg);
 
-				SoftTimerStart(RetriggerPeriod[i]);
-
 				if( SoftTimer2[SC_DigitalVUUpdate].timerEnable )
 	         {
-	         	VUValues[i-ANALOGUE_INPUTS] = GetDigitalVelocity(i - ANALOGUE_INPUTS);
+	         	VUValues[selectedDigitalInput] = GetDigitalVelocity(selectedDigitalInput);
 				}
-				   
+
+				SoftTimerStart(RetriggerPeriod[i]);
 			}
       }
    }
