@@ -72,8 +72,8 @@ uint8_t usbMIDI_bufferIsReady(void)
    return ((wMIDImsgCount+ 1) & MIDI_OUT_MASK) != ((rMIDImsgCount) & MIDI_OUT_MASK);
 }
 
-
-uint8_t usbMIDI_ParseData(uint8_t* data, uint8_t len)
+/*  */
+/*uint8_t usbMIDI_ParseData(uint8_t* data, uint8_t len)
 {
    uint8_t codeIndexNumber;
    uint8_t messageSize = 0;
@@ -92,7 +92,7 @@ uint8_t usbMIDI_ParseData(uint8_t* data, uint8_t len)
    }
 
    return byteCount;
-}
+}*/
 
 
 
@@ -154,68 +154,73 @@ uint8_t GetNumberOfBytesToRead(uint8_t messageIndex)
    return bytesToReturn;
 }
  
+
+
+
  
- 
-uint8_t MIDIDataReady(uint8_t inByte, usbMIDIMessage_t* MIDIMessage)
+uint8_t MIDIDataReady(uint8_t inByte, usbMIDIcable_t* usbMIDIcable)
 {
    /* You can technically have two midi events per midi message, but lets just
     * keep it to one.
     */
-   static uint8_t byteCount = 0;
-   static uint8_t bytesToReceive = 0;
-   static uint8_t receivingSysEx = 0;
+   uint8_t *byteCount = &usbMIDIcable->byteCount;
+   uint8_t *bytesToReceive = &usbMIDIcable->bytesToReceive;
+   uint8_t *receivingSysEx = &usbMIDIcable->receivingSysEx;
    /* This stores the last received status byte */
-   static uint8_t runningStatus = 0;
+   uint8_t *runningStatus = &usbMIDIcable->runningStatus;
    /* This stores the data byte 1 which may need to be restored if a RealTime message
     * is received */
-   static uint8_t lastDataByte = NO_DATA_BYTE;
+   uint8_t *lastDataByte = &usbMIDIcable->lastDataByte;
+
+
+   usbMIDIMessage_t*  MIDIMessage = &usbMIDIcable->msg;
    uint8_t CIN = 0;
    uint8_t messageIndex = 0;
 
 
    /* Implement running status here */
 
-   if( (byteCount == 0) && (inByte <= MIDI_MAX_DATA) && (!receivingSysEx))
+   if( (*byteCount == 0) && (inByte <= MIDI_MAX_DATA) && (!(*receivingSysEx)))
    {
-      messageIndex = LookupMIDIMessage(runningStatus);
-      bytesToReceive = GetNumberOfBytesToRead(messageIndex);
+      messageIndex = LookupMIDIMessage(*runningStatus);
+      *bytesToReceive = GetNumberOfBytesToRead(messageIndex);
       CIN = GetCINNumber(messageIndex);
       MIDIMessage->header = CIN;
-      MIDIMessage->MIDIData[0] = runningStatus;          
+      MIDIMessage->MIDIData[0] = *runningStatus;
 
-      if( lastDataByte != NO_DATA_BYTE )
+      if( *lastDataByte != NO_DATA_BYTE )
       {
-         MIDIMessage->MIDIData[1] = lastDataByte;
-         byteCount = 2;
+         MIDIMessage->MIDIData[1] = *lastDataByte;
+         *byteCount = 2;
       }
       else
       {
-         byteCount = 1;
+         *byteCount = 1;
       }
    }
 
    /* A new status byte is received, discard the old one */
-   if( (byteCount > 0) && (inByte > MIDI_MAX_DATA) && (inByte != MIDI_SYSEX_STOP))
+   if( (*byteCount > 0) && (inByte > MIDI_MAX_DATA) && (inByte != MIDI_SYSEX_STOP))
    {
-      byteCount = 0;
-      receivingSysEx = 0;
+      *byteCount = 0;
+      *receivingSysEx = 0;
    }
 
    if( inByte == MIDI_SYSEX_START )
    {
-       receivingSysEx = 1;
+       *receivingSysEx = 1;
    }
 
 
    /* Determine how many bytes to receive based on the 'first'
     * byte (MIDI_Status Code) */
-   if( byteCount == 0 )
+   if( *byteCount == 0 )
    {
       /* Save the new voice status */
       if( inByte < MIDI_SYSEX_START && inByte >= MIDI_NOTE_OFF )
       {
-         runningStatus = inByte;
-         lastDataByte  = NO_DATA_BYTE;
+         *runningStatus = inByte;
+         *lastDataByte  = NO_DATA_BYTE;
       }
 
       /* Clear */
@@ -224,10 +229,10 @@ uint8_t MIDIDataReady(uint8_t inByte, usbMIDIMessage_t* MIDIMessage)
       MIDIMessage->MIDIData[1] = 0;
       MIDIMessage->MIDIData[2] = 0;
 
-      if( !receivingSysEx )
+      if( !(*receivingSysEx) )
       {
           messageIndex = LookupMIDIMessage(inByte);
-          bytesToReceive = GetNumberOfBytesToRead(messageIndex);
+          *bytesToReceive = GetNumberOfBytesToRead(messageIndex);
           CIN = GetCINNumber(messageIndex);
           MIDIMessage->header = CIN;
       }
@@ -235,35 +240,35 @@ uint8_t MIDIDataReady(uint8_t inByte, usbMIDIMessage_t* MIDIMessage)
 
    if( inByte <= MIDI_MAX_DATA )
    {
-      lastDataByte = inByte;
+      *lastDataByte = inByte;
    }
 
 
 
-   MIDIMessage->MIDIData[byteCount] = inByte;
-   byteCount++;
+   MIDIMessage->MIDIData[*byteCount] = inByte;
+   *byteCount = *byteCount + 1;
 
-   if( receivingSysEx )
+   if( *receivingSysEx )
    {      
    /* By default we are continuing a SysEx Message */
-      bytesToReceive = 3;
+      *bytesToReceive = 3;
       MIDIMessage->header = 0x04;
  
       /* If we recieve a SYSEX STOP then send the message */
       if( inByte == MIDI_SYSEX_STOP )
       {
-         bytesToReceive = byteCount;
-         MIDIMessage->header = byteCount + 0x04;
-         receivingSysEx = 0;
+         *bytesToReceive = *byteCount;
+         MIDIMessage->header = *byteCount + 0x04;
+         *receivingSysEx = 0;
       }
    }
 
-   if( byteCount == bytesToReceive)
+   if( *byteCount == *bytesToReceive)
    {
-      byteCount = 0;
+      *byteCount = 0;
       if( inByte < MIDI_TIMING_CLOCK )
       {
-         lastDataByte  = NO_DATA_BYTE;
+         *lastDataByte  = NO_DATA_BYTE;
       }
 
       return MIDI_DATA_READY;
