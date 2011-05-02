@@ -50,12 +50,25 @@ typedef struct usbMIDIMessage
    uint8_t  MIDIData[3];
 } usbMIDIMessage_t;
 
+typedef struct {
+
+	uint8_t byteCount;
+	uint8_t bytesToReceive;
+	uint8_t runningStatus;
+	uint8_t lastDataByte;
+	uint8_t receivingSysEx;
+	usbMIDIMessage_t msg;
+
+} usbMIDIcable_t;
+
 
 /* Hold enough data for a few messages,
  */
 extern usbMIDIMessage_t MIDImsgComplete[];
 extern uint8_t wMIDImsgCount;
 extern uint8_t rMIDImsgCount; 
+
+extern uint8_t MIDIResponseMap[] PROGRAM_SPACE;
 
 
 /* Returns the number of USB-MIDIMessages in the buffer */
@@ -79,7 +92,8 @@ uint8_t LookupMIDIMessage(uint8_t MIDIStatusCode);
  * The function will return MIDI_DATA_READY and the
  * USB_MIDI packet will be in MIDIMessage
  * This is the MIDI parser, just keep throwing bytes into this function */
-uint8_t MIDIDataReady(uint8_t inByte, usbMIDIMessage_t* MIDIMessage);
+//uint8_t MIDIDataReady(uint8_t inByte, usbMIDIMessage_t* MIDIMessage);
+uint8_t MIDIDataReady(uint8_t inByte, usbMIDIcable_t* usbMIDIcable);
 
 /* Parameter: The result from 'LookupMIDIMessage' */
 uint8_t GetNumberOfBytesToRead(uint8_t messageIndex);
