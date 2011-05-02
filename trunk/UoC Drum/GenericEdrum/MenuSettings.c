@@ -100,6 +100,7 @@ const MENU_TEXT  MT_CHANNEL_13[] = "Ch 13:(Ride/Bell)";
 const MENU_TEXT  MT_CHANNEL_14[] = "Ch 14:";
 const MENU_TEXT  MT_CHANNEL_15[] = "Ch 15:";
 const MENU_TEXT  MT_CHANNEL_16[] = "Ch 16:";
+#if ANALOGUE_INPUTS >= 16
 const MENU_TEXT  MT_CHANNEL_17[] = "Ch 17:";
 const MENU_TEXT  MT_CHANNEL_18[] = "Ch 18:";
 const MENU_TEXT  MT_CHANNEL_19[] = "Ch 19:";
@@ -124,6 +125,7 @@ const MENU_TEXT  MT_CHANNEL_37[] = "Ch 37:";
 const MENU_TEXT  MT_CHANNEL_38[] = "Ch 38:";
 const MENU_TEXT  MT_CHANNEL_39[] = "Ch 39:";
 const MENU_TEXT  MT_CHANNEL_40[] = "Ch 40:";
+#endif
 
 
 const MENU_TEXT  MT_DIGITAL_1[] = "Ch 1:(HiHat Pedal)";
@@ -143,6 +145,16 @@ const MENU_TEXT  MT_METRONOME_5[] = "Metronome Input 5";
 const MENU_TEXT  MT_METRONOME_6[] = "Metronome Input 6";
 const MENU_TEXT  MT_METRONOME_7[] = "Metronome Input 7";
 const MENU_TEXT  MT_METRONOME_8[] = "Metronome Input 8";
+#if METRONOME_INPUTS > 8
+const MENU_TEXT  MT_METRONOME_9[] = "Metronome Input 9";
+const MENU_TEXT  MT_METRONOME_10[] = "Metronome Input 10";
+const MENU_TEXT  MT_METRONOME_11[] = "Metronome Input 11";
+const MENU_TEXT  MT_METRONOME_12[] = "Metronome Input 12";
+const MENU_TEXT  MT_METRONOME_13[] = "Metronome Input 13";
+const MENU_TEXT  MT_METRONOME_14[] = "Metronome Input 14";
+const MENU_TEXT  MT_METRONOME_15[] = "Metronome Input 15";
+const MENU_TEXT  MT_METRONOME_16[] = "Metronome Input 16";
+#endif
 
 #if HAS_CONTROLLER_MODE
 const MENU_TEXT  MT_CONTROLLER_MODE[] = "Controller Mode";
@@ -209,8 +221,13 @@ const menu_list MenuState[] MENU_SPACE = {
    {ST_MIDI_OUTPUT_RATE, ST_SET_RATE, 1},
 
    {ST_CHANNEL_SETUP, ST_ANALOGUE_INPUTS,  0},
-   {ST_CHANNEL_SETUP, ST_DIGITAL_INPUTS,  1}, 
+#if DIGITAL_INPUTS > 0
+   {ST_CHANNEL_SETUP, ST_DIGITAL_INPUTS,  1},
    {ST_CHANNEL_SETUP, ST_METRONOME_INPUTS, 2},
+#else
+   {ST_CHANNEL_SETUP, ST_METRONOME_INPUTS, 1},
+#endif
+
 #if HAS_CONTROLLER_MODE
 	{ST_CHANNEL_SETUP, ST_KEYPAD_INPUTS,  3},  
 #endif
@@ -231,6 +248,34 @@ const menu_list MenuState[] MENU_SPACE = {
    {ST_ANALOGUE_INPUTS, ST_CHANNEL_15, 14}, 
    {ST_ANALOGUE_INPUTS, ST_CHANNEL_16, 15},
 
+#if ANALOGUE_INPUTS > 16
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_17,  16},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_18,  17},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_19,  18},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_20,  19},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_21,  20},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_22,  21},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_23,  22},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_24,  23},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_25,  24},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_26, 25},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_27, 26},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_28, 27},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_29, 28},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_30, 29},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_31, 30},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_32, 31},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_33, 32},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_34, 33},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_35, 34},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_36, 35},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_37, 36},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_38, 37},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_39, 38},
+   {ST_ANALOGUE_INPUTS, ST_CHANNEL_40, 39},
+#endif
+
+#if DIGITAL_INPUTS > 0
 	/* Digital Config Menu's */
    {ST_DIGITAL_INPUTS, ST_DIGITAL_1,  0},
    {ST_DIGITAL_INPUTS, ST_DIGITAL_2,  1},
@@ -240,6 +285,7 @@ const menu_list MenuState[] MENU_SPACE = {
    {ST_DIGITAL_INPUTS, ST_DIGITAL_6,  5},
    {ST_DIGITAL_INPUTS, ST_DIGITAL_7,  6},
    {ST_DIGITAL_INPUTS, ST_DIGITAL_8,  7},
+#endif
 
    {ST_METRONOME_INPUTS, ST_METRONOME_1, 0},
    {ST_METRONOME_INPUTS, ST_METRONOME_2, 1},
@@ -249,6 +295,16 @@ const menu_list MenuState[] MENU_SPACE = {
    {ST_METRONOME_INPUTS, ST_METRONOME_6, 5},
    {ST_METRONOME_INPUTS, ST_METRONOME_7, 6},                  
    {ST_METRONOME_INPUTS, ST_METRONOME_8, 7},
+#if METRONOME_INPUTS > 8
+   {ST_METRONOME_INPUTS, ST_METRONOME_9, 8},
+   {ST_METRONOME_INPUTS, ST_METRONOME_10, 9},
+   {ST_METRONOME_INPUTS, ST_METRONOME_11, 10},
+   {ST_METRONOME_INPUTS, ST_METRONOME_12, 11},
+   {ST_METRONOME_INPUTS, ST_METRONOME_13, 12},
+   {ST_METRONOME_INPUTS, ST_METRONOME_14, 13},
+   {ST_METRONOME_INPUTS, ST_METRONOME_15, 14},
+   {ST_METRONOME_INPUTS, ST_METRONOME_16, 15},
+#endif
 
 #if HAS_CONTROLLER_MODE
    {ST_KEYPAD_INPUTS, ST_KEYPAD_1,  0},
@@ -351,7 +407,34 @@ const menu_data MenuData[] MENU_SPACE = {
    {ST_CHANNEL_13, MT_CHANNEL_13, ChannelSetup},
    {ST_CHANNEL_14, MT_CHANNEL_14, ChannelSetup},
    {ST_CHANNEL_15, MT_CHANNEL_15, ChannelSetup}, 
-   {ST_CHANNEL_16, MT_CHANNEL_16, ChannelSetup},  
+   {ST_CHANNEL_16, MT_CHANNEL_16, ChannelSetup},
+#if ANALOGUE_INPUTS > 16
+   {ST_CHANNEL_17, MT_CHANNEL_17,   ChannelSetup},
+   {ST_CHANNEL_18, MT_CHANNEL_18,   ChannelSetup},
+   {ST_CHANNEL_19, MT_CHANNEL_19,   ChannelSetup},
+   {ST_CHANNEL_20, MT_CHANNEL_20,   ChannelSetup},
+   {ST_CHANNEL_21, MT_CHANNEL_21,   ChannelSetup},
+   {ST_CHANNEL_22, MT_CHANNEL_22,   ChannelSetup},
+   {ST_CHANNEL_23, MT_CHANNEL_23,   ChannelSetup},
+   {ST_CHANNEL_24, MT_CHANNEL_24,   ChannelSetup},
+   {ST_CHANNEL_25, MT_CHANNEL_25,   ChannelSetup},
+   {ST_CHANNEL_26, MT_CHANNEL_26, ChannelSetup},
+   {ST_CHANNEL_27, MT_CHANNEL_27, ChannelSetup},
+   {ST_CHANNEL_28, MT_CHANNEL_28, ChannelSetup},
+   {ST_CHANNEL_29, MT_CHANNEL_29, ChannelSetup},
+   {ST_CHANNEL_30, MT_CHANNEL_30, ChannelSetup},
+   {ST_CHANNEL_31, MT_CHANNEL_31, ChannelSetup},
+   {ST_CHANNEL_32, MT_CHANNEL_32, ChannelSetup},
+   {ST_CHANNEL_33, MT_CHANNEL_33,   ChannelSetup},
+   {ST_CHANNEL_34, MT_CHANNEL_34, ChannelSetup},
+   {ST_CHANNEL_35, MT_CHANNEL_35, ChannelSetup},
+   {ST_CHANNEL_36, MT_CHANNEL_36, ChannelSetup},
+   {ST_CHANNEL_37, MT_CHANNEL_37, ChannelSetup},
+   {ST_CHANNEL_38, MT_CHANNEL_38, ChannelSetup},
+   {ST_CHANNEL_39, MT_CHANNEL_39, ChannelSetup},
+   {ST_CHANNEL_40, MT_CHANNEL_40, ChannelSetup},
+#endif
+
    
 	/* Digital Menus */
    {ST_DIGITAL_1, MT_DIGITAL_1,   DigitalChannelSettings},
@@ -372,6 +455,17 @@ const menu_data MenuData[] MENU_SPACE = {
    {ST_METRONOME_6, MT_METRONOME_6,   DigitalChannelSettings},
    {ST_METRONOME_7, MT_METRONOME_7,   DigitalChannelSettings},
    {ST_METRONOME_8, MT_METRONOME_8,   DigitalChannelSettings},
+#if METRONOME_INPUTS > 8
+   {ST_METRONOME_9, MT_METRONOME_9,   DigitalChannelSettings},
+   {ST_METRONOME_10, MT_METRONOME_10,   DigitalChannelSettings},
+   {ST_METRONOME_11, MT_METRONOME_11,   DigitalChannelSettings},
+   {ST_METRONOME_12, MT_METRONOME_12,   DigitalChannelSettings},
+   {ST_METRONOME_13, MT_METRONOME_13,   DigitalChannelSettings},
+   {ST_METRONOME_14, MT_METRONOME_14,   DigitalChannelSettings},
+   {ST_METRONOME_15, MT_METRONOME_15,   DigitalChannelSettings},
+   {ST_METRONOME_16, MT_METRONOME_16,   DigitalChannelSettings},
+#endif
+
 
 #if HAS_CONTROLLER_MODE 	
    /* Keypad Menus */
@@ -493,15 +587,15 @@ const menu_data DualTriggerFnTable[] MENU_SPACE = {
 };
 
 
-Menu_t primaryMenu = {ST_MAIN, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0, (menu_list*)MenuState, (menu_data*)MenuData};
-Menu_t analogueMenu = {ST_ANALOGUE_SETUP, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &primaryMenu, 0, 
-                       (menu_list*)AnalogueChannelSetupMenu, (menu_data*)ChannelSetupMenu};
+Menu_t primaryMenu = {ST_MAIN, KP_INVALID, 0, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &primaryMenu, 0, (menu_list*)MenuState, (menu_data*)MenuData};
+Menu_t analogueMenu = {ST_ANALOGUE_SETUP, KP_INVALID, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &primaryMenu, 0,
+                       (menu_list*)&AnalogueChannelSetupMenu, (menu_data*)&ChannelSetupMenu};
                        
-Menu_t digitalMenu = {ST_DIGITAL_SETUP, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &primaryMenu, 0,
-                       (menu_list*)DigitalChannelSetupMenu, (menu_data*)ChannelSetupMenu};                       
+Menu_t digitalMenu = {ST_DIGITAL_SETUP, KP_INVALID, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &primaryMenu, 0,
+                       (menu_list*)&DigitalChannelSetupMenu, (menu_data*)&ChannelSetupMenu};
 
-Menu_t dualTrigMenu = {ST_DUAL_INPUT, 0, 0, WINDOW_SIZE, WINDOW_SIZE, 3 , 1 , &analogueMenu, 0,
-                       (menu_list*)DualTriggerMenu, (menu_data*)DualTriggerFnTable};
+Menu_t dualTrigMenu = {ST_DUAL_INPUT, KP_INVALID, 0, WINDOW_SIZE, WINDOW_SIZE, 0 , 1 , &analogueMenu, 0,
+                       (menu_list*)&DualTriggerMenu, (menu_data*)&DualTriggerFnTable};
 
 
 

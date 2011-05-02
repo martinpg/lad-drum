@@ -46,7 +46,7 @@ void GainAdjustFunction(void* data)
 
    if( ActiveMenu->firstEnter == 0 )
    {
-      UF_stateMachine( ActiveMenu->currentState );
+      UF_stateMachine();
       switch( *input )
       {
         case KP_UP:
@@ -69,7 +69,7 @@ void GainAdjustFunction(void* data)
             head function has a function (HandleSubMenu), the MenuUpdate
             will not switch the state for us.
             */
-           UF_stateMachine(analogueMenu.currentState);
+           UF_stateMachine();
            MenuUpdate(&analogueMenu, 0);
            return;
 
@@ -119,7 +119,7 @@ void GainSlopeAdjustFunction(void* data)
 
       case KP_BACK:
          UF_MenuSetInput(*input);
-         UF_stateMachine( ActiveMenu->currentState );
+         UF_stateMachine();
          MenuUpdate(&analogueMenu, 0);
          return;
    }
@@ -137,7 +137,7 @@ void GainTypeAdjustFunction(void* data)
    GainTypeToggle(SelectedChannel);
 
    UF_MenuSetInput(KP_BACK);
-   UF_stateMachine( ActiveMenu->currentState );
+   UF_stateMachine();
    MenuUpdate(&analogueMenu, 0);
 
 }
@@ -164,7 +164,7 @@ void GainCrossOverAdjustFunction(void* data)
 
       case KP_BACK:
          UF_MenuSetInput(*input);
-         UF_stateMachine( ActiveMenu->currentState );
+         UF_stateMachine();
          MenuUpdate(&analogueMenu, 0);
          return;
    }
@@ -200,7 +200,7 @@ void GainPresetAdjustFunction(void* data)
 
       case KP_BACK:
          UF_MenuSetInput(*input);
-         UF_stateMachine( ActiveMenu->currentState );
+         UF_stateMachine();
          MenuUpdate(&analogueMenu, 0);
          return;
    }

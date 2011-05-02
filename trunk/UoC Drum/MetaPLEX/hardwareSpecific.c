@@ -87,21 +87,25 @@ void enableFlashProgramming(uint8_t mode)
 //   GICR = interuptControlState;
 }
 
+
+
 void SensorChannel(uint8_t channel)
 {
 	
 	uint8_t channelState;
 	
-   if( channel >= CHANNEL_COUNT )
-   {
-      return;    
-   }
-   
+	ADC_SetupAddress(channel / CHANNEL_COUNT);
+
+	channel = channel % CHANNEL_COUNT;
+
    channelState = (((channel & (0x04)) ? 1 : 0) << CHSELC) |
                   (((channel & (0x02)) ? 1 : 0) << CHSELB) |
                   (((channel & (0x01)) ? 1 : 0) << CHSELA);
 
    CHSELOUT = (CHSELOUT & ~(CHSELPINS)) | channelState;
+
+
+
    return;
 }
 
@@ -109,8 +113,7 @@ void SensorChannel(uint8_t channel)
 
 uint16_t Sample_Channel(uint8_t channel)
 {
-   channel = channel % 8;
-   ADC_SetupAddress(channel);
+   SensorChannel(channel % CHANNEL_COUNT);
    return ADC_Sample();
 }
 

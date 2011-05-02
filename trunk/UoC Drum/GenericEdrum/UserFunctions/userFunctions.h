@@ -52,7 +52,7 @@ extern uint8_t SelectedChannel;
 extern char outputString[];
 
 void UF_MenuSetInput(uint8_t NewInput);
-void UF_stateMachine(uint8_t CurrentState);
+void UF_stateMachine(void);
 void UF_executeState(uint8_t state);
 void UF_MenuReset(void);
 void UF_MenuNewLine(void);

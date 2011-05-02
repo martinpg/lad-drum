@@ -65,6 +65,7 @@ extern AVR_USART_t PrimaryUART;
 #define ANALOGUE_INPUTS	(40)
 #define METRONOME_INPUTS (16)
 #define DIGITAL_INPUTS	(0)
+#define KEYPAD_INPUTS (0)
 
 /* Channel Select Defines */
 #define CHSELOUT  PORTA
@@ -127,13 +128,13 @@ extern AVR_USART_t PrimaryUART;
 
 
 /* ADC Defines */
-#define ADC_Init()       //adcInitialise()     
-#define ADC_Sample()     0//adc10()
-#define ADC_SetupAddress(channel) //adcSetPin(channel)
+#define ADC_Init()       adcInitialise()
+#define ADC_Sample()     adc10()
+#define ADC_SetupAddress(channel) adcSetPin(channel)
 
 #define ADC_REF_DEFAULT ADC_REF_AVCC
 /* Lowest division before it doesn't work */
-#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV4
+#define ADC_PRESCALE_DEFAULT ADC_PRESCALE_DIV128
 #define ADC_SAMPLE_SPEEDus      (1000000 / (F_CPU / (4*13)))
 
 #define ADC_RESOLUTION (10)
