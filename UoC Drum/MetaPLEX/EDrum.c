@@ -78,8 +78,8 @@ int main(void)
    //DDRD &= ~(1 << 3);
    //PORTD &= ~(1<<3);
 
-//   MCUCR = (1 << JTD);
-//   MCUCR = (1 << JTD);
+   MCUCR = (1 << JTD);
+   MCUCR = (1 << JTD);
 
 
    /* Setup the USB */
@@ -114,7 +114,8 @@ int main(void)
    /* Menu Display Init */
    MenuSetDisplay(&primaryMenu, MENU_LCD);
    MenuSetDisplay(&analogueMenu, MENU_LCD);
-   MenuSetDisplay(&digitalMenu, MENU_LCD);      
+   MenuSetDisplay(&digitalMenu, MENU_LCD);   
+   MenuSetDisplay(&dualTrigMenu, MENU_LCD);   
 
 
    /*if( VerifyDownload() == 0)
@@ -137,13 +138,13 @@ int main(void)
    MIDI_SetChannelCode( MIDI_GetChannelCode() );
 
    /* Update Activated Analogue Channels */
-   //UpdateActiveChannels();
+   UpdateActiveChannels();
 
    /* Update the Retrigger periods */
-   //UpdateChannelRetriggers();
+   UpdateChannelRetriggers();
 
    /* ADC Module Init */
-   //ADC_Init();
+   ADC_Init();
    
    /* Menu Setup */
    MenuSetInput(&primaryMenu, 0); 
@@ -167,11 +168,21 @@ int main(void)
 
    //SoftTimerStop(SoftTimer2[SC_usbPoll]);
    //SoftTimerStart(SoftTimer1[SC_MIDIScan]);
-   //sei();
+   sei();
 
    uint8_t inByte;
    while (1)
    {   
+      switch( ActiveProcess )
+            {
+               case PLAY_MODE:
+                  //if( SoftTimerIsEnabled(SoftTimer1[SC_MIDIScan]) )
+                  {
+                     Play();
+                  }
+               break;
+            }
+
    }
          //usbPoll();
       //USBMIDI_OutputData();
@@ -194,6 +205,33 @@ void Shutdown(void)
    DISABLE_AUXILIARY_TIMER();
    /* Reset the timer flags */
 //   TIFR = 0xFF;
+}
+
+void Play(void)
+{
+   uint8_t i = 0;
+   uint8_t SelectedChannel;
+   uint16_t sample;
+
+   while( ActiveChannels[i] != LAST_CHANNEL_INDEX)
+   {
+      SelectedChannel = ActiveChannels[i++];
+      //if( !SoftTimerIsEnabled(RetriggerPeriod[SelectedChannel]) )
+      {
+         SensorChannel(SelectedChannel);
+         _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
+         _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
+         _delay_loop_1(SensorSettings->CrosstalkDelay << 1);
+         /* Take a sample, doing it twice improves the reading accuracy */
+         sample = ADC_Sample();
+
+         /* Obtain Peak */
+         if( ObtainPeak(SelectedChannel, sample) == SAMPLE_IS_FALLING)
+         {
+            MIDI_OutputAnalogueChannel(SelectedChannel);
+         }
+      }
+   }
 }
 
 
@@ -223,6 +261,16 @@ uint8_t VerifyDownload(void)
    }
 
    return 1; // must be 0
+}
+
+
+ISR(USART1_TX_vect, ISR_NOBLOCK)
+{
+   // Tx the next byte if there are still bytes in the buffer
+   if( !ringbuffer_isEmpty((RINGBUFFER_T*)PrimaryUART.TransmitBuffer) )
+   {
+      UDR1 = ringbuffer_get((RINGBUFFER_T*)PrimaryUART.TransmitBuffer);
+   }
 }
 
 

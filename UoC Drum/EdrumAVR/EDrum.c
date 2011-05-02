@@ -98,6 +98,7 @@ volatile uint8_t PrintChannel;
 int main(void)
 {
 
+	volatile haha = PROFILE(0);
 
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);

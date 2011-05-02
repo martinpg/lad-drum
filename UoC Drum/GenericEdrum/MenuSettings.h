@@ -27,6 +27,7 @@ THE SOFTWARE.
 #ifndef _MENU_SETTINGS_H
 #define _MENU_SETTINGS_H
 
+#include "hardwareSpecific.h"
 #include "Menu/Menu.h"
 
 /* Menu Texts */
@@ -60,6 +61,32 @@ enum {
    ST_CHANNEL_14,
    ST_CHANNEL_15,   
    ST_CHANNEL_16,
+#if ANALOGUE_INPUTS > 16
+   ST_CHANNEL_17,
+   ST_CHANNEL_18,
+   ST_CHANNEL_19,
+   ST_CHANNEL_20,
+   ST_CHANNEL_21,
+   ST_CHANNEL_22,
+   ST_CHANNEL_23,
+   ST_CHANNEL_24,
+   ST_CHANNEL_25,
+   ST_CHANNEL_26,
+   ST_CHANNEL_27,
+   ST_CHANNEL_28,
+   ST_CHANNEL_29,
+   ST_CHANNEL_30,
+   ST_CHANNEL_31,
+   ST_CHANNEL_32,
+   ST_CHANNEL_33,
+   ST_CHANNEL_34,
+   ST_CHANNEL_35,
+   ST_CHANNEL_36,
+   ST_CHANNEL_37,
+   ST_CHANNEL_38,
+   ST_CHANNEL_39,
+   ST_CHANNEL_40,
+#endif
 /* Effectively Channel 17 -> 32 */   
 	ST_DIGITAL_1,
 	ST_DIGITAL_2,
@@ -78,6 +105,14 @@ enum {
    ST_METRONOME_6,
    ST_METRONOME_7,
    ST_METRONOME_8,
+   ST_METRONOME_9,
+   ST_METRONOME_10,
+   ST_METRONOME_11,
+   ST_METRONOME_12,
+   ST_METRONOME_13,
+   ST_METRONOME_14,
+   ST_METRONOME_15,
+   ST_METRONOME_16,
 /* Keypad Setting Channels */   
    ST_KEYPAD_1,
    ST_KEYPAD_2,

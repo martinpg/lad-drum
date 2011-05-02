@@ -105,7 +105,7 @@ void PrintDualTriggerInformation(uint8_t UpDownPosition)
    static uint8_t enterCount;
    enterCount ^= (1);
 
-   SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
+   UF_MenuReset();
 
    /* Indicate the channel selected */
    UF_MenuPrint_P(PSTR("CH:"));
@@ -168,7 +168,9 @@ void PrintDualTriggerInformation(uint8_t UpDownPosition)
       UF_MenuPrint(outputString);
    }
 
+   SoftTimerStart(SoftTimer2[SC_AutoMenuUpdate]);
    SelectedSubMenu = &dualTrigMenu;
+
 
 }
 

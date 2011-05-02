@@ -30,13 +30,13 @@ THE SOFTWARE.
 
 Profile_t Profile0 PROFILE_LOCATION(START)  = { 
 /* MIDISettings_t */
-{
+   .midiSettings = {
    /* 15ms output rate */
-   DEFAULT_OUTPUT_RATE,
-   DEFAULT_BAUD_RATE,
+   .MIDI_OutputRate = DEFAULT_OUTPUT_RATE,
+   .MIDI_BaudRate = DEFAULT_BAUD_RATE,
    /* MIDI Channel Instrument # */
-   (DEFAULT_MIDI_CHANNEL)
-},
+   .MIDI_ChannelCode = (DEFAULT_MIDI_CHANNEL)
+   },
 /* Channel Settings */
 {
    /* Channel Status */

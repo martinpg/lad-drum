@@ -50,7 +50,7 @@ static PROGMEM char deviceDescrMIDI[] = {	/* USB device descriptor */
 static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	9,			/* sizeof(usbDescrConfig): length of descriptor in bytes */
 	USBDESCR_CONFIG,	/* descriptor type */
-	101, 0,			/* total length of data returned (including inlined descriptors) */
+	103, 0,			/* total length of data returned (including inlined descriptors) */
 	2,			/* number of interfaces in this configuration */
 	1,			/* index of this configuration */
 	0,			/* configuration name string index */
@@ -128,26 +128,28 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	6,			/* bLength */
 	36,			/* descriptor type */
 	2,			/* MIDI_IN_JACK desc subtype */
-	2,			/* EXTERNAL bJackType */
+	1,			/* External bJackType */
 	2,			/* bJackID */
 	0,			/* iJack */
+
 
 //B.4.4 MIDI OUT Jack Descriptor
 	9,			/* length of descriptor in bytes */
 	36,			/* descriptor type */
 	3,			/* MIDI_OUT_JACK descriptor */
 	1,			/* EMBEDDED bJackType */
-	3,			/* bJackID */
+	4,			/* bJackID */
 	1,			/* No of input pins */
 	2,			/* BaSourceID */
 	1,			/* BaSourcePin */
 	0,			/* iJack */
 
+
 	9,			/* bLength of descriptor in bytes */
 	36,			/* bDescriptorType */
 	3,			/* MIDI_OUT_JACK bDescriptorSubtype */
-	2,			/* EXTERNAL bJackType */
-	4,			/* bJackID */
+	1,			/* EMBEDDED bJackType */
+	5,			/* bJackID */
 	1,			/* bNrInputPins */
 	1,			/* baSourceID (0) */
 	1,			/* baSourcePin (0) */
@@ -167,11 +169,11 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	0,			/* bSyncAddress */
 
 // B.5.2 Class-specific MS Bulk OUT Endpoint Descriptor
-	5,			/* bLength of descriptor in bytes */
+	6,			/* bLength of descriptor in bytes */
 	37,			/* bDescriptorType */
 	1,			/* bDescriptorSubtype */
-	1,			/* bNumEmbMIDIJack  */
-	1,			/* baAssocJackID (0) */
+	2,			/* bNumEmbMIDIJack  */
+	1, 2,		/* baAssocJackID (0) */
 
 
 //B.6 Bulk IN Endpoint Descriptors
@@ -187,11 +189,11 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	0,			/* bSyncAddress */
 
 // B.6.2 Class-specific MS Bulk IN Endpoint Descriptor
-	5,			/* bLength of descriptor in bytes */
+	6,			/* bLength of descriptor in bytes */
 	37,			/* bDescriptorType */
 	1,			/* bDescriptorSubtype */
-	1,			/* bNumEmbMIDIJack (0) */
-	3,			/* baAssocJackID (0) */
+	2,			/* bNumEmbMIDIJack (0) */
+	4,5,		/* baAssocJackID (0) */
 };
 
 

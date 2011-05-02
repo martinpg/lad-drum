@@ -95,9 +95,9 @@ void UF_MenuSetInput(uint8_t NewInput)
    MenuSetInput(ActiveMenu, NewInput);
 }
 
-void UF_stateMachine(uint8_t CurrentState)
+void UF_stateMachine(void)
 {
-   stateMachine(ActiveMenu, CurrentState);
+   stateMachine(ActiveMenu, ActiveMenu->currentState);
 }
 
 void UF_executeState(uint8_t state)
@@ -151,7 +151,7 @@ void about(void* data)
 	      case KP_BACK:      
 			UI_LCD_LoadDefaultChars();	
 	   	UF_MenuSetInput(KP_BACK);
-	      UF_stateMachine(primaryMenu.currentState);
+	      UF_stateMachine();
 			SoftTimerStop(SoftTimer2[SC_AboutUpdate]);
 			ThanksIndex(MAIN_SCREEN);       
 	      return;	
@@ -272,7 +272,7 @@ void DisableEdrum(void* data)
 		
 	if( primaryMenu.firstEnter != 1 )
    {     
-		UF_stateMachine( primaryMenu.currentState );
+		UF_stateMachine( );
       switch( *input )
       {
          case KP_UP:
@@ -326,7 +326,7 @@ void USBMIDIThru(void* data)
 		
 	if( primaryMenu.firstEnter != 1 )
    {     
-		UF_stateMachine( primaryMenu.currentState );
+		UF_stateMachine();
       switch( *input )
       {
          case KP_UP:
@@ -397,7 +397,7 @@ void SysExDisplay(void* data)
 		
 	if( primaryMenu.firstEnter != 1 )
    {     
-		UF_stateMachine( primaryMenu.currentState );
+		UF_stateMachine();
       switch( *input )
       {
 			case KB_BACK:
@@ -703,7 +703,7 @@ void SetMIDIRate(void* data)
 		
 	if( primaryMenu.firstEnter != 1 )
    {     
-		UF_stateMachine( primaryMenu.currentState );
+		UF_stateMachine();
       switch( *input )
       {
 			case KB_BACK:
@@ -1067,7 +1067,7 @@ void ChannelSetup(void* data)
 
  	if( primaryMenu.firstEnter != 1 )
  	{
-      UF_stateMachine( primaryMenu.currentState );
+      UF_stateMachine();
 	   switch( *input )
 	   {
 
@@ -1130,7 +1130,7 @@ void ChannelSetup(void* data)
                  head function has a function (HandleSubMenu), the MenuUpdate
                  will not switch the state for us.
                  */
-                UF_stateMachine(analogueMenu.currentState);
+                UF_stateMachine();
                 MenuUpdate(&analogueMenu, 0);
                 primaryMenu.firstEnter = 1;
             return;
@@ -1224,7 +1224,7 @@ void SetDualInput(void* data)
          case KP_BACK:
             SoftTimerStop(SoftTimer2[SC_AutoMenuUpdate]);
             //UF_stateMachine( analogueMenu.currentState );
-            UF_stateMachine(newParentMenu->currentState );
+            UF_stateMachine();
             ActiveMenu = &primaryMenu;
             SelectedSubMenu = newParentMenu;
 
@@ -1245,7 +1245,7 @@ void SetDualInput(void* data)
             SelectedSubMenu = &dualTrigMenu;
 
             MenuSetInput( &dualTrigMenu, *input );
-            UF_stateMachine(dualTrigMenu.currentState);
+            UF_stateMachine();
             MenuUpdate(&dualTrigMenu, 0);
             newParentMenu->firstEnter = 1;
             MenuSetInput( &dualTrigMenu, 0 );
@@ -1261,11 +1261,17 @@ void SetDualInput(void* data)
 
    ActiveMenu->firstEnter = 0;
 
+
    SoftTimer2[SC_AutoMenuUpdate].timeCompare = SLOW_AUTO_MENU_UPDATE;
 
+   //dualTrigMenu.updateOptions = HIDE_CHILDREN;
 
-   MenuUpdate(&dualTrigMenu, RESET_MENU);
+   MenuUpdate(&dualTrigMenu, 0);
+
+   //stateMachine(&dualTrigMenu, dualTrigMenu.currentState);
+   //return;
    MenuSetInput( &dualTrigMenu, KP_INVALID );
+
 
    PrintDualTriggerInformation(dualTrigMenu.selectedItem);
 
@@ -1299,11 +1305,15 @@ void SetThreshold(void* data)
 	{
          /* Up and down a Threshold Level */
          case KP_UP:
+            SetChannelThresh(SelectedChannel,GetChannelThresh(SelectedChannel) + 1);
+            break;
          case KP_A:
 				SetChannelThresh(SelectedChannel, (((GetChannelThresh(SelectedChannel) >> THRESHOLD_LEVELS)+1) << THRESHOLD_LEVELS));
          break;
          
          case KP_DOWN:
+            SetChannelThresh(SelectedChannel,GetChannelThresh(SelectedChannel) - 1);
+            break;
          case KP_B:
 				SetChannelThresh(SelectedChannel, (((GetChannelThresh(SelectedChannel) >> THRESHOLD_LEVELS)-1) << THRESHOLD_LEVELS));  
          break;
@@ -1335,7 +1345,7 @@ void SetThreshold(void* data)
 	UF_MenuPrint_P(PSTR("Fine Tune:")); 
 	
 	UI_LCD_Pos(&PrimaryDisplay, 1, 10);         
-   lcdProgressBar(PotValue,(1<<THRESHOLD_LEVELS), 10);	 
+   lcdProgressBar((GetChannelThresh(SelectedChannel)%(1<<THRESHOLD_LEVELS) ),(1<<THRESHOLD_LEVELS), 10);
 
 	UF_MenuNewLine();   
 	utoa(GetChannelThresh(SelectedChannel), outputString, 10);
@@ -1752,7 +1762,7 @@ void DigitalChannelSettings(void* data)
 
  	if( primaryMenu.firstEnter != 1 )
  	{
-		UF_stateMachine( primaryMenu.currentState ); 
+		UF_stateMachine();
 	   switch( *input )
 	   {
          case KP_UP:
@@ -1918,7 +1928,7 @@ void AmpInputSelect(void* data)
 	
 	if( primaryMenu.firstEnter != 1 )
    {     
-		UF_stateMachine( primaryMenu.currentState );
+		UF_stateMachine();
       switch( *input )
       {
 			case KB_BACK:
@@ -1966,7 +1976,7 @@ void SensorInputChange(void* data)
 	SensorInputSelect( (SelectedState == ST_VARIABLE_GAIN) ? ADC_CHANNEL(DEFAULT_ADC_CHANNEL) : ADC_CHANNEL(0) );
 
    UF_MenuSetInput(KP_BACK);
-   UF_stateMachine(primaryMenu.currentState);
+   UF_stateMachine();
    UF_MenuSetInput(0);	
 	
 }
@@ -1983,7 +1993,7 @@ void ShowProfile(void* data)
 		
 	if( firstEnter != 1 )
    {     
-		UF_stateMachine( primaryMenu.currentState );
+		UF_stateMachine();
       switch( *input )
       {
 			case KB_BACK:
@@ -2171,7 +2181,7 @@ void AdjustCrosstalk(void* data)
          case KP_BACK:
 				/* Go back up one menu */   
    			UF_MenuSetInput(KB_BACK);
-  				UF_stateMachine(primaryMenu.currentState);
+  				UF_stateMachine();
   				UF_MenuSetInput(0);
   				return;
   				
@@ -2240,7 +2250,7 @@ void ChangeChannelCode(void* data)
          case KP_BACK:
 				/* Go back up one menu */   
    			UF_MenuSetInput(KB_BACK);
-  				UF_stateMachine(primaryMenu.currentState);
+  				UF_stateMachine();
   				UF_MenuSetInput(0);
   				return;
   				
