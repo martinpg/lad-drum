@@ -51,7 +51,7 @@ static PROGMEM char deviceDescrMIDI[] = {	/* USB device descriptor */
 static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	9,			/* sizeof(usbDescrConfig): length of descriptor in bytes */
 	USBDESCR_CONFIG,	/* descriptor type */
-	101, 0,			/* total length of data returned (including inlined descriptors) */
+	103, 0,			/* total length of data returned (including inlined descriptors) */
 	2,			/* number of interfaces in this configuration */
 	1,			/* index of this configuration */
 	0,			/* configuration name string index */
@@ -129,7 +129,7 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	6,			/* bLength */
 	36,			/* descriptor type */
 	2,			/* MIDI_IN_JACK desc subtype */
-	2,			/* External bJackType */
+	1,			/* External bJackType */
 	2,			/* bJackID */
 	0,			/* iJack */
 
@@ -149,7 +149,7 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	9,			/* bLength of descriptor in bytes */
 	36,			/* bDescriptorType */
 	3,			/* MIDI_OUT_JACK bDescriptorSubtype */
-	2,			/* EMBEDDED bJackType */
+	1,			/* EMBEDDED bJackType */
 	5,			/* bJackID */
 	1,			/* bNrInputPins */
 	1,			/* baSourceID (0) */
@@ -170,11 +170,11 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	0,			/* bSyncAddress */
 
 // B.5.2 Class-specific MS Bulk OUT Endpoint Descriptor
-	5,			/* bLength of descriptor in bytes */
+	6,			/* bLength of descriptor in bytes */
 	37,			/* bDescriptorType */
 	1,			/* bDescriptorSubtype */
-	1,			/* bNumEmbMIDIJack  */
-	1, //2,		/* baAssocJackID (0) */
+	2,			/* bNumEmbMIDIJack  */
+	1, 2,		/* baAssocJackID (0) */
 
 
 //B.6 Bulk IN Endpoint Descriptors
@@ -190,11 +190,11 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 	0,			/* bSyncAddress */
 
 // B.6.2 Class-specific MS Bulk IN Endpoint Descriptor
-	5,			/* bLength of descriptor in bytes */
+	6,			/* bLength of descriptor in bytes */
 	37,			/* bDescriptorType */
 	1,			/* bDescriptorSubtype */
-	1,			/* bNumEmbMIDIJack (0) */
-	4,//5,		/* baAssocJackID (0) */
+	2,			/* bNumEmbMIDIJack (0) */
+	4, 5,		/* baAssocJackID (0) */
 };
 
 
@@ -204,7 +204,7 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
-   USBMIDI_PutByte(buffer, 0);
+   USBMIDI_PutByte(buffer, 1);
 
    /* Echo this back out */
    //RxBuffer[rxWritePtr] = buffer;
@@ -329,12 +329,12 @@ void usbFunctionWriteOut(uchar * data, uchar len)
          messageSize = FLASH_GET_PGM_BYTE(&MIDIResponseMap[codeIndexNumber]);
          cableNo = data[i] >> 4;
 
-		 for(j = 0; j < messageSize; j++)
-		 {
-		    uint8_t buffer = data[j+1];
-		    RxBuffer[cableNo][rxWritePtr[cableNo]] = buffer;
-		    rxWritePtr[cableNo] = ((rxWritePtr[cableNo] + 1) & RX_BUFFER_MASK);
-		 }
+         for(j = 0; j < messageSize; j++)
+         {
+            uint8_t buffer = data[i+j+1];
+            RxBuffer[cableNo][rxWritePtr[cableNo]] = buffer;
+            rxWritePtr[cableNo] = ((rxWritePtr[cableNo] + 1) & RX_BUFFER_MASK);
+         }
       }
    }
 
@@ -604,8 +604,9 @@ void bootloader_enter(void)
       }
       USBMIDI_OutputData();
 
-      //if( USBMIDI_GetByte(&nextByte, 1) != NO_DATA_BYTE)
+      if( USBMIDI_GetByte(&nextByte, 1) != NO_DATA_BYTE)
       {
+			bootuartTx(nextByte);
 	  //	 USBMIDI_PutByte(nextByte, 1);
          //ParseFirmwareData(nextByte);
       }
