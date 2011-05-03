@@ -204,11 +204,11 @@ static PROGMEM char configDescrMIDI[] = {	/* USB configuration descriptor */
 ISR(SIG_UART_RECV)
 {
    uint8_t buffer = UDR;
-   USBMIDI_PutByte(buffer, 1);
+   //USBMIDI_PutByte(buffer, 1);
 
    /* Echo this back out */
-   //RxBuffer[rxWritePtr] = buffer;
-   //rxWritePtr = ((rxWritePtr + 1) & RX_BUFFER_MASK);
+   RxBuffer[0][rxWritePtr[0]] = buffer;
+   rxWritePtr[0] = ((rxWritePtr[0] + 1) & RX_BUFFER_MASK);
 }
 
 ISR(BADISR_vect, ISR_NOBLOCK)
@@ -595,23 +595,11 @@ void bootloader_enter(void)
    while(1)
    {
       usbPoll();
-
-
       if( USBMIDI_GetByte(&nextByte, 0) != NO_DATA_BYTE)
       {
-	  	 USBMIDI_PutByte(nextByte, 0);
-         //ParseFirmwareData(nextByte);
+         ParseFirmwareData(nextByte);
       }
       USBMIDI_OutputData();
-
-      if( USBMIDI_GetByte(&nextByte, 1) != NO_DATA_BYTE)
-      {
-			bootuartTx(nextByte);
-	  //	 USBMIDI_PutByte(nextByte, 1);
-         //ParseFirmwareData(nextByte);
-      }
-
-	  //USBMIDI_OutputData();
    }
 }
 
