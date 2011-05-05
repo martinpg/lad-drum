@@ -78,6 +78,8 @@ int main(void)
    //DDRD &= ~(1 << 3);
    //PORTD &= ~(1<<3);
 
+    volatile haha2 = APP_END;
+
    MCUCR = (1 << JTD);
    MCUCR = (1 << JTD);
 

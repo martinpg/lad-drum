@@ -25,6 +25,11 @@ uint8_t USB_Connected;
 volatile uint8_t RxBuffer[CABLE_NO_COUNT][RX_BUFFER_SIZE];
 volatile uint8_t rxWritePtr[CABLE_NO_COUNT];
 
+usbMIDIcable_t MIDICable[2] = {
+      {.lastDataByte = NO_DATA_BYTE},
+      {.lastDataByte = NO_DATA_BYTE}
+};
+
 // This descriptor is based on http://www.usb.org/developers/devclass_docs/midi10.pdf
 // 
 // Appendix B. Example: Simple MIDI Adapter (Informative)
@@ -402,10 +407,6 @@ uint8_t USBMIDI_GetByte(uint8_t* inByte, uint8_t cableNo)
    return NO_DATA_BYTE;
 }
 
-usbMIDIcable_t MIDICable[2] = {
-      {.lastDataByte = NO_DATA_BYTE},
-      {.lastDataByte = NO_DATA_BYTE}
-};
 
 /* This here makes the process Buffer redundant */
 void USBMIDI_PutByte(uint8_t byte, uint8_t cableNo)

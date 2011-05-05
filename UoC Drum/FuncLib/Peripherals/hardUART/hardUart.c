@@ -125,7 +125,6 @@ void uartTx(AVR_USART_t* port, uint8_t byte)
     * to prevent data loss */
    while(ringbuffer_put((RINGBUFFER_T*)port->TransmitBuffer, byte) == BUFFER_OVERFLOW)
    {
-   		//PORTD ^= (1 << 7);
    }
 
    if( (*port->UCSRxA & (1 << UDRE)) && !ringbuffer_isEmpty((RINGBUFFER_T*)port->TransmitBuffer))
