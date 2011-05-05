@@ -99,6 +99,7 @@ int main(void)
 {
 
 	volatile haha = PROFILE(0);
+    volatile haha2 = APP_END;
 
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);

@@ -35,6 +35,9 @@
 #define MIDI_BAUD_115200		MIDI_BAUD(115200)
 #define MIDI_BAUD_1M			MIDI_BAUD(1000000)
 
+#define MIDI_IN_LED	(4)
+#define MIDI_OUT_LED (6)
+
 /* SPI Defines */
 #define SPI_DDR   (DDRB)
 #define SPI_PORT  (PORTB)
