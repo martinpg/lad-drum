@@ -47,7 +47,6 @@ THE SOFTWARE.
 #include "Sensor/sensor.h"
 #include "TimerCallbacks/TimerCallbacks.h"
 
-#include "ADC/adc12.h"
 #include "Profiles/profiles.h"
 #include "VUMeter/vumeter.h"
 #include "MenuSettings.h"
@@ -492,6 +491,10 @@ void GetSysEx(void* data)
 		}	
 	}
 	SysExFlush();
+	while( ringbuffer_len((RINGBUFFER_T*)&ReceiveBuffer) )
+	{
+	   ringbuffer_get((RINGBUFFER_T*)&ReceiveBuffer);
+	}
    ActiveProcess = RECEIVE_SYSEX;
    
    /* Stop the Auxuliary Timer */
