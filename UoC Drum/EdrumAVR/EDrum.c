@@ -98,9 +98,6 @@ volatile uint8_t PrintChannel;
 int main(void)
 {
 
-	volatile haha = PROFILE(0);
-    volatile haha2 = APP_END;
-
    DDRD &= ~(1 << 3);
    PORTD &= ~(1<<3);
 
@@ -236,7 +233,7 @@ int main(void)
             }
             SysExSendNextByte(&CurrentProfile, sysExCount++);
             /* Send the header and sysex end bytes */
-            if( sysExCount == SEND_SYSEX_STOP)
+            if( sysExCount == SEND_SYSEX_STOP+1)
             {
                sysExCount = 0;
                SoftTimerStart(SoftTimer1[SC_MIDIScan]);
