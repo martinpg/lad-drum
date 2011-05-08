@@ -1,7 +1,7 @@
 #include "hardwareSpecific.h"
 
 
-AVR_USART_t PrimaryUART = {
+volatile AVR_USART_t PrimaryUART = {
    &UCSR1A,
    &UCSR1B,
    &UCSR1C,
@@ -9,8 +9,8 @@ AVR_USART_t PrimaryUART = {
    &UBRR1L,
    &UDR1,
 
-   &TransmitBuffer,
-   &ReceiveBuffer
+   &ReceiveBuffer,
+   &TransmitBuffer
 };
 
 
@@ -80,11 +80,11 @@ void SoftTimer_TimerInit(void)
 void enableFlashProgramming(uint8_t mode)
 {
    uint8_t interuptControlState;
-//   interuptControlState = GICR;
+   interuptControlState = MCUCR;
    /* IVSEL = 1, bootloader interrupts */
-//   GICR = (1 << IVCE);
-//   GICR = (mode << IVSEL);
-//   GICR = interuptControlState;
+   MCUCR = (1 << IVCE);
+   MCUCR = (mode << IVSEL);
+   MCUCR = interuptControlState;
 }
 
 

@@ -208,7 +208,7 @@ int main(void)
           * USB_MIDI_THRU mode */
          case USB_MIDI_THRU:
             
-            if( USBMIDI_GetByte(&inByte, EXTERNAL_MIDI_CABLE) != NO_DATA_BYTE )
+            while( USBMIDI_GetByte(&inByte, EXTERNAL_MIDI_CABLE) != NO_DATA_BYTE )
             {
                UART_Tx(inByte);
             }
