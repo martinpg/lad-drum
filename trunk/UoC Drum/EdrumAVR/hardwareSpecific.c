@@ -33,8 +33,8 @@ volatile AVR_USART_t PrimaryUART = {
    &UBRRL,
    &UDR,
 
-   &TransmitBuffer,
-   &ReceiveBuffer
+   &ReceiveBuffer,
+   &TransmitBuffer
 };
 
 
