@@ -141,6 +141,9 @@ THE SOFTWARE.
 #define U2X    1
 #define MPCM   0
 
+
+#ifdef RXEN1
+
 #define RXCIE  RXCIE1
 #define TXCIE  TXCIE1
 #define UDRIE  UDRIE1
@@ -158,6 +161,30 @@ THE SOFTWARE.
 #define UCSZ1  UCSZ11
 #define UCSZ0  UCSZ10
 #define UCPOL  UCPOL1
+
+#else
+
+#define RXCIE  RXCIE0
+#define TXCIE  TXCIE0
+#define UDRIE  UDRIE0
+#define RXEN   RXEN0
+#define TXEN   TXEN0
+#define UCSZ2  UCSZ02
+#define RXB8   RXB80
+#define TXB8   TXB80
+
+#define URSEL  UMSEL01
+#define UMSEL0 UMSEL00
+#define UPM1   UPM01
+#define UPM0   UPM00
+#define USBS   USBS0
+#define UCSZ1  UCSZ01
+#define UCSZ0  UCSZ00
+#define UCPOL  UCPOL0
+
+#endif
+
+
 #endif
 
 

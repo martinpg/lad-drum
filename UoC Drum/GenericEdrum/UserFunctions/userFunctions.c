@@ -972,7 +972,7 @@ void PrintNoteFormat(uint8_t keyType)
    {
       MIDI_NoteString(channelKey, outputString);
       UF_MenuPrint(outputString);
-      uint8toa( MIDI_Octave(channelKey), outputString);
+      itoa( MIDI_Octave(channelKey) - 1, outputString, 10);
    }
    else
    {
