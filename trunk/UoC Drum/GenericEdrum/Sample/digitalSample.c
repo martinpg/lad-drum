@@ -141,15 +141,14 @@ void ScanDigitalInputs(void)
 		    * if the switch is continuous, the release
 		    * may not trigger, thus we need to reset the switch
 		    * retrigger for this one. */
+		   SignalPeak[selectedDigitalInput] = 0;
 		   if( DigitalCycle[i] == INPUT_IS_DOWN )
 		   {
 		      SoftTimerStop(RetriggerPeriod[selectedDigitalInput]);
-		      SignalPeak[selectedDigitalInput] = INPUT_IS_RELEASED;
-		   }
-		   else
-		   {
-		      /* Reset Value */
-            SignalPeak[selectedDigitalInput] = 0;
+		      if( GetActiveRelease(selectedDigitalInput - ANALOGUE_INPUTS) == ACTIVE_RELEASE_ENABLED )
+		      {
+		         SignalPeak[selectedDigitalInput] = INPUT_IS_RELEASED;
+		      }
 		   }
 		   DigitalCycle[i] = INPUT_HAS_BEEN_CYCLED;
 		}

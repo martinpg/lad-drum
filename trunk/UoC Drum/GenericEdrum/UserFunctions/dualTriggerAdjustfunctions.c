@@ -157,14 +157,31 @@ void PrintDualTriggerInformation(uint8_t UpDownPosition)
 
    UF_MenuNewLine();
 
-   UF_MenuPrint_P(PSTR("Activated by: CH"));
+   UF_MenuPrint_P(PSTR("Activated by:CH"));
+
+   /* Indicate whether it is an Analogue, Digital or MetroNome trigger */
+   char channelType;
+   channelType = 'A';
+   utoa(GetTrigger(SelectedChannel)+1, outputString, 10);
+
+   if( GetTrigger(SelectedChannel) >= ANALOGUE_INPUTS)
+   {
+      channelType = 'D';
+      utoa(GetTrigger(SelectedChannel) - ANALOGUE_INPUTS + 1, outputString, 10);
+   }
+   else if( GetTrigger(SelectedChannel) >= (ANALOGUE_INPUTS + DIGITAL_INPUTS))
+   {
+      channelType = 'M';
+      utoa(GetTrigger(SelectedChannel) - ANALOGUE_INPUTS + DIGITAL_INPUTS + 1, outputString, 10);
+   }
+   UF_MenuChar(channelType);
+
    if( UpDownPosition == 3 && enterCount)
    {
       UF_MenuPrint_P( PSTR("    ") );
    }
    else
    {
-      utoa(GetTrigger(SelectedChannel)+1, outputString, 10);
       UF_MenuPrint(outputString);
    }
 

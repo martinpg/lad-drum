@@ -49,6 +49,20 @@ volatile RINGBUFFER_T ReceiveBuffer = {rxbuffer, sizeof(rxbuffer)};
 
 volatile uint8_t transmitState;
 
+/* Example
+volatile AVR_USART_t PrimaryUART = {
+   &UCSR1A,
+   &UCSR1B,
+   &UCSR1C,
+   &UBRR1H,
+   &UBRR1L,
+   &UDR1,
+
+   &ReceiveBuffer,
+   &TransmitBuffer
+};
+*/
+
 
 /* uartInit:
  * Initialises the baudrate, parity, stop bit generation and 8bit mode
